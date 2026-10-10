@@ -267,8 +267,9 @@ que la textura "Madera de pino" cubre 2 × 2 m (supuesto, sin confirmar).
   las ventanas no eligen hojas ni sentido de apertura, ni llevan persiana ni
   vierteaguas. El plano 2D no dibuja el cerco. Probado a la vista en el servidor
   aparte (plano, vista 3D y los dos botones de apertura); sin probar la foto en
-  calidad, el giro de estancia o módulo con puertas, ni "Cerrar la puerta en 3D"
-  pulsando el botón (sí con una puerta cerrada puesta en los datos).
+  calidad ni el giro de estancia o módulo con puertas. El botón "Cerrar / Abrir
+  la puerta en 3D" está probado con un clic simulado (cambia el dato y el rótulo)
+  y la puerta cerrada se vio en 3D puesta en los datos.
 - Muebles: sin colisiones entre sí ni con huecos; no siguen a la estancia al
   redimensionarla o girarla sola (sí al mover la estancia o girar/mover el módulo).
 - Un módulo sin estancias no se ve en 3D (suelo y paredes salen de las estancias).
