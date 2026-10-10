@@ -18,8 +18,8 @@ npm run build    # tsc --noEmit && vite build
 - Comprobación mínima tras cualquier cambio: `npx tsc --noEmit`. No hay tests ni linter.
 - Node del equipo: 20.11.1. Por eso **Vite 5** (Vite 6+/create-vite actual exigen 20.19).
 - Repositorio **git** desde el 2026-10-10, rama `main`. Remoto `origin`:
-  `https://github.com/arlanzon29/ConfiguradorCasa`, que es **público**; no subir
-  nada sin que el usuario lo pida. Fuera de git: `node_modules`, `dist` y
+  `https://github.com/arlanzon29/ConfiguradorCasa`, que es **público** (el usuario
+  lo sabe; las fotos de `fotos/` son públicas). Fuera de git: `node_modules`, `dist` y
   `.claude/settings.local.json`.
 - El disco `D:` no guarda dueños de carpeta y git exige autorizarla una vez:
   `git config --global --add safe.directory D:/IA/ConfiguradorEuroCasa`.
@@ -251,8 +251,8 @@ medida variable, exterior…).
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
 - **2026-10-10** · El proyecto pasa a ser un repositorio git (rama `main`) con un
-  primer commit de todo lo que había. Remoto `origin` apuntando al GitHub del
-  usuario, sin subir nada todavía: el repositorio es público.
+  primer commit de todo lo que había, subido al GitHub del usuario (`origin`,
+  público). Desde ahora, commit y push después de cada cambio.
 - **2026-10-10** · Carpeta `fotos/` con tres fotos de referencia de exteriores que
   pasó el usuario (casa de teja y fachada roja; casa más sencilla, blanca; y la
   "Gran Villa" con porche de madera, que le parece espectacular) y una de
@@ -305,6 +305,8 @@ Se anota aquí cada cosa que se hace, la más reciente arriba.
 
 - **Anotar según se hace.** Cada cambio se apunta en el "Registro de cambios" de
   este documento en el mismo turno, sin esperar a que lo pida.
+- **Commit y push después de cada cambio** (orden del usuario, 2026-10-10), sin
+  preguntar cada vez. Mensajes en español.
 
 - **No programar sin una orden clara.** Si comenta u opina ("yo creo que…", "vamos a
   hablar", "vamos a estudiar"), se conversa y se espera. Con la orden dada, avanzar.
