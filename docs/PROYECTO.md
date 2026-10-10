@@ -27,8 +27,8 @@ npm run build    # tsc --noEmit && vite build
 ## Stack
 
 React 18 + TypeScript + Vite 5. Estado con **zustand** (`persist` en `localStorage`).
-3D con **three.js** vía `@react-three/fiber` v8. El plano 2D es **SVG** puro, con el
-`viewBox` en metros. `@react-three/drei` está instalado pero ya no se usa.
+3D con **three.js** 0.186 vía `@react-three/fiber` v8, y foto en calidad con
+`three-gpu-pathtracer` 0.0.27. El plano 2D es **SVG** puro, con el `viewBox` en metros.
 
 ## Conceptos del dominio (lo más importante)
 
@@ -232,15 +232,17 @@ medida variable, exterior…).
   "Guardar foto" la manda a la pestaña Fotos. Mientras dura la foto se añaden un techo y un
   panel de luz de 0,6 m por estancia (provisionales, en `View3D.tsx`) y un cielo
   en degradado. Resultado de la prueba en `docs/pruebas/`. Lo aprendido:
-  - La 0.0.23 es la última que admite three 0.169; de la 0.0.25 en adelante exige
-    three ≥ 0.185 y three-mesh-bvh ≥ 0.9.15 (choca con drei 9.114, que no se usa).
-  - **No admite mallas con varios materiales** (descoloca los de toda la escena) y
-    al mezclar mallas espera el atributo `color` con 4 componentes. Por eso las
-    paredes llevan el color de cada cara en los vértices (`WallBox`).
-  - Su `dispose()` lanza una excepción; va envuelto en `try`.
+  - Empezó con la 0.0.23 (la última que admitía three 0.169). Desde el 2026-10-10
+    va con la **0.0.27**, que exige three ≥ 0.185 y three-mesh-bvh ≥ 0.9.15.
+  - Con la 0.0.23 **no admitía mallas con varios materiales** (descolocaba los de
+    toda la escena) y al mezclar mallas esperaba el atributo `color` con 4
+    componentes. Por eso las paredes llevan el color de cada cara en los vértices
+    (`WallBox`). Con la 0.0.27 no se ha vuelto a probar lo contrario: se mantiene.
+  - El `dispose()` de la 0.0.23 lanzaba una excepción; sigue envuelto en `try`.
   - La primera foto en un equipo tarda alrededor de un minuto en arrancar
-    (compilación del sombreador, con la página parada unos 40 s); las siguientes,
-    menos de un segundo.
+    (compilación del sombreador). Con la 0.0.23 la página se quedaba parada unos
+    40 s; con la 0.0.27, en la prueba, no hubo parón. Las siguientes, menos de
+    un segundo.
   - Pendiente de hablar: luces como elemento que coloca el usuario, exterior tras
     las ventanas (ahora solo cielo), reducción de ruido, y qué hacer en móviles.
 - Posibles: colisiones a pie, hojas y marcos de puerta, precio por m², más familias
@@ -250,6 +252,12 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-10** · Versiones, paso 1 (lo que más pedía el usuario): three.js
+  0.169 → 0.186.1, `three-gpu-pathtracer` 0.0.23 → 0.0.27, `three-mesh-bvh` →
+  0.9.16, `@react-three/fiber` 8.17 → 8.18, y fuera `@react-three/drei`, que no se
+  usaba. Sin tocar código. Probado en el servidor aparte: vista normal, dos fotos
+  (una viendo otra estancia por la puerta), guardar foto, vuelta a la vista
+  normal, pestaña Fotos y compilación.
 - **2026-10-10** · El proyecto pasa a ser un repositorio git (rama `main`) con un
   primer commit de todo lo que había, subido al GitHub del usuario (`origin`,
   público). Desde ahora, commit y push después de cada cambio.
