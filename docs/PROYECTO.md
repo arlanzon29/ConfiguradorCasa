@@ -57,6 +57,11 @@ Otros elementos:
   reencajan (`refitOpenings`) y el que ya no cabe se pierde.
 - **Acabados**: suelo por estancia (catálogo con textura) y color de pared por
   estancia o por lado (`wallColor`, `sideColors`). Solo se ven en 3D.
+- **Rodapié** (`Skirting`): alto y color **por pared**, guardados donde el grosor:
+  por lado de estancia en las exteriores (`PlacedModule.skirting`) y por pareja en
+  las compartidas (`joints`). Por defecto 7 cm y blanco; alto 0 = sin rodapié. La
+  tira no se guarda: se deduce de las paredes (`skirtingParts` en `View3D.tsx`).
+  Solo se ve en 3D y en la foto.
 - **Mobiliario** (`FurnitureItem`): piezas de catálogo por familias, con centro y
   giro en pasos de 90°. Parte trasera hacia el norte con giro 0.
 
@@ -101,6 +106,7 @@ fotos/                           fotos de referencia que pasa el usuario (exteri
 | `WALL_HEIGHT` | 2,7 m | Inventado; pendiente de confirmar |
 | `DEFAULT_WALL_THICKNESS` | 0,15 m | Exterior. Compartida: 0,10 m (`walls.ts`) |
 | `MIN_SIZE` | 1 m | Lado mínimo de estancia o módulo |
+| `DEFAULT_SKIRTING_HEIGHT/COLOR`, `MAX_SKIRTING_HEIGHT` | 0,07 m / blanco / 0,30 m | Rodapié. Sobresale 1,2 cm (`SKIRTING_DEPTH` en `View3D.tsx`) |
 
 Huecos y muebles se ajustan a 5 cm, más fino que la rejilla.
 
@@ -113,7 +119,7 @@ y qué muestra el panel). `Mode` en `store.ts`:
 |---|---|---|
 | `shells` | Módulos | Añadir (horizontal/vertical), mover, redimensionar, girar, eliminar módulos de fábrica. Se ve toda la parcela |
 | `modules` | Estancias | Añadir, mover, estirar (8 tiradores), girar, eliminar estancias |
-| `walls` | Paredes | Seleccionar pared: grosor y quitar/poner. Colocar, deslizar, centrar y redimensionar puertas y ventanas; distancia al extremo de la pared y altura de la ventana |
+| `walls` | Paredes | Seleccionar pared: grosor, rodapié (alto y color) y quitar/poner. Colocar, deslizar, centrar y redimensionar puertas y ventanas; distancia al extremo de la pared y altura de la ventana |
 | `finishes` | Acabados | Clic en el centro de una estancia: suelo y color de todas sus paredes. Clic junto a un lado: color de esa pared |
 | `options` | Opciones | Mobiliario por familias (Salón, Comedor, Dormitorio): colocar, mover, girar, pegar a pared. Icono de imán para activar o no el imantado a paredes |
 | `photos` | Fotos | Fotos en calidad guardadas: miniaturas, Anterior/Siguiente (la cámara va a donde se sacó cada una, con su objetivo), pinchar para verla grande, descargar y eliminar. En el plano, un icono numerado por foto donde se sacó; pincharlo lleva la cámara allí |
@@ -130,7 +136,7 @@ ella; `Esc` la deja como estaba; lo que no cabe se rechaza con un aviso debajo.
 |---|---|
 | Módulo | distancia al borde izquierdo y superior de la parcela; ancho y fondo |
 | Estancia | distancia al borde izquierdo y superior de su módulo (de la parcela si no hay módulos); ancho y fondo |
-| Pared | grosor (cm) |
+| Pared | grosor (cm); alto del rodapié (cm) y su color |
 | Puerta o ventana | distancia a cada extremo de su pared; ancho y alto; altura desde el suelo (ventanas) |
 | Mueble | distancia de cada borde del mueble a las cuatro paredes de su estancia (a los bordes de la parcela si está fuera) |
 
@@ -219,7 +225,8 @@ Teclas: `R` gira lo seleccionado, `Supr` lo borra, `Esc` cancela la herramienta.
 
 ## Valores inventados, pendientes de datos reales de EuroCasa
 
-Medidas de puertas y ventanas, alféizar (0,9 m), altura de pared, grosores, catálogo
+Medidas de puertas y ventanas, alféizar (0,9 m), altura de pared, grosores, alto
+(7 cm) y saliente (1,2 cm) del rodapié, catálogo
 de estancias (3×3, 3×6, 3×9), colores de pared, medidas y formas de los muebles, y
 que la textura "Madera de pino" cubre 2 × 2 m (supuesto, sin confirmar).
 
@@ -227,7 +234,12 @@ que la textura "Madera de pino" cubre 2 × 2 m (supuesto, sin confirmar).
 
 - Donde se tocan **dos módulos de fábrica** se dibuja una pared compartida única; en
   la realidad hay dos (una por módulo). Sin decidir.
-- Los tramos exteriores de un mismo lado comparten grosor y estado.
+- Los tramos exteriores de un mismo lado comparten grosor, estado y rodapié.
+- Rodapié: en una pared compartida es el mismo en las dos caras. No rodea los
+  cantos de las puertas ni se corta detrás de los muebles. Probado en el servidor
+  aparte en la vista 3D normal (por defecto, y cambiando alto y color de una
+  pared); sin probar a la vista el corte en una puerta, una pared compartida, el
+  giro ni la foto en calidad.
 - Muebles: sin colisiones entre sí ni con huecos; no siguen a la estancia al
   redimensionarla o girarla sola (sí al mover la estancia o girar/mover el módulo).
 - Un módulo sin estancias no se ve en 3D (suelo y paredes salen de las estancias).
@@ -287,6 +299,15 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-10** · **Rodapié** configurable por pared (tema 14 de pendientes; lo
+  pidió el usuario así: por pared, en centímetros y con color, por defecto 7 y
+  blanco). `Skirting` y `skirtingOf` en `house.ts`, campo `skirting` en
+  `PlacedModule`, `JointSettings` y `Wall`; `setWallSkirting` en `store.ts` (por
+  `patchWall`, y gira con la estancia y el módulo); `skirtingParts` y sus mallas
+  en `View3D.tsx`; casilla y colores en `WallProperties` (`ColorPicker` se
+  exporta de `FinishesPanel.tsx`). El archivo de plano no cambia de versión: los
+  planos anteriores salen con el rodapié por defecto.
 
 - **2026-10-10** · Los dos paneles laterales se pueden **plegar** (botón `‹` / `›`
   en la cabecera; `togglePanel` y `readHiddenPanels` en `App.tsx`, estilos

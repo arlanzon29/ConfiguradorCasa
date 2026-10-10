@@ -30,6 +30,22 @@ export const DEFAULT_WALL_THICKNESS = 0.15
 export const MIN_WALL_THICKNESS = 0.05
 export const MAX_WALL_THICKNESS = 0.5
 
+/** Rodapié de una pared; lo que falte usa los valores por defecto. */
+export interface Skirting {
+  /** Alto en metros; 0 es sin rodapié. */
+  height?: number
+  color?: string
+}
+
+export const DEFAULT_SKIRTING_HEIGHT = 0.07
+export const DEFAULT_SKIRTING_COLOR = '#ffffff'
+export const MAX_SKIRTING_HEIGHT = 0.3
+
+export const skirtingOf = (s?: Skirting) => ({
+  height: s?.height ?? DEFAULT_SKIRTING_HEIGHT,
+  color: s?.color ?? DEFAULT_SKIRTING_COLOR,
+})
+
 export interface PlacedModule {
   id: string
   typeId: string
@@ -45,8 +61,10 @@ export interface PlacedModule {
   wallColor?: string
   /** Color propio de la pared de un lado, por dentro; si falta, vale wallColor. */
   sideColors?: Partial<Record<Side, string>>
-  // Los dos siguientes solo afectan a los tramos exteriores de cada lado; las
+  // Los tres siguientes solo afectan a los tramos exteriores de cada lado; las
   // paredes compartidas con otra estancia tienen sus propios ajustes (walls.ts).
+  /** Rodapié por lado, en la cara de dentro. */
+  skirting?: Partial<Record<Side, Skirting>>
   /** Grosor de pared por lado; los que falten usan DEFAULT_WALL_THICKNESS. */
   walls?: Partial<Record<Side, number>>
   /** Lados sin pared exterior. */

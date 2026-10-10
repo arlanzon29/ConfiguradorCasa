@@ -38,7 +38,8 @@ El trazado de rayos deja grano en la imagen.
 Dicho por el usuario al comparar la foto del configurador con la del dormitorio de
 matrimonio (leído como "nos falta…"):
 
-- **Rodapié.** No hay ninguno; en las fotos reales es blanco y recorre toda la pared.
+- **Rodapié.** **Hecho el 2026-10-10**: por pared, con alto en centímetros y
+  color (por defecto 7 cm y blanco), en el panel Propiedades del modo Paredes.
 - **La madera detrás de la cama.** El panel de madera a media altura, de pared a
   pared, que hace de cabecero. Podría salir como revestimiento de un tramo de
   pared hasta cierta altura, o como pieza de pared (ver tema 5).

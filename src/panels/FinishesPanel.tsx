@@ -16,7 +16,7 @@ interface ColorPickerProps {
 }
 
 /** Colores sugeridos más un selector libre. */
-function ColorPicker({ value, onChange }: ColorPickerProps) {
+export function ColorPicker({ value, onChange }: ColorPickerProps) {
   return (
     <div className="color-picker">
       {WALL_COLORS.map((c) => (

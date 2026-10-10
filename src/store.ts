@@ -14,6 +14,7 @@ import {
   SHELL_MAX_SHORT,
   Shell,
   Side,
+  Skirting,
   clampInto,
   clampToPlot,
   contains,
@@ -33,7 +34,7 @@ import {
   wallLine,
 } from './model/openings'
 import { Plan } from './model/planFile'
-import { Joints, Wall, deriveWalls, fitOpening, pairKey, refitOpenings, wallOf } from './model/walls'
+import { JointSettings, Joints, Wall, deriveWalls, fitOpening, pairKey, refitOpenings, wallOf } from './model/walls'
 
 /** Cámara de la vista 3D, en coordenadas de la escena (metros, parcela centrada en el origen). */
 export interface CameraPose {
@@ -162,6 +163,8 @@ interface HouseState {
 
   setWallThickness: (key: string, thickness: number) => void
   setWallOpen: (key: string, open: boolean) => void
+  /** Cambia el alto o el color del rodapié de una pared; lo que no venga se queda como está. */
+  setWallSkirting: (key: string, skirting: Skirting) => void
 
   /** Mobiliario colocado en el plano (modo opciones). */
   furniture: FurnitureItem[]
@@ -306,14 +309,15 @@ export const useHouse = create<HouseState>()(
       }
 
       /** Cambia un ajuste de la pared `key`: de su pareja si es compartida, de su lado si es exterior. */
-      const patchWall = (key: string, thickness?: number, open?: boolean) => {
+      const patchWall = (key: string, thickness?: number, open?: boolean, skirting?: Skirting) => {
         const { modules, joints } = get()
         const wall = deriveWalls(modules, joints).find((w) => w.key === key)
         if (!wall) return
-        const patch = <T extends { thickness?: number; open?: boolean }>(current: T | undefined) => ({
+        const patch = (current?: JointSettings) => ({
           ...current,
           ...(thickness !== undefined && { thickness }),
           ...(open !== undefined && { open }),
+          ...(skirting && { skirting: { ...current?.skirting, ...skirting } }),
         })
         if (wall.shared) {
           const pair = pairKey(wall.moduleId, wall.otherId!)
@@ -329,6 +333,9 @@ export const useHouse = create<HouseState>()(
                   ...m,
                   ...(thickness !== undefined && { walls: { ...m.walls, [side]: thickness } }),
                   ...(open !== undefined && { open: { ...m.open, [side]: open } }),
+                  ...(skirting && {
+                    skirting: { ...m.skirting, [side]: { ...m.skirting?.[side], ...skirting } },
+                  }),
                 },
           ),
         })
@@ -498,6 +505,7 @@ export const useHouse = create<HouseState>()(
                   depth: m.width,
                   walls: turnSides(m.walls),
                   open: turnSides(m.open),
+                  skirting: turnSides(m.skirting),
                   sideColors: turnSides(m.sideColors),
                   floorTurned: !m.floorTurned,
                 },
@@ -630,6 +638,7 @@ export const useHouse = create<HouseState>()(
             ...clampToPlot({ ...current, width: current.depth, depth: current.width }),
             walls: turn(current.walls),
             open: turn(current.open),
+            skirting: turn(current.skirting),
             sideColors: turn(current.sideColors),
           }
           const others = modules.filter((m) => m.id !== id)
@@ -780,6 +789,7 @@ export const useHouse = create<HouseState>()(
           })),
         setWallThickness: (key, thickness) => patchWall(key, thickness),
         setWallOpen: (key, open) => patchWall(key, undefined, open),
+        setWallSkirting: (key, skirting) => patchWall(key, undefined, undefined, skirting),
 
         setTool: (tool) => set({ tool }),
 

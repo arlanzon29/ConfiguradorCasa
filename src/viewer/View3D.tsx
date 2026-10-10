@@ -25,6 +25,8 @@ const SLAB = 0.2
 const CEILING = 0.1
 const CEILING_LIGHT = 0.6
 const GLASS_THICKNESS = 0.03
+// Lo que sobresale el rodapié de la pared, en metros.
+const SKIRTING_DEPTH = 0.012
 // La fachada aún no es configurable (dependerá del aislante y del revestimiento).
 const FACADE_COLOR = DEFAULT_WALL_COLOR
 
@@ -104,6 +106,53 @@ function wallParts(
       cursor = to
     }
     add(cursor, wall.to, 0, WALL_HEIGHT)
+  }
+  return parts
+}
+
+interface SkirtingPart {
+  position: [number, number, number]
+  size: [number, number, number]
+  color: string
+}
+
+/**
+ * Rodapiés: una tira por cada cara de pared que da a una estancia (las dos de
+ * una compartida, la de dentro de una exterior), cortada en los huecos que
+ * llegan hasta ella, que en la práctica son las puertas.
+ */
+function skirtingParts(modules: PlacedModule[], joints: Joints, openings: Opening[]) {
+  const walls = deriveWalls(modules, joints)
+  const parts: SkirtingPart[] = []
+  for (const wall of walls) {
+    const { height, color } = wall.skirting
+    if (wall.open || height <= 0) continue
+    const [acrossMin, acrossMax] = wallAcross(wall)
+    // Centro de la tira en cada cara con estancia delante: la norte u oeste, la sur o este.
+    const inner = wall.side === 'n' || wall.side === 'w'
+    const faces = [
+      ...(wall.shared || !inner ? [acrossMin - SKIRTING_DEPTH / 2] : []),
+      ...(wall.shared || inner ? [acrossMax + SKIRTING_DEPTH / 2] : []),
+    ]
+    const add = (from: number, to: number) => {
+      if (to - from < 1e-3) return
+      const mid = (from + to) / 2
+      const y = SLAB + height / 2
+      for (const across of faces) {
+        parts.push(
+          wall.horizontal
+            ? { position: [mid, y, across], size: [to - from, height, SKIRTING_DEPTH], color }
+            : { position: [across, y, mid], size: [SKIRTING_DEPTH, height, to - from], color },
+        )
+      }
+    }
+    let cursor = wall.from
+    for (const { opening: o, from, to } of openingsOf(wall, modules, walls, openings)) {
+      if (o.sill >= height) continue
+      add(cursor, from)
+      cursor = to
+    }
+    add(cursor, wall.to)
   }
   return parts
 }
@@ -359,6 +408,10 @@ export default function View3D() {
     () => wallParts(modules, joints, openings, FACADE_COLOR),
     [modules, joints, openings],
   )
+  const skirtings = useMemo(
+    () => skirtingParts(modules, joints, openings),
+    [modules, joints, openings],
+  )
 
   // Foto en calidad: trazado de rayos sobre esta misma escena, con un
   // techo y una luz de techo por estancia que solo existen mientras dura la foto.
@@ -513,12 +566,18 @@ export default function View3D() {
             <WallBox key={i} part={part} />
           ),
         )}
+        {skirtings.map((part, i) => (
+          <mesh key={i} position={part.position} receiveShadow>
+            <boxGeometry args={part.size} />
+            <meshStandardMaterial color={part.color} roughness={0.6} />
+          </mesh>
+        ))}
       </group>
 
       <FirstPersonControls />
       {photo && (
         <PhotoTracer
-          revision={[modules, parts, furniture]}
+          revision={[modules, parts, skirtings, furniture]}
           onProgress={onProgress}
           saveRequest={saveRequest}
           onSave={(image, shot) => void onSave(image, shot)}

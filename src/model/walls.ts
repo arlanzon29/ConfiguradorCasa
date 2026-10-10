@@ -1,4 +1,4 @@
-import { PlacedModule, SIDES, Side, roundSize, wallThickness } from './house'
+import { PlacedModule, SIDES, Side, Skirting, roundSize, skirtingOf, wallThickness } from './house'
 import { CORNER_GAP, OPPOSITE, Opening, wallLine } from './openings'
 
 // Las paredes no se guardan: se deducen de los bordes de las estancias. Cada
@@ -13,6 +13,8 @@ export const DEFAULT_JOINT_THICKNESS = 0.1
 export interface JointSettings {
   thickness?: number
   open?: boolean
+  /** El mismo rodapié en las dos caras. */
+  skirting?: Skirting
 }
 
 /** Ajustes de las paredes compartidas, por pareja de estancias (ver pairKey). */
@@ -38,6 +40,7 @@ export interface Wall {
   thickness: number
   /** Sin pared: el tramo queda diáfano. */
   open: boolean
+  skirting: Required<Skirting>
 }
 
 const EPS = 1e-6
@@ -72,6 +75,7 @@ export function deriveWalls(modules: PlacedModule[], joints: Joints): Wall[] {
           to,
           thickness: wallThickness(m, side),
           open: !!m.open?.[side],
+          skirting: skirtingOf(m.skirting?.[side]),
         })
       }
       let cursor = line.start
@@ -89,6 +93,7 @@ export function deriveWalls(modules: PlacedModule[], joints: Joints): Wall[] {
             to: t.to,
             thickness: joints[pair]?.thickness ?? DEFAULT_JOINT_THICKNESS,
             open: !!joints[pair]?.open,
+            skirting: skirtingOf(joints[pair]?.skirting),
           })
         }
         cursor = t.to

@@ -1,6 +1,7 @@
 import { ReactNode, useEffect, useMemo, useState } from 'react'
 import { FurnitureItem, furnitureType } from '../model/furniture'
 import {
+  MAX_SKIRTING_HEIGHT,
   MAX_WALL_THICKNESS,
   MIN_SIZE,
   MIN_WALL_THICKNESS,
@@ -21,6 +22,7 @@ import {
 import { CORNER_GAP, MIN_OPENING, Opening } from '../model/openings'
 import { Wall, deriveWalls, openingSpan, wallOf } from '../model/walls'
 import { Mode, furnitureBox, useHouse } from '../store'
+import { ColorPicker } from './FinishesPanel'
 
 // Panel derecho: los datos de lo que está seleccionado en el plano, en casillas
 // que se pueden escribir a mano. Cada casilla se aplica sola, al pulsar Intro o
@@ -187,6 +189,7 @@ function RoomProperties({ room }: { room: PlacedModule }) {
 function WallProperties({ wall }: { wall: Wall }) {
   const setWallThickness = useHouse((s) => s.setWallThickness)
   const setWallOpen = useHouse((s) => s.setWallOpen)
+  const setWallSkirting = useHouse((s) => s.setWallSkirting)
 
   return (
     <>
@@ -210,6 +213,25 @@ function WallProperties({ wall }: { wall: Wall }) {
           }}
         />
       </Fields>
+      <Fields title="Rodapié">
+        <Field
+          full
+          label="Alto (cm), 0 para quitarlo"
+          value={Math.round(wall.skirting.height * 100)}
+          onApply={(cm) => {
+            const meters = Math.round(cm) / 100
+            if (meters < 0 || meters > MAX_SKIRTING_HEIGHT)
+              return `Entre 0 y ${MAX_SKIRTING_HEIGHT * 100} cm.`
+            setWallSkirting(wall.key, { height: meters })
+            return ''
+          }}
+        />
+      </Fields>
+      <ColorPicker
+        value={wall.skirting.color}
+        onChange={(color) => setWallSkirting(wall.key, { color })}
+      />
+      {wall.shared && <p className="muted spaced">El rodapié es el mismo en las dos caras.</p>}
       <div className="actions spaced">
         <button onClick={() => setWallOpen(wall.key, !wall.open)}>
           {wall.open ? 'Volver a poner la pared' : 'Quitar la pared'}
