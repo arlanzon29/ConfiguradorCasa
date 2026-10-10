@@ -32,7 +32,32 @@ export interface Opening {
   height: number
   /** Altura del borde inferior sobre el suelo; 0 en puertas. */
   sill: number
+  /**
+   * Puerta abatible: hacia dónde abre. `in` (por defecto), hacia la estancia a la
+   * que está anclada; `out`, hacia el otro lado de la pared.
+   */
+  swing?: 'in' | 'out'
+  /**
+   * Puerta abatible: canto de las bisagras. `start` (por defecto), el extremo
+   * oeste o norte del hueco; `end`, el opuesto.
+   */
+  hinge?: 'start' | 'end'
+  /** Puerta abatible dibujada cerrada en 3D; si no, abierta a 90° como en el plano. */
+  closed?: boolean
 }
+
+// Hasta este ancho una puerta es abatible; por encima, corredera.
+export const MAX_SWING_DOOR = 1.2
+export const swingDoor = (o: Pick<Opening, 'kind' | 'width'>) =>
+  o.kind === 'door' && o.width <= MAX_SWING_DOOR
+
+/**
+ * Hacia dónde abre una puerta, atravesando su pared: 1 hacia el sur o el este,
+ * -1 hacia el norte o el oeste. Su estancia queda al sur o al este de sus lados
+ * norte y oeste.
+ */
+export const swingSign = (o: Pick<Opening, 'side' | 'swing'>) =>
+  (o.side === 'n' || o.side === 'w') === (o.swing !== 'out') ? 1 : -1
 
 export const MIN_OPENING = 0.4
 // Distancia mínima de un hueco al extremo de su pared.
@@ -57,14 +82,22 @@ export const validOpeningSize = (o: Pick<Opening, 'width' | 'height' | 'sill'>) 
 
 /** Hueco de una estancia tras girarla 90° en sentido horario (`newWidth` = su fondo anterior). */
 export function rotateOpening(o: Opening, newWidth: number): Opening {
+  // En los lados este y oeste el hueco pasa a medirse desde el otro extremo, y
+  // con él cambia de nombre el canto de las bisagras.
+  const flipped = (side: Side): Opening => ({
+    ...o,
+    side,
+    offset: roundSize(newWidth - o.offset - o.width),
+    ...(o.kind === 'door' && { hinge: o.hinge === 'end' ? 'start' : 'end' }),
+  })
   switch (o.side) {
     case 'n':
       return { ...o, side: 'e' }
     case 's':
       return { ...o, side: 'w' }
     case 'e':
-      return { ...o, side: 's', offset: roundSize(newWidth - o.offset - o.width) }
+      return flipped('s')
     case 'w':
-      return { ...o, side: 'n', offset: roundSize(newWidth - o.offset - o.width) }
+      return flipped('n')
   }
 }

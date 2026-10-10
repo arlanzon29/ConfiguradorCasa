@@ -55,6 +55,14 @@ Otros elementos:
   (`moduleId`, `side`, `offset`). En qué pared caen se deduce; uno puesto en una
   pared compartida da paso entre las dos estancias. Al cambiar las estancias se
   reencajan (`refitOpenings`) y el que ya no cabe se pierde.
+- **Carpintería** de los huecos: no se guarda, se deduce de cada hueco y su pared
+  (`joineryParts` en `viewer/joinery.ts`). Puerta abatible (hasta 1,2 m de ancho,
+  `swingDoor`): cerco, tapajuntas por las dos caras, hoja y manilla. Ventana:
+  cerco y hojas acristaladas (una por cada 0,7 m de ancho). Corredera: cerco y
+  dos hojas de cristal solapadas. De cada puerta abatible se guarda en el hueco
+  hacia dónde abre (`swing`: `in` hacia su estancia, `out` al otro lado), en qué
+  canto gira (`hinge`: `start` el extremo oeste o norte, `end` el otro) y si se ve
+  cerrada en 3D (`closed`; si no, abierta a 90° como en el plano). Todo blanco.
 - **Acabados**: suelo por estancia (catálogo con textura) y color de pared por
   estancia o por lado (`wallColor`, `sideColors`). Solo se ven en 3D.
 - **Rodapié** (`Skirting`): alto y color **por pared**, guardados donde el grosor:
@@ -89,6 +97,7 @@ src/
                     + PlanFileButtons + PhotoViewer
   viewer/
     View3D.tsx      escena 3D, cámara en primera persona, paredes y suelos
+    joinery.ts      carpintería de puertas y ventanas, como cajas
     Furniture3D.tsx muebles como composición de cajas
     PhotoTracer.tsx foto en calidad por trazado de rayos
 public/texturas/suelos/          imágenes de suelo
@@ -137,7 +146,7 @@ ella; `Esc` la deja como estaba; lo que no cabe se rechaza con un aviso debajo.
 | Módulo | distancia al borde izquierdo y superior de la parcela; ancho y fondo |
 | Estancia | distancia al borde izquierdo y superior de su módulo (de la parcela si no hay módulos); ancho y fondo |
 | Pared | grosor (cm); alto del rodapié (cm) y su color |
-| Puerta o ventana | distancia a cada extremo de su pared; ancho y alto; altura desde el suelo (ventanas) |
+| Puerta o ventana | distancia a cada extremo de su pared; ancho y alto; altura desde el suelo (ventanas). En puertas abatibles, botones "Abrir hacia el otro lado", "Girar desde el otro canto" y "Cerrar / Abrir la puerta en 3D" |
 | Mueble | distancia de cada borde del mueble a las cuatro paredes de su estancia (a los bordes de la parcela si está fuera) |
 
 El derecho solo existe en los modos Módulos, Estancias, Paredes y Opciones
@@ -237,7 +246,8 @@ Teclas: `R` gira lo seleccionado, `Supr` lo borra, `Esc` cancela la herramienta.
 
 ## Valores inventados, pendientes de datos reales de EuroCasa
 
-Medidas de puertas y ventanas, alféizar (0,9 m), altura de pared, grosores, alto
+Medidas de puertas y ventanas y de su carpintería (cerco de 3 cm, tapajuntas de
+7 cm, hoja de 4 cm, perfiles de ventana de 5 cm; constantes de `joinery.ts`), alféizar (0,9 m), altura de pared, grosores, alto
 (7 cm) y saliente (1,2 cm) del rodapié, catálogo
 de estancias (3×3, 3×6, 3×9), colores de pared, medidas y formas de los muebles, y
 que la textura "Madera de pino" cubre 2 × 2 m (supuesto, sin confirmar).
@@ -252,6 +262,13 @@ que la textura "Madera de pino" cubre 2 × 2 m (supuesto, sin confirmar).
   aparte en la vista 3D normal (por defecto, y cambiando alto y color de una
   pared); sin probar a la vista el corte en una puerta, una pared compartida, el
   giro ni la foto en calidad.
+- Carpintería: color blanco fijo. La puerta abierta no choca con nada (muebles,
+  otra puerta, la pared de al lado). La corredera no elige hacia dónde desliza y
+  las ventanas no eligen hojas ni sentido de apertura, ni llevan persiana ni
+  vierteaguas. El plano 2D no dibuja el cerco. Probado a la vista en el servidor
+  aparte (plano, vista 3D y los dos botones de apertura); sin probar la foto en
+  calidad, el giro de estancia o módulo con puertas, ni "Cerrar la puerta en 3D"
+  pulsando el botón (sí con una puerta cerrada puesta en los datos).
 - Muebles: sin colisiones entre sí ni con huecos; no siguen a la estancia al
   redimensionarla o girarla sola (sí al mover la estancia o girar/mover el módulo).
 - Un módulo sin estancias no se ve en 3D (suelo y paredes salen de las estancias).
@@ -319,6 +336,18 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-10** · **Puertas y ventanas con carpintería** (tema 16 de pendientes;
+  el usuario pidió la puerta y la jamba, y elegir hacia qué lado abre y desde qué
+  punto gira). Nuevo `viewer/joinery.ts` (`joineryParts`): cerco, tapajuntas, hoja
+  y manilla en las puertas; cerco y hojas con cristal en ventanas y correderas.
+  El cristal sale de ahí y ya no de `wallParts`. En `openings.ts`, campos `swing`,
+  `hinge` y `closed`, `swingDoor`, `swingSign` y `MAX_SWING_DOOR` (antes en
+  `Editor2D.tsx`); `rotateOpening` cambia el canto al girar. `setDoor` en
+  `store.ts`, tres botones en `OpeningProperties`, y el símbolo del plano se
+  voltea según apertura y canto. El archivo de plano no cambia de versión: las
+  puertas anteriores abren como se dibujaban (hacia su estancia, bisagras al
+  inicio). Añadido yo, sin pedirlo: poder ver la puerta cerrada en 3D.
 
 - **2026-10-10** · Anotado en `docs/PENDIENTES.md` el tema 16: puertas y ventanas.
   Estaba solo a medias (las ventanas dentro del tema 14 y una línea de "posibles").

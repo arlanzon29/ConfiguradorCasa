@@ -19,7 +19,7 @@ import {
   validSize,
   validWallThickness,
 } from '../model/house'
-import { CORNER_GAP, MIN_OPENING, Opening } from '../model/openings'
+import { CORNER_GAP, MIN_OPENING, Opening, swingDoor } from '../model/openings'
 import { Wall, deriveWalls, openingSpan, wallOf } from '../model/walls'
 import { Mode, furnitureBox, useHouse } from '../store'
 import { ColorPicker } from './FinishesPanel'
@@ -247,6 +247,7 @@ function OpeningProperties({ opening, walls }: { opening: Opening; walls: Wall[]
   const resizeOpening = useHouse((s) => s.resizeOpening)
   const setOpeningSill = useHouse((s) => s.setOpeningSill)
   const centerOpening = useHouse((s) => s.centerOpening)
+  const setDoor = useHouse((s) => s.setDoor)
   const removeOpening = useHouse((s) => s.removeOpening)
   const [notice, setNotice] = useState('')
 
@@ -302,6 +303,32 @@ function OpeningProperties({ opening, walls }: { opening: Opening; walls: Wall[]
           />
         )}
       </Fields>
+      {swingDoor(opening) && (
+        <div className="actions spaced">
+          <button
+            title="La puerta pasa a abrir hacia el otro lado de la pared"
+            onClick={() =>
+              setDoor(opening.id, { swing: opening.swing === 'out' ? 'in' : 'out' })
+            }
+          >
+            Abrir hacia el otro lado
+          </button>
+          <button
+            title="Las bisagras pasan al otro canto del hueco"
+            onClick={() =>
+              setDoor(opening.id, { hinge: opening.hinge === 'end' ? 'start' : 'end' })
+            }
+          >
+            Girar desde el otro canto
+          </button>
+          <button
+            title="Cómo se ve la hoja en la vista 3D y en la foto"
+            onClick={() => setDoor(opening.id, { closed: !opening.closed })}
+          >
+            {opening.closed ? 'Abrir la puerta en 3D' : 'Cerrar la puerta en 3D'}
+          </button>
+        </div>
+      )}
       <div className="actions spaced">
         <button
           onClick={() =>

@@ -198,6 +198,8 @@ interface HouseState {
   resizeOpening: (id: string, width: number, height: number) => boolean
   /** Altura del borde inferior sobre el suelo. False si con ella se sale de la pared. */
   setOpeningSill: (id: string, sill: number) => boolean
+  /** Hacia dónde abre una puerta, en qué canto gira y si se ve cerrada en 3D. */
+  setDoor: (id: string, patch: Pick<Opening, 'swing' | 'hinge' | 'closed'>) => void
   /** Centra el hueco a lo largo de su pared. False si ahí pisa otro hueco. */
   centerOpening: (id: string) => boolean
   removeOpening: (id: string) => void
@@ -848,6 +850,9 @@ export const useHouse = create<HouseState>()(
           set({ openings: openings.map((o) => (o.id === id ? { ...o, sill } : o)) })
           return true
         },
+
+        setDoor: (id, patch) =>
+          set((s) => ({ openings: s.openings.map((o) => (o.id === id ? { ...o, ...patch } : o)) })),
 
         centerOpening: (id) => {
           const { modules, joints, openings } = get()

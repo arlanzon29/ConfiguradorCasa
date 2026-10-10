@@ -19,6 +19,12 @@ está decidido ni empezado. Lo más reciente, arriba.
   (o adentro/afuera en una exterior) y bisagras a un extremo o al otro; cuatro
   combinaciones. En el plano 2D lo habitual es dibujar la hoja abierta con su arco
   de barrido. La corredera no gira: habría que decidir hacia dónde desliza.
+- **Hecho el 2026-10-10** lo que pidió: cerco, tapajuntas, hoja y manilla en las
+  puertas, y en Propiedades "Abrir hacia el otro lado" y "Girar desde el otro
+  canto" (más ver la puerta abierta o cerrada en 3D). Las ventanas y la corredera
+  llevan cerco y hojas con cristal. **Sigue pendiente:** color o material de la
+  carpintería (ahora blanca), hacia dónde desliza la corredera, hojas y apertura
+  de las ventanas, persiana, más tipos en el catálogo y medidas reales.
 - Ya constaba suelto: "las ventanas hay que mejorarlas" (tema 14: faltan marco,
   hojas y, en exterior, cajón de persiana) y "hojas y marcos de puerta" entre los
   posibles de `PROYECTO.md`. Este tema lo reúne.

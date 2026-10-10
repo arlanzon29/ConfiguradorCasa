@@ -17,6 +17,7 @@ import { Joints, deriveWalls, openingsOf, wallAcross } from '../model/walls'
 import { Shot, usePhotos } from '../photos'
 import { LENSES, cameraFlying, samePose, stopCameraFlight, useHouse } from '../store'
 import Furniture3D from './Furniture3D'
+import { JoineryMaterial, joineryParts } from './joinery'
 import PhotoTracer, { PHOTO_SAMPLES } from './PhotoTracer'
 
 // Grosor de la losa, en metros.
@@ -24,16 +25,21 @@ const SLAB = 0.2
 // Techo y panel de luz provisionales de la foto en calidad: grosor y lado, en metros.
 const CEILING = 0.1
 const CEILING_LIGHT = 0.6
-const GLASS_THICKNESS = 0.03
 // Lo que sobresale el rodapié de la pared, en metros.
 const SKIRTING_DEPTH = 0.012
 // La fachada aún no es configurable (dependerá del aislante y del revestimiento).
 const FACADE_COLOR = DEFAULT_WALL_COLOR
 
+// Carpintería: de momento blanca en toda la casa, sin configurar.
+const JOINERY_MATERIALS: Record<JoineryMaterial, object> = {
+  wood: { color: '#f3f1ec', roughness: 0.55 },
+  glass: { color: '#9fc6dd', transparent: true, opacity: 0.35 },
+  metal: { color: '#8d9196', roughness: 0.35, metalness: 0.8 },
+}
+
 interface WallPart {
   position: [number, number, number]
   size: [number, number, number]
-  glass: boolean
   /** Color de cada cara de la caja, en el orden de BoxGeometry: +x, -x, +y, -y, +z, -z. */
   faces: string[]
 }
@@ -41,7 +47,7 @@ interface WallPart {
 /**
  * Cajas que forman las paredes de la casa, en coordenadas del plano (x, y → x, z):
  * cada pared se trocea alrededor de sus huecos (tramos macizos, dintel y
- * antepecho), y las ventanas llevan además un cristal.
+ * antepecho). La carpintería de los huecos va aparte (`joineryParts`).
  *
  * Cada cara larga toma el color de lo que tiene delante: la estancia a la que
  * da, o la fachada si da al exterior.
@@ -69,11 +75,11 @@ function wallParts(
         ? [facadeColor, own]
         : [own, facadeColor]
 
-    const add = (from: number, to: number, bottom: number, top: number, glass = false) => {
+    const add = (from: number, to: number, bottom: number, top: number) => {
       if (to - from < 1e-3 || top - bottom < 1e-3) return
       const along = to - from
       const mid = (from + to) / 2
-      const across = glass ? GLASS_THICKNESS : wall.thickness
+      const across = wall.thickness
       const y = SLAB + (bottom + top) / 2
       // Los extremos reales de la pared asoman a la fachada en las esquinas; los
       // cantos que dan a un hueco, el canto superior y el inferior quedan neutros.
@@ -85,13 +91,11 @@ function wallParts(
           ? {
               position: [mid, y, axis],
               size: [along, top - bottom, across],
-              glass,
               faces: [endHigh, endLow, neutral, neutral, high, low],
             }
           : {
               position: [axis, y, mid],
               size: [across, top - bottom, along],
-              glass,
               faces: [high, low, neutral, neutral, endHigh, endLow],
             },
       )
@@ -102,7 +106,6 @@ function wallParts(
       add(cursor, from, 0, WALL_HEIGHT)
       add(from, to, 0, o.sill)
       add(from, to, o.sill + o.height, WALL_HEIGHT)
-      if (o.kind === 'window') add(from, to, o.sill, o.sill + o.height, true)
       cursor = to
     }
     add(cursor, wall.to, 0, WALL_HEIGHT)
@@ -412,6 +415,10 @@ export default function View3D() {
     () => skirtingParts(modules, joints, openings),
     [modules, joints, openings],
   )
+  const joinery = useMemo(
+    () => joineryParts(modules, joints, openings),
+    [modules, joints, openings],
+  )
 
   // Foto en calidad: trazado de rayos sobre esta misma escena, con un
   // techo y una luz de techo por estancia que solo existen mientras dura la foto.
@@ -594,16 +601,20 @@ export default function View3D() {
         ))}
 
         {/* Sin techo. Las paredes son de la casa, no de cada estancia. */}
-        {parts.map((part, i) =>
-          part.glass ? (
-            <mesh key={i} position={part.position}>
-              <boxGeometry args={part.size} />
-              <meshStandardMaterial color="#9fc6dd" transparent opacity={0.35} />
-            </mesh>
-          ) : (
-            <WallBox key={i} part={part} />
-          ),
-        )}
+        {parts.map((part, i) => (
+          <WallBox key={i} part={part} />
+        ))}
+        {/* Carpintería de puertas y ventanas: cercos, hojas, cristales y manillas. */}
+        {joinery.map((part, i) => (
+          <mesh
+            key={i}
+            position={[part.position[0], SLAB + part.position[1], part.position[2]]}
+            receiveShadow={part.material !== 'glass'}
+          >
+            <boxGeometry args={part.size} />
+            <meshStandardMaterial {...JOINERY_MATERIALS[part.material]} />
+          </mesh>
+        ))}
         {skirtings.map((part, i) => (
           <mesh key={i} position={part.position} receiveShadow>
             <boxGeometry args={part.size} />
@@ -617,7 +628,7 @@ export default function View3D() {
         <PhotoTracer
           // Al repetir se empieza de cero aunque ya hubiera una foto terminada a la vista.
           key={retakeId ?? 'libre'}
-          revision={[modules, parts, skirtings, furniture]}
+          revision={[modules, parts, skirtings, joinery, furniture]}
           onProgress={onProgress}
           saveRequest={saveRequest}
           onSave={(image, shot) => void onSave(image, shot)}

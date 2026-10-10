@@ -11,7 +11,7 @@ import {
   roundSize,
   snap,
 } from '../model/house'
-import { Opening } from '../model/openings'
+import { Opening, swingDoor, swingSign } from '../model/openings'
 import { Wall, deriveWalls, nearestWall, openingsOf, wallAcross } from '../model/walls'
 import { usePhotos } from '../photos'
 import { CameraPose, useHouse } from '../store'
@@ -25,8 +25,6 @@ const WALL_PICK = 1
 const SIDE_PICK = 0.8
 // Los huecos se deslizan por la pared en pasos de 5 cm.
 const snapOpening = (v: number) => Math.round(v * 20) / 20
-// Hasta este ancho una puerta se dibuja abatible; por encima, corredera.
-const MAX_SWING_DOOR = 1.2
 
 type Edge = 'n' | 's' | 'e' | 'w' | 'nw' | 'ne' | 'sw' | 'se'
 // Las esquinas van al final para que se pinten encima de los lados.
@@ -131,7 +129,7 @@ function OpeningSymbol({ o, t }: { o: Opening; t: number }) {
       </>
     )
   }
-  if (w <= MAX_SWING_DOOR) {
+  if (swingDoor(o)) {
     return (
       <>
         <line className="opening-line" x1={0} y1={t} x2={0} y2={t + w} />
@@ -420,8 +418,13 @@ export default function Editor2D() {
             }}
           >
             <rect className="opening-hit" y={-0.2} width={o.width} height={t + 0.4} />
-            {/* La puerta abre hacia la estancia a la que está anclada. */}
-            <g transform={o.side === 's' || o.side === 'e' ? `matrix(1 0 0 -1 0 ${t})` : undefined}>
+            {/* El símbolo abre hacia el sur o el este con las bisagras al inicio: se
+                voltea según a qué lado abre la puerta y en qué canto gira. */}
+            <g
+              transform={`matrix(${o.hinge === 'end' ? -1 : 1} 0 0 ${swingSign(o)} ${
+                o.hinge === 'end' ? o.width : 0
+              } ${swingSign(o) < 0 ? t : 0})`}
+            >
               <OpeningSymbol o={o} t={t} />
             </g>
           </g>
