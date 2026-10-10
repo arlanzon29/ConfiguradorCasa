@@ -512,6 +512,21 @@ button:disabled {
   pointer-events: none;
 }
 
+/* Pregunta al terminar la foto: abajo, para no taparla, y con botones. */
+.photo-wait.photo-ask {
+  top: auto;
+  bottom: 24px;
+  transform: translateX(-50%);
+  gap: 10px;
+  pointer-events: auto;
+}
+
+.photo-ask .actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
 .photo-wait strong {
   font-size: 16px;
 }

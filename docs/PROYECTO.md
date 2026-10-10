@@ -172,7 +172,10 @@ No hay colisiones: se atraviesan paredes. Arriba a la izquierda de la vista:
 - **Foto en calidad**: imagen por trazado de rayos de lo que ve la cámara, con
   techo y luz de techo solo durante la foto. Aviso "Generando la foto…" hasta la
   primera muestra, contador hasta 200, "Guardar foto" (la manda a Fotos y vuelve a
-  la vista normal) y "Volver".
+  la vista normal) y "Volver". Al llegar a 200 **pregunta "¿Guardar la foto?"**
+  en un recuadro abajo, con "Guardar en Fotos" y "No guardar" (vuelve a la vista
+  normal sin guardarla); si se mueve la cámara, la foto empieza otra vez y la
+  pregunta se quita. Al repetir una foto no pregunta: sustituye sola.
 - **Objetivo** (campo de visión): Normal 45°, Angular 60°, Gran angular 75°
   (`LENSES` y `cameraFov` en `store.ts`). Vale para la vista y para la foto, se
   guarda en `localStorage` y se sincroniza entre ventanas. Las estancias son
@@ -352,6 +355,13 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-10** · La foto en calidad **pregunta si se guarda** al terminar (lo
+  pidió el usuario): recuadro `.photo-ask` en `View3D.tsx` con "Guardar en Fotos"
+  y "No guardar". Probado en el servidor aparte: sale al llegar a 200 muestras y
+  "Guardar en Fotos" la guarda y vuelve a la vista normal; "No guardar" sin
+  pulsar. De paso, primera foto trazada con carpintería (una puerta con textura)
+  sin errores, aunque sin ver la imagen: la captura de la pestaña no respondió.
 
 - **2026-10-10** · **Acabado de puertas y ventanas**: color o material, como un
   mismo concepto (lo pidió el usuario así, y que salga debajo en Propiedades).

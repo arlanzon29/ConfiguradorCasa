@@ -619,6 +619,18 @@ export default function View3D() {
           <span>La primera vez puede tardar alrededor de un minuto.</span>
         </div>
       )}
+      {/* Terminada la foto se pregunta si se guarda. Al repetir una no: sustituye sola. */}
+      {photo && !waiting && !retakeId && samples >= PHOTO_SAMPLES && (
+        <div className="photo-wait photo-ask">
+          <strong>¿Guardar la foto?</strong>
+          <div className="actions">
+            <button onClick={() => (saveRequest.current = true)}>
+              Guardar en Fotos
+            </button>
+            <button onClick={() => setPhoto(false)}>No guardar</button>
+          </div>
+        </div>
+      )}
     <Canvas shadows camera={{ position: [20, 22, 34], fov: 45 }}>
       <color attach="background" args={['#e6edf1']} />
       <ambientLight intensity={0.8} />
