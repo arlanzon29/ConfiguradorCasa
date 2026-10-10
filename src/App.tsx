@@ -9,6 +9,7 @@ import PlanFileButtons from './panels/PlanFileButtons'
 import PropertiesPanel, { PROPERTY_HINTS } from './panels/PropertiesPanel'
 import ShellsPanel from './panels/ShellsPanel'
 import WallsPanel from './panels/WallsPanel'
+import { usePhotos } from './photos'
 import { Mode, useHouse } from './store'
 
 // Three.js pesa bastante: solo se descarga al abrir la vista 3D.
@@ -49,6 +50,16 @@ export default function App() {
   const setWalkMode = useHouse((s) => s.setWalkMode)
   const [view, setView] = useState<'2d' | '3d' | 'split'>('2d')
   const [hidden, setHidden] = useState(readHiddenPanels)
+
+  // Repetir una foto necesita la vista 3D a la vista: es ella la que la traza.
+  const retakeId = usePhotos((s) => s.retakeId)
+  useEffect(() => {
+    if (retakeId) setView((v) => (v === '2d' ? 'split' : v))
+  }, [retakeId])
+  const showPlanOnly = () => {
+    usePhotos.getState().cancelRetake()
+    setView('2d')
+  }
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -161,7 +172,7 @@ export default function App() {
 
       <main className="canvas">
         <div className="view-toggle">
-          <button className={view === '2d' ? 'active' : ''} onClick={() => setView('2d')}>
+          <button className={view === '2d' ? 'active' : ''} onClick={showPlanOnly}>
             Plano 2D
           </button>
           <button className={view === '3d' ? 'active' : ''} onClick={() => setView('3d')}>

@@ -19,6 +19,8 @@ export interface Photo extends Shot {
   id: string
   /** Momento en que se guardó, en milisegundos. */
   takenAt: number
+  /** Si se ha repetido, cuándo se sacó la imagen que tiene ahora. El orden lo sigue dando `takenAt`. */
+  retakenAt?: number
   image: Blob
 }
 
@@ -65,11 +67,18 @@ interface PhotosState {
   currentId: string | null
   /** Si el visor a pantalla completa está abierto. */
   viewing: boolean
+  /** Foto que se está repitiendo: la vista 3D la traza de nuevo y la sustituye. */
+  retakeId: string | null
   /** Mensaje si IndexedDB falla (modo privado, disco lleno…); '' si todo va bien. */
   error: string
   reload: () => Promise<void>
   add: (image: Blob, shot: Shot) => Promise<void>
   remove: (id: string) => Promise<void>
+  /** Lleva la cámara a la foto `id` y pide a la vista 3D que la saque otra vez. */
+  retake: (id: string) => void
+  cancelRetake: () => void
+  /** Cambia la imagen de la foto `id` por la recién sacada; conserva su sitio en la lista. */
+  replace: (id: string, image: Blob, shot: Shot) => Promise<void>
   /** Sustituye todas las fotos: al cargar un plano o empezar uno nuevo. */
   replaceAll: (photos: Photo[]) => Promise<void>
   /** Pasa a la foto `id` y lleva la cámara a donde se sacó, con su objetivo. */
@@ -96,16 +105,18 @@ export const usePhotos = create<PhotosState>()((set, get) => {
     photos: [],
     currentId: null,
     viewing: false,
+    retakeId: null,
     error: '',
 
     reload: async () => {
       try {
         const photos = ((await withStore<Photo[]>('readonly', (s) => s.getAll())) ?? []).sort(byDate)
-        const { currentId } = get()
+        const { currentId, retakeId } = get()
         const kept = photos.some((p) => p.id === currentId)
         set({
           photos,
           currentId: kept ? currentId : null,
+          retakeId: photos.some((p) => p.id === retakeId) ? retakeId : null,
           viewing: kept && get().viewing,
           error: '',
         })
@@ -122,6 +133,20 @@ export const usePhotos = create<PhotosState>()((set, get) => {
 
     remove: (id) => write((s) => void s.delete(id)),
 
+    retake: (id) => {
+      get().goTo(id)
+      if (get().currentId === id) set({ retakeId: id, viewing: false })
+    },
+    cancelRetake: () => set({ retakeId: null }),
+
+    replace: async (id, image, shot) => {
+      const old = get().photos.find((p) => p.id === id)
+      set({ retakeId: null })
+      // Si la han borrado mientras tanto (otra ventana), se guarda como nueva.
+      if (!old) return get().add(image, shot)
+      await write((s) => void s.put({ ...old, ...shot, image, retakenAt: Date.now() }))
+    },
+
     replaceAll: (photos) =>
       write((s) => {
         s.clear()
@@ -131,7 +156,8 @@ export const usePhotos = create<PhotosState>()((set, get) => {
     goTo: (id) => {
       const photo = get().photos.find((p) => p.id === id)
       if (!photo) return
-      set({ currentId: id })
+      // Irse a otra foto a mitad de una repetición la cancela: la cámara ya no está en su sitio.
+      set({ currentId: id, retakeId: get().retakeId === id ? id : null })
       const house = useHouse.getState()
       house.flyCamera(photo.pose)
       house.setCameraFov(photo.fov)
@@ -160,13 +186,16 @@ channel?.addEventListener('message', () => void usePhotos.getState().reload())
 /** Nombre del objetivo con el que se sacó la foto. */
 export const lensName = (fov: number) => LENSES.find((l) => l.fov === fov)?.name ?? `${fov}°`
 
+/** Momento en que se sacó la imagen que tiene la foto. */
+const shotAt = (photo: Photo) => photo.retakenAt ?? photo.takenAt
+
 export const photoDate = (photo: Photo) =>
-  new Date(photo.takenAt).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })
+  new Date(shotAt(photo)).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })
 
 export function downloadPhoto(photo: Photo) {
   const link = document.createElement('a')
   link.href = URL.createObjectURL(photo.image)
-  const stamp = new Date(photo.takenAt).toISOString().slice(0, 16).replace(/[:T]/g, '-')
+  const stamp = new Date(shotAt(photo)).toISOString().slice(0, 16).replace(/[:T]/g, '-')
   link.download = `eurocasa-foto-${stamp}.jpg`
   link.click()
   URL.revokeObjectURL(link.href)

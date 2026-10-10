@@ -423,22 +423,39 @@ export default function View3D() {
   const [waiting, setWaiting] = useState(false)
   const saveRequest = useRef(false)
   // Aviso breve de que la foto ya está en Fotos, al volver a la vista normal.
-  const [saved, setSaved] = useState(false)
+  const [saved, setSaved] = useState('')
   useEffect(() => {
     if (!saved) return
-    const timer = setTimeout(() => setSaved(false), 4000)
+    const timer = setTimeout(() => setSaved(''), 4000)
     return () => clearTimeout(timer)
   }, [saved])
-  const addPhoto = usePhotos((s) => s.add)
+  const startPhoto = () => {
+    setSamples(0)
+    setSaved('')
+    setWaiting(true)
+    setPhoto(true)
+  }
+  // Repetir una foto (panel Fotos): la cámara ya va hacia su sitio; se traza sola
+  // hasta el final y sustituye a la anterior. Si se cancela, se vuelve a la vista normal.
+  const retakeId = usePhotos((s) => s.retakeId)
+  const retaking = useRef(false)
+  useEffect(() => {
+    if (retakeId) startPhoto()
+    else if (retaking.current) setPhoto(false)
+    retaking.current = retakeId !== null
+  }, [retakeId])
   const onProgress = (done: number) => {
     setSamples(done)
     if (done > 0) setWaiting(false)
+    if (done >= PHOTO_SAMPLES && usePhotos.getState().retakeId) saveRequest.current = true
   }
   // Guardada la foto se vuelve a la vista normal: el trazado no tiene por qué seguir.
   const onSave = async (image: Blob, shot: Shot) => {
-    await addPhoto(image, shot)
+    const photos = usePhotos.getState()
+    if (photos.retakeId) await photos.replace(photos.retakeId, image, shot)
+    else await photos.add(image, shot)
     setPhoto(false)
-    setSaved(true)
+    setSaved(photos.retakeId ? 'Foto repetida' : 'Foto guardada en Fotos')
   }
 
   return (
@@ -450,27 +467,25 @@ export default function View3D() {
               {waiting
                 ? 'Preparando la foto…'
                 : samples < PHOTO_SAMPLES
-                ? `Foto: ${samples} / ${PHOTO_SAMPLES} muestras`
+                ? `${retakeId ? 'Repitiendo la foto' : 'Foto'}: ${samples} / ${PHOTO_SAMPLES} muestras`
                 : 'Foto terminada'}
             </span>
             <button disabled={waiting} onClick={() => (saveRequest.current = true)}>
               Guardar foto
             </button>
-            <button onClick={() => setPhoto(false)}>Volver</button>
+            <button
+              onClick={() => {
+                usePhotos.getState().cancelRetake()
+                setPhoto(false)
+              }}
+            >
+              {retakeId ? 'Cancelar' : 'Volver'}
+            </button>
           </>
         ) : (
-          <button
-            onClick={() => {
-              setSamples(0)
-              setSaved(false)
-              setWaiting(true)
-              setPhoto(true)
-            }}
-          >
-            Foto en calidad
-          </button>
+          <button onClick={startPhoto}>Foto en calidad</button>
         )}
-        {saved && <span>Foto guardada en Fotos</span>}
+        {saved && <span>{saved}</span>}
         <div className="lens-toggle" title="Objetivo: cuánto abarca la cámara">
           {LENSES.map((lens) => (
             <button
@@ -577,6 +592,8 @@ export default function View3D() {
       <FirstPersonControls />
       {photo && (
         <PhotoTracer
+          // Al repetir se empieza de cero aunque ya hubiera una foto terminada a la vista.
+          key={retakeId ?? 'libre'}
           revision={[modules, parts, skirtings, furniture]}
           onProgress={onProgress}
           saveRequest={saveRequest}

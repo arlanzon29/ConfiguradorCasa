@@ -122,7 +122,7 @@ y qué muestra el panel). `Mode` en `store.ts`:
 | `walls` | Paredes | Seleccionar pared: grosor, rodapié (alto y color) y quitar/poner. Colocar, deslizar, centrar y redimensionar puertas y ventanas; distancia al extremo de la pared y altura de la ventana |
 | `finishes` | Acabados | Clic en el centro de una estancia: suelo y color de todas sus paredes. Clic junto a un lado: color de esa pared |
 | `options` | Opciones | Mobiliario por familias (Salón, Comedor, Dormitorio): colocar, mover, girar, pegar a pared. Icono de imán para activar o no el imantado a paredes |
-| `photos` | Fotos | Fotos en calidad guardadas: miniaturas, Anterior/Siguiente (la cámara va a donde se sacó cada una, con su objetivo), pinchar para verla grande, descargar y eliminar. En el plano, un icono numerado por foto donde se sacó; pincharlo lleva la cámara allí |
+| `photos` | Fotos | Fotos en calidad guardadas: miniaturas, Anterior/Siguiente (la cámara va a donde se sacó cada una, con su objetivo), pinchar para verla grande, descargar, repetir (la saca otra vez desde el mismo sitio y sustituye a la anterior) y eliminar. En el plano, un icono numerado por foto donde se sacó; pincharlo lleva la cámara allí |
 
 Fuera del modo `shells`, el plano hace zoom para encuadrar los módulos.
 
@@ -203,6 +203,14 @@ Teclas: `R` gira lo seleccionado, `Supr` lo borra, `Esc` cancela la herramienta.
   dentro del `.json` como `data:` URL (campo `photos`), "Cargar plano" y "Nuevo
   plano" sustituyen las que hubiera. Las ventanas se avisan por `BroadcastChannel`.
   El visor (`PhotoViewer`) cuelga de `App` y se maneja con flechas y `Esc`.
+- **Repetir una foto** (`retake`, `retakeId` y `replace` en `photos.ts`): el panel
+  solo marca qué foto se repite; quien la traza es `View3D`, que al ver
+  `retakeId` entra en modo foto, guarda sola al llegar a 200 muestras y llama a
+  `replace`. La foto conserva `id` y `takenAt` (que da el orden y el número) y
+  apunta la fecha nueva en `retakenAt`, que es la que se enseña. Si solo está el
+  plano a la vista, `App` pasa a Plano + 3D; volver a Plano 2D, ir a otra foto o
+  "Cancelar" la cancelan y la foto anterior queda como estaba. Se guarda la pose
+  real de la cámara: si el usuario la mueve a mitad, la foto queda reencuadrada.
 - **Vuelo de la cámara** (`flyCamera` en `store.ts`): al pasar a una foto la cámara
   no salta, se mueve desde donde está. Se anima `cameraPose` en el propio estado,
   no en la vista 3D, para que también se mueva el marcador del plano y las demás
@@ -249,6 +257,13 @@ que la textura "Madera de pino" cubre 2 × 2 m (supuesto, sin confirmar).
 - Fotos: sin probar pulsando "Descargar" ni "Eliminar" con su confirmación. La
   primera foto en un equipo tarda alrededor de un minuto en arrancar. Cargar un
   plano sin fotos vacía la galería.
+- Repetir una foto: sale con el tamaño que tenga la vista 3D en ese momento, no
+  con el de la original. No pide confirmación (se puede cancelar mientras
+  traza). Solo funciona con la vista 3D de la misma ventana, no con la de "3D en
+  otra ventana". Probado en un servidor aparte con una casa de dos estancias
+  (sustituye, conserva sitio, pose y objetivo; cancelar no toca la foto); allí la
+  pestaña no dibujaba sola y hubo que forzar los fotogramas, y al volver a montar
+  la vista 3D el trazador tardó otra vez cerca de un minuto en arrancar.
 - El cono de la cámara en el plano 2D no cambia con el objetivo elegido.
 - Panel Propiedades: probado en el servidor aparte con eventos simulados (la
   pestaña estaba oculta), no con ratón y teclado reales, y sin captura de cómo
@@ -299,6 +314,15 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-10** · **Repetir una foto** (tema 15 de pendientes). Botón "Repetir"
+  en la foto seleccionada del panel Fotos: la cámara vuela a su sitio con su
+  objetivo, la vista 3D la traza hasta 200 muestras y sustituye a la anterior,
+  que conserva su número. El usuario eligió sustituir y foto a foto. `retake`,
+  `cancelRetake`, `replace` y `retakenAt` en `photos.ts`; arranque y guardado
+  automáticos en `View3D.tsx`; `App.tsx` abre Plano + 3D si hace falta. Nueva
+  entrada `pruebas2` (puerto 5184) en `.claude/launch.json`, porque el 5183 lo
+  tenía ocupado otra conversación.
 
 - **2026-10-10** · **Rodapié** configurable por pared (tema 14 de pendientes; lo
   pidió el usuario así: por pared, en centímetros y con color, por defecto 7 y

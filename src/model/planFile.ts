@@ -23,6 +23,7 @@ export interface Plan {
 export interface PlanPhoto extends Shot {
   id: string
   takenAt: number
+  retakenAt?: number
   data: string
 }
 

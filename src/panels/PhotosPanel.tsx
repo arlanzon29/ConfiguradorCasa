@@ -34,6 +34,9 @@ export default function PhotosPanel() {
   const step = usePhotos((s) => s.step)
   const open = usePhotos((s) => s.open)
   const remove = usePhotos((s) => s.remove)
+  const retakeId = usePhotos((s) => s.retakeId)
+  const retake = usePhotos((s) => s.retake)
+  const cancelRetake = usePhotos((s) => s.cancelRetake)
   // Borrar una foto no tiene vuelta atrás: se confirma en la propia página.
   const [confirming, setConfirming] = useState(false)
   useEffect(() => setConfirming(false), [currentId])
@@ -79,6 +82,18 @@ export default function PhotosPanel() {
           <div className="actions">
             <button onClick={() => open(current.id)}>Ver</button>
             <button onClick={() => downloadPhoto(current)}>Descargar</button>
+            {retakeId === current.id ? (
+              <button className="active" onClick={cancelRetake}>
+                Repitiendo… (cancelar)
+              </button>
+            ) : (
+              <button
+                title="Vuelve a sacarla desde el mismo sitio, con la casa como está ahora, y sustituye a esta"
+                onClick={() => retake(current.id)}
+              >
+                Repetir
+              </button>
+            )}
             {confirming ? (
               <div className="confirm">
                 <p>Se borrará esta foto. ¿Continuar?</p>

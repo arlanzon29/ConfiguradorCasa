@@ -14,8 +14,9 @@ está decidido ni empezado. Lo más reciente, arriba.
 - Interpretación mía, por confirmar: un botón "Repetir" en cada foto que vuelva a
   trazarla desde el mismo sitio y con el mismo objetivo, para actualizarla cuando
   la casa ha cambiado (muebles, acabados).
-- Queda por hablar: si la nueva sustituye a la anterior o se guarda al lado, y si
-  hace falta "repetir todas" de una vez.
+- **Hecho el 2026-10-10.** Decidido por el usuario: la nueva **sustituye** a la
+  anterior (mismo sitio y número en la lista) y se repite **foto a foto**, sin
+  "repetir todas". Botón "Repetir" en la foto seleccionada del panel Fotos.
 
 ### 1. Ruido en la foto en calidad
 
