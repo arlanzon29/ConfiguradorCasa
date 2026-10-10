@@ -28,7 +28,7 @@ npm run build    # tsc --noEmit && vite build
 
 ## Stack
 
-React 19 + TypeScript + Vite 6. Estado con **zustand** 5 (`persist` en `localStorage`).
+React 19 + TypeScript 7 + Vite 6. Estado con **zustand** 5 (`persist` en `localStorage`).
 3D con **three.js** 0.186 vía `@react-three/fiber` v9, y foto en calidad con
 `three-gpu-pathtracer` 0.0.27. El plano 2D es **SVG** puro, con el `viewBox` en metros.
 
@@ -254,6 +254,9 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-10** · Versiones, paso 4: TypeScript 5.9 → 7.0.2. Solo afecta a la
+  comprobación de tipos, que pasa sin cambios, igual que la compilación. Queda sin
+  actualizar únicamente Vite (6 → 8) y su plugin de React (4 → 6), por Node.
 - **2026-10-10** · Versiones, paso 3: zustand 4 → 5.0.15 y Vite 5 → 6.4.4 (la
   más nueva que admite Node 20.11.1; `npm audit` queda en 0 avisos). Sin tocar
   código. Probado: carga del plano guardado, las seis pestañas, guardado en
