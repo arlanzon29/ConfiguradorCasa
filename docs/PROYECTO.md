@@ -320,6 +320,9 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-10** · Anotado en `docs/PENDIENTES.md` el tema 16: puertas y ventanas.
+  Estaba solo a medias (las ventanas dentro del tema 14 y una línea de "posibles").
+
 - **2026-10-10** · Botón **"Repetir foto N"** en la propia vista 3D, junto a
   "Foto en calidad", cuando la cámara está donde se sacó una foto. Lo pidió el
   usuario para repetirla desde la ventana `?vista=3d` y que salga con el mismo

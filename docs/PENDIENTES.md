@@ -5,6 +5,22 @@ está decidido ni empezado. Lo más reciente, arriba.
 
 ## Anotado el 2026-10-10
 
+### 16. Puertas y ventanas
+
+- **Idea del usuario:** tenemos que hacer algo con las puertas y las ventanas (lo
+  dijo así, sin más detalle).
+- Ahora una puerta es un hueco vacío en la pared y una ventana, el mismo hueco con
+  un cristal plano. El catálogo tiene tres piezas con medidas inventadas: puerta de
+  0,9 m, corredera de 2,4 m y ventana de 1,2 × 1,2 m.
+- Ya constaba suelto: "las ventanas hay que mejorarlas" (tema 14: faltan marco,
+  hojas y, en exterior, cajón de persiana) y "hojas y marcos de puerta" entre los
+  posibles de `PROYECTO.md`. Este tema lo reúne.
+- Interpretación mía de lo que puede abarcar, por confirmar: marco y hoja de las
+  puertas (y hacia qué lado abren), marco, hojas y persiana de las ventanas, más
+  tipos en el catálogo (cristalera, ventana pequeña, puerta de entrada) con medidas
+  reales de EuroCasa, y material o color de la carpintería.
+- Se cruza con los paisajes tras las ventanas (tema 3) y con el exterior (tema 11).
+
 ### 15. Repetir una foto
 
 - **Idea del usuario:** que se pueda repetir una foto.
