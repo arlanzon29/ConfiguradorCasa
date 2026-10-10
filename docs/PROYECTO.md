@@ -322,6 +322,8 @@ Se anota aquí cada cosa que se hace, la más reciente arriba.
 
 - **2026-10-10** · Anotado en `docs/PENDIENTES.md` el tema 16: puertas y ventanas.
   Estaba solo a medias (las ventanas dentro del tema 14 y una línea de "posibles").
+  El usuario lo concretó: faltan la hoja y la jamba, y poder elegir hacia qué lado
+  abre cada puerta y desde qué canto gira.
 
 - **2026-10-10** · Botón **"Repetir foto N"** en la propia vista 3D, junto a
   "Foto en calidad", cuando la cámara está donde se sacó una foto. Lo pidió el
