@@ -1,0 +1,124 @@
+{
+  "app": "eurocasa-configurador",
+  "version": 1,
+  "modules": [
+    {
+      "id": "b67dd73e-d03f-4602-a870-eae9bb877213",
+      "typeId": "custom",
+      "x": 0,
+      "y": 0,
+      "width": 14.5,
+      "depth": 6.5,
+      "walls": {
+        "e": 0.1,
+        "s": 0.05
+      },
+      "wallColor": "#b9c7d3",
+      "floor": "pino"
+    },
+    {
+      "id": "0542b78c-27b3-44ae-bcb8-a0a3fee6627e",
+      "typeId": "custom",
+      "x": 14.5,
+      "y": 0,
+      "width": 9.5,
+      "depth": 6.5,
+      "wallColor": "#c5d1bd"
+    },
+    {
+      "id": "a83b8635-22c2-4248-bc80-47e100e6cca0",
+      "typeId": "custom",
+      "x": 0,
+      "y": 6.5,
+      "width": 24,
+      "depth": 9.5,
+      "floor": "pino",
+      "wallColor": "#e3d5bd",
+      "sideColors": {
+        "w": "#e4a22f",
+        "n": "#c5d1bd"
+      }
+    }
+  ],
+  "shells": [],
+  "openings": [
+    {
+      "id": "dedaec6c-a116-467a-8671-490fd0701c13",
+      "kind": "door",
+      "moduleId": "b67dd73e-d03f-4602-a870-eae9bb877213",
+      "side": "s",
+      "offset": 11,
+      "width": 0.9,
+      "height": 2.1,
+      "sill": 0
+    },
+    {
+      "id": "3b299253-33d7-41bc-89b5-c2d229eaaaa6",
+      "kind": "door",
+      "moduleId": "0542b78c-27b3-44ae-bcb8-a0a3fee6627e",
+      "side": "s",
+      "offset": 2.2,
+      "width": 0.9,
+      "height": 2.1,
+      "sill": 0
+    },
+    {
+      "id": "a8717e01-fb28-4863-a35c-17e26797bc09",
+      "kind": "window",
+      "moduleId": "b67dd73e-d03f-4602-a870-eae9bb877213",
+      "side": "n",
+      "offset": 3.25,
+      "width": 8,
+      "height": 1.2,
+      "sill": 0.9
+    }
+  ],
+  "joints": {
+    "a83b8635-22c2-4248-bc80-47e100e6cca0|b67dd73e-d03f-4602-a870-eae9bb877213": {
+      "thickness": 0.05
+    },
+    "0542b78c-27b3-44ae-bcb8-a0a3fee6627e|a83b8635-22c2-4248-bc80-47e100e6cca0": {
+      "thickness": 0.05
+    },
+    "0542b78c-27b3-44ae-bcb8-a0a3fee6627e|b67dd73e-d03f-4602-a870-eae9bb877213": {
+      "thickness": 0.05
+    }
+  },
+  "furniture": [
+    {
+      "id": "153e7af4-b41e-4568-be54-ca88d331be9d",
+      "typeId": "mesa-comedor",
+      "x": 16.8,
+      "y": 9.25,
+      "rotation": 0
+    },
+    {
+      "id": "a809081c-5705-4e96-a01f-46807e95622d",
+      "typeId": "silla",
+      "x": 16.75,
+      "y": 8.75,
+      "rotation": 0
+    },
+    {
+      "id": "2de39993-3f6e-48b3-b993-e73b1bdc0b39",
+      "typeId": "cama-doble",
+      "x": 22.75,
+      "y": 3.05,
+      "rotation": 90
+    },
+    {
+      "id": "a7550c78-c3be-4096-a997-7241be98449d",
+      "typeId": "mesilla",
+      "x": 23.45,
+      "y": 4.15,
+      "rotation": 0
+    },
+    {
+      "id": "141413eb-cd6b-452d-9b76-7d8b771f0845",
+      "typeId": "mesilla",
+      "x": 23.45,
+      "y": 1.95,
+      "rotation": 0
+    }
+  ]
+}

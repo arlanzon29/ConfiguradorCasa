@@ -1,0 +1,847 @@
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+import {
+  FurnitureItem,
+  Rotation,
+  clampFurniture,
+  furnitureType,
+} from './model/furniture'
+import {
+  MAX_SHELLS,
+  PlacedModule,
+  SHELL_MAX_LONG,
+  SHELL_MAX_SHORT,
+  Shell,
+  Side,
+  clampInto,
+  clampToPlot,
+  contains,
+  findFreeSpot,
+  fits,
+  formatMeters,
+  roundSize,
+  shellFits,
+  validShellSize,
+  wallThickness,
+} from './model/house'
+import {
+  OPENING_CATALOG,
+  Opening,
+  rotateOpening,
+  validOpeningSize,
+  wallLine,
+} from './model/openings'
+import { Plan } from './model/planFile'
+import { Joints, Wall, deriveWalls, fitOpening, pairKey, refitOpenings, wallOf } from './model/walls'
+
+/** Cámara de la vista 3D, en coordenadas de la escena (metros, parcela centrada en el origen). */
+export interface CameraPose {
+  position: [number, number, number]
+  /** Giro horizontal en radianes; 0 mira hacia -z (arriba en el plano). */
+  yaw: number
+  pitch: number
+}
+
+export const samePose = (a: CameraPose | null, b: CameraPose | null) =>
+  a === b ||
+  (!!a &&
+    !!b &&
+    a.yaw === b.yaw &&
+    a.pitch === b.pitch &&
+    a.position.every((v, i) => v === b.position[i]))
+
+// Vuelo de la cámara hacia una pose (`flyCamera`): duración y fotograma pendiente.
+const FLIGHT_MS = 1200
+let flight = 0
+
+export const cameraFlying = () => flight !== 0
+
+/** Corta el vuelo de la cámara donde esté: en cuanto el usuario la mueve a mano. */
+export function stopCameraFlight() {
+  cancelAnimationFrame(flight)
+  flight = 0
+}
+
+/**
+ * Objetivos de la cámara 3D. Las estancias son pequeñas: con el normal, desde
+ * dentro solo se ve una esquina; los angulares abarcan más a costa de deformar
+ * los bordes.
+ */
+export const LENSES = [
+  { name: 'Normal', fov: 45 },
+  { name: 'Angular', fov: 60 },
+  { name: 'Gran angular', fov: 75 },
+]
+
+/** Modo del editor: decide qué se selecciona en el plano y qué muestra el panel izquierdo. */
+export type Mode = 'shells' | 'modules' | 'walls' | 'finishes' | 'options' | 'photos'
+
+interface HouseState {
+  /** Estancias: los rectángulos del plano. Las paredes se deducen de sus bordes (walls.ts). */
+  modules: PlacedModule[]
+  /**
+   * Módulos de fábrica: el contorno de la casa. Si hay alguno, las estancias
+   * tienen que caber dentro de uno de ellos. Los planos anteriores a este
+   * límite no tienen ninguno y siguen sin restricción.
+   */
+  shells: Shell[]
+  selectedShellId: string | null
+  selectShell: (id: string | null) => void
+  /** Añade un módulo vacío del tamaño máximo. False si ya están todos o no cabe. */
+  addShell: (vertical: boolean) => boolean
+  moveShell: (id: string, x: number, y: number) => void
+  /** Devuelve un mensaje de error, o '' si se ha aplicado. */
+  resizeShell: (id: string, width: number, depth: number) => string
+  /** Gira el módulo 90° con sus estancias. Devuelve un mensaje de error, o ''. */
+  rotateShell: (id: string) => string
+  removeShell: (id: string) => void
+  /** Borra todo y empieza con un módulo del tamaño máximo. */
+  newPlan: () => void
+  openings: Opening[]
+  /** Ajustes de las paredes compartidas entre dos estancias. */
+  joints: Joints
+  mode: Mode
+  setMode: (mode: Mode) => void
+  /** null hasta que se abre la vista 3D por primera vez. */
+  cameraPose: CameraPose | null
+  setCameraPose: (pose: CameraPose) => void
+  /** Lleva la cámara hasta `pose` moviéndola desde donde está, en vez de saltar. */
+  flyCamera: (pose: CameraPose) => void
+  /** Vista 3D a pie (altura de ojos, sin volar) en lugar de vuelo libre. */
+  walkMode: boolean
+  setWalkMode: (walk: boolean) => void
+  /** Campo de visión vertical de la cámara 3D, en grados (uno de los de LENSES). */
+  cameraFov: number
+  setCameraFov: (fov: number) => void
+
+  // Selección: como mucho una de las tres está activa.
+  selectedId: string | null
+  /** Clave de una pared deducida (Wall.key). */
+  selectedWall: string | null
+  selectedOpeningId: string | null
+  /** Lado de la estancia seleccionada sobre el que se actúa (modo acabados). */
+  selectedSide: Side | null
+  select: (id: string | null, side?: Side | null) => void
+  selectWall: (key: string | null) => void
+  selectOpening: (id: string | null) => void
+  selectedFurnitureId: string | null
+  selectFurniture: (id: string | null) => void
+
+  /**
+   * Huecos tal como estaban al empezar a arrastrar una estancia. Mientras dura
+   * el arrastre se reencajan siempre desde aquí, para que pasar junto a otra
+   * estancia no los desplace ni los elimine de forma definitiva.
+   */
+  dragOpenings: Opening[] | null
+  beginDrag: () => void
+  endDrag: () => void
+
+  /** Devuelve false si no queda sitio en la parcela. */
+  addModule: (width: number, depth: number, typeId?: string) => boolean
+  /** Devuelve false si con ese tamaño se sale de la parcela o pisa otra estancia. */
+  resizeModule: (id: string, width: number, depth: number, x?: number, y?: number) => boolean
+  moveModule: (id: string, x: number, y: number) => void
+  rotateModule: (id: string) => void
+  removeModule: (id: string) => void
+  clear: () => void
+  /** Sustituye el plano entero por el de un archivo. */
+  loadPlan: (plan: Plan) => void
+
+  setFloor: (id: string, floor: string) => void
+  turnFloor: (id: string) => void
+  /** Color de las paredes de una estancia por dentro. */
+  /**
+   * Con `side`, pinta solo la pared de ese lado (o le quita su color propio si
+   * `color` es null); sin él, pinta todas y borra los colores propios.
+   */
+  setWallColor: (id: string, color: string | null, side?: Side) => void
+
+  setWallThickness: (key: string, thickness: number) => void
+  setWallOpen: (key: string, open: boolean) => void
+
+  /** Mobiliario colocado en el plano (modo opciones). */
+  furniture: FurnitureItem[]
+  /** Coloca una pieza del catálogo centrada en (x, y). */
+  addFurniture: (typeId: string, x: number, y: number) => void
+  moveFurniture: (id: string, x: number, y: number) => void
+  /** Gira la pieza 90° en sentido horario. */
+  rotateFurniture: (id: string) => void
+  removeFurniture: (id: string) => void
+  /**
+   * Arrima la pieza a la pared más próxima de su estancia, de espaldas a ella.
+   * False si la pieza no está dentro de ninguna estancia.
+   */
+  snapFurnitureToWall: (id: string) => boolean
+  /** Si los muebles se imantan a las paredes al arrastrarlos. */
+  furnitureMagnet: boolean
+  setFurnitureMagnet: (on: boolean) => void
+
+  /**
+   * Elemento del catálogo pendiente de colocar con un clic en el plano: un tipo
+   * de hueco en modo paredes, un mueble en modo opciones.
+   */
+  tool: string | null
+  setTool: (tool: string | null) => void
+  /** Coloca un hueco centrado en `center` (coordenada del plano a lo largo de la pared). */
+  addOpening: (typeId: string, wallKey: string, center: number) => boolean
+  /** Lleva el inicio del hueco a `from` (coordenada del plano a lo largo de su pared). */
+  moveOpening: (id: string, from: number) => void
+  resizeOpening: (id: string, width: number, height: number) => boolean
+  /** Altura del borde inferior sobre el suelo. False si con ella se sale de la pared. */
+  setOpeningSill: (id: string, sill: number) => boolean
+  /** Centra el hueco a lo largo de su pared. False si ahí pisa otro hueco. */
+  centerOpening: (id: string) => boolean
+  removeOpening: (id: string) => void
+}
+
+/** ¿Está el centro del mueble dentro de la estancia? */
+const inside = (m: PlacedModule, f: FurnitureItem) =>
+  f.x >= m.x && f.x <= m.x + m.width && f.y >= m.y && f.y <= m.y + m.depth
+
+// Distancia (m) a la que un mueble arrastrado se imanta a una pared.
+const MAGNET = 0.3
+
+/**
+ * Coordenada de la cara interior de la pared del lado `side` de `room`, a la
+ * altura `along` de ese lado; null si en ese tramo no hay pared.
+ */
+function interiorFace(room: PlacedModule, side: Side, along: number, walls: Wall[]) {
+  const line = wallLine(room, side)
+  const wall = walls.find(
+    (w) =>
+      (w.moduleId === room.id || w.otherId === room.id) &&
+      w.horizontal === line.horizontal &&
+      Math.abs(w.pos - line.pos) < 1e-6 &&
+      along >= w.from &&
+      along <= w.to,
+  )
+  if (!wall || wall.open) return null
+  // La pared entra en la estancia todo su grosor si es exterior, la mitad si es compartida.
+  const inset = wall.shared ? wall.thickness / 2 : wall.thickness
+  return side === 'n' || side === 'w' ? line.pos + inset : line.pos - inset
+}
+
+/**
+ * Imanta un mueble a las paredes de su estancia: si un borde queda a menos de
+ * MAGNET de la cara interior de una pared (o ya metido en ella), se pega a ras.
+ */
+function magnetize(item: FurnitureItem, modules: PlacedModule[], joints: Joints): FurnitureItem {
+  const type = furnitureType(item.typeId)
+  const room = modules.find((m) => inside(m, item))
+  if (!type || !room) return item
+  const walls = deriveWalls(modules, joints)
+  const turned = item.rotation === 90 || item.rotation === 270
+  const halfX = (turned ? type.depth : type.width) / 2
+  const halfY = (turned ? type.width : type.depth) / 2
+
+  const pull = (center: number, half: number, low: number | null, high: number | null) => {
+    if (low !== null && center - half - low <= MAGNET) return low + half
+    if (high !== null && high - (center + half) <= MAGNET) return high - half
+    return center
+  }
+  const x = pull(
+    item.x,
+    halfX,
+    interiorFace(room, 'w', item.y, walls),
+    interiorFace(room, 'e', item.y, walls),
+  )
+  const y = pull(
+    item.y,
+    halfY,
+    interiorFace(room, 'n', item.x, walls),
+    interiorFace(room, 's', item.x, walls),
+  )
+  return { ...item, x: roundSize(x), y: roundSize(y) }
+}
+
+const NO_SELECTION = {
+  selectedId: null,
+  selectedWall: null,
+  selectedOpeningId: null,
+  selectedSide: null,
+  selectedFurnitureId: null,
+  selectedShellId: null,
+}
+
+export const useHouse = create<HouseState>()(
+  persist(
+    (set, get) => {
+      /** Aplica un cambio de estancias y reencaja los huecos en las paredes resultantes. */
+      const setModules = (modules: PlacedModule[], openings?: Opening[]) => {
+        const s = get()
+        set({
+          modules,
+          openings: refitOpenings(modules, s.joints, openings ?? s.dragOpenings ?? s.openings),
+        })
+      }
+
+      /** Cambia un ajuste de la pared `key`: de su pareja si es compartida, de su lado si es exterior. */
+      const patchWall = (key: string, thickness?: number, open?: boolean) => {
+        const { modules, joints } = get()
+        const wall = deriveWalls(modules, joints).find((w) => w.key === key)
+        if (!wall) return
+        const patch = <T extends { thickness?: number; open?: boolean }>(current: T | undefined) => ({
+          ...current,
+          ...(thickness !== undefined && { thickness }),
+          ...(open !== undefined && { open }),
+        })
+        if (wall.shared) {
+          const pair = pairKey(wall.moduleId, wall.otherId!)
+          set({ joints: { ...joints, [pair]: patch(joints[pair]) } })
+          return
+        }
+        const { side } = wall
+        set({
+          modules: modules.map((m) =>
+            m.id !== wall.moduleId
+              ? m
+              : {
+                  ...m,
+                  ...(thickness !== undefined && { walls: { ...m.walls, [side]: thickness } }),
+                  ...(open !== undefined && { open: { ...m.open, [side]: open } }),
+                },
+          ),
+        })
+      }
+
+      return {
+        modules: [],
+        openings: [],
+        joints: {},
+        mode: 'modules',
+        cameraPose: null,
+        walkMode: false,
+        tool: null,
+        dragOpenings: null,
+        ...NO_SELECTION,
+
+        setMode: (mode) => set({ mode, tool: null, ...NO_SELECTION }),
+        setCameraPose: (cameraPose) => {
+          stopCameraFlight()
+          set({ cameraPose })
+        },
+        flyCamera: (target) => {
+          stopCameraFlight()
+          const from = get().cameraPose
+          // Sin punto de partida, o con la pestaña oculta (no hay fotogramas), va directa.
+          if (!from || document.hidden) return set({ cameraPose: target })
+          const start = performance.now()
+          // El giro va por el camino corto, sin dar la vuelta entera.
+          const turn = Math.atan2(Math.sin(target.yaw - from.yaw), Math.cos(target.yaw - from.yaw))
+          const frame = (now: number) => {
+            const t = Math.min((now - start) / FLIGHT_MS, 1)
+            if (t === 1) {
+              flight = 0
+              return set({ cameraPose: target })
+            }
+            // Arranque y llegada suaves.
+            const k = t * t * (3 - 2 * t)
+            const mix = (a: number, b: number) => a + (b - a) * k
+            set({
+              cameraPose: {
+                position: [
+                  mix(from.position[0], target.position[0]),
+                  mix(from.position[1], target.position[1]),
+                  mix(from.position[2], target.position[2]),
+                ],
+                yaw: from.yaw + turn * k,
+                pitch: mix(from.pitch, target.pitch),
+              },
+            })
+            flight = requestAnimationFrame(frame)
+          }
+          flight = requestAnimationFrame(frame)
+        },
+        setWalkMode: (walkMode) => set({ walkMode }),
+        cameraFov: LENSES[0].fov,
+        setCameraFov: (cameraFov) => set({ cameraFov }),
+
+        select: (id, side = null) => set({ ...NO_SELECTION, selectedId: id, selectedSide: side }),
+        selectWall: (key) => set({ ...NO_SELECTION, selectedWall: key }),
+        selectOpening: (id) => set({ ...NO_SELECTION, selectedOpeningId: id }),
+        selectFurniture: (id) => set({ ...NO_SELECTION, selectedFurnitureId: id }),
+        selectShell: (id) => set({ ...NO_SELECTION, selectedShellId: id }),
+
+        shells: [],
+
+        addShell: (vertical) => {
+          const { shells } = get()
+          if (shells.length >= MAX_SHELLS) return false
+          const width = vertical ? SHELL_MAX_SHORT : SHELL_MAX_LONG
+          const depth = vertical ? SHELL_MAX_LONG : SHELL_MAX_SHORT
+          // Primero se intenta pegado a un módulo existente; si no cabe, en cualquier hueco.
+          const beside = shells.flatMap((o) => [
+            { x: o.x, y: o.y + o.depth },
+            { x: o.x + o.width, y: o.y },
+            { x: o.x, y: o.y - depth },
+            { x: o.x - width, y: o.y },
+          ])
+          // El primer módulo arranca en el origen de la parcela (0, 0).
+          const origin = { x: 0, y: 0 }
+          // Los candidatos pegados se deslizan lo justo para caber en la parcela:
+          // así un módulo vertical junto a uno horizontal queda formando una L.
+          const spot =
+            [...beside, origin]
+              .map((c) => clampToPlot({ ...c, width, depth }))
+              .find((c) => shellFits(c, shells)) ??
+            findFreeSpot(width, depth, shells)
+          if (!spot) return false
+          // El módulo nace vacío: las estancias se añaden después, en su modo.
+          const shell = { id: crypto.randomUUID(), ...spot, width, depth }
+          set({ shells: [...shells, shell], ...NO_SELECTION, selectedShellId: shell.id })
+          return true
+        },
+
+        moveShell: (id, x, y) => {
+          const { shells, modules } = get()
+          const current = shells.find((s) => s.id === id)
+          if (!current) return
+          const moved = { ...current, ...clampToPlot({ ...current, x, y }) }
+          if (!shellFits(moved, shells.filter((s) => s.id !== id))) return
+          const dx = moved.x - current.x
+          const dy = moved.y - current.y
+          if (dx === 0 && dy === 0) return
+          // El módulo se lleva consigo sus estancias y los muebles que hay en ellas.
+          const rooms = modules.filter((m) => contains(current, m))
+          set((s) => ({
+            shells: shells.map((sh) => (sh.id === id ? moved : sh)),
+            furniture: s.furniture.map((f) =>
+              rooms.some((m) => inside(m, f))
+                ? { ...f, x: roundSize(f.x + dx), y: roundSize(f.y + dy) }
+                : f,
+            ),
+          }))
+          setModules(
+            modules.map((m) =>
+              rooms.includes(m) ? { ...m, x: roundSize(m.x + dx), y: roundSize(m.y + dy) } : m,
+            ),
+          )
+        },
+
+        resizeShell: (id, width, depth) => {
+          const { shells, modules } = get()
+          const current = shells.find((s) => s.id === id)
+          if (!current) return ''
+          if (!validShellSize(width, depth)) {
+            return `Un módulo mide como máximo ${formatMeters(SHELL_MAX_LONG)} × ${formatMeters(SHELL_MAX_SHORT)} m.`
+          }
+          const resized = { ...current, width, depth }
+          if (!shellFits(resized, shells.filter((s) => s.id !== id))) {
+            return 'Con esas medidas se sale de la parcela o pisa el otro módulo.'
+          }
+          if (modules.some((m) => contains(current, m) && !contains(resized, m))) {
+            return 'Hay estancias que no cabrían; encógelas primero.'
+          }
+          set({ shells: shells.map((s) => (s.id === id ? resized : s)) })
+          return ''
+        },
+
+        // Giro de 90° en sentido horario, con todo lo que hay dentro: cada estancia
+        // cambia de sitio y de proporciones, y sus lados pasan n→e→s→w→n.
+        rotateShell: (id) => {
+          const { shells, modules, openings, furniture } = get()
+          const current = shells.find((s) => s.id === id)
+          if (!current) return ''
+          const rotated = {
+            ...current,
+            ...clampToPlot({ ...current, width: current.depth, depth: current.width }),
+          }
+          if (!shellFits(rotated, shells.filter((s) => s.id !== id))) {
+            return 'Girado pisaría el otro módulo; sepáralos antes.'
+          }
+          // Un punto (px, py) medido desde la esquina del módulo pasa a (fondo - py, px).
+          const turnPoint = (px: number, py: number) => ({
+            x: roundSize(rotated.x + current.depth - (py - current.y)),
+            y: roundSize(rotated.y + (px - current.x)),
+          })
+          const turnSides = <T,>(sides?: Partial<Record<Side, T>>) =>
+            sides && { e: sides.n, s: sides.e, w: sides.s, n: sides.w }
+          const rooms = modules.filter((m) => contains(current, m))
+          const turnedRooms = modules.map((m) =>
+            !rooms.includes(m)
+              ? m
+              : {
+                  ...m,
+                  // La esquina superior izquierda nueva sale de la inferior izquierda antigua.
+                  ...turnPoint(m.x, m.y + m.depth),
+                  width: m.depth,
+                  depth: m.width,
+                  walls: turnSides(m.walls),
+                  open: turnSides(m.open),
+                  sideColors: turnSides(m.sideColors),
+                  floorTurned: !m.floorTurned,
+                },
+          )
+          set({
+            shells: shells.map((s) => (s.id === id ? rotated : s)),
+            furniture: furniture.map((f) =>
+              rooms.some((m) => inside(m, f))
+                ? { ...f, ...turnPoint(f.x, f.y), rotation: ((f.rotation + 90) % 360) as Rotation }
+                : f,
+            ),
+          })
+          setModules(
+            turnedRooms,
+            openings.map((o) => {
+              const room = rooms.find((m) => m.id === o.moduleId)
+              return room ? rotateOpening(o, room.depth) : o
+            }),
+          )
+          return ''
+        },
+
+        removeShell: (id) => {
+          const { shells, modules, openings } = get()
+          const removed = shells.find((s) => s.id === id)
+          if (!removed) return
+          const gone = modules.filter((m) => contains(removed, m))
+          set((s) => ({
+            shells: shells.filter((sh) => sh.id !== id),
+            furniture: s.furniture.filter((f) => !gone.some((m) => inside(m, f))),
+            ...NO_SELECTION,
+          }))
+          setModules(
+            modules.filter((m) => !gone.includes(m)),
+            openings.filter((o) => !gone.some((m) => m.id === o.moduleId)),
+          )
+        },
+
+        newPlan: () => {
+          get().clear()
+          get().addShell(false)
+          // Se abre en el modo de módulos, que es por donde se empieza una casa.
+          set({ mode: 'shells', ...NO_SELECTION })
+        },
+
+        beginDrag: () => set({ dragOpenings: get().openings }),
+        endDrag: () => set({ dragOpenings: null }),
+
+        addModule: (width, depth, typeId = 'custom') => {
+          const { modules } = get()
+          const { shells } = get()
+          // Si no cabe tal cual, se prueba girada: un módulo de fábrica es estrecho.
+          const placed = [
+            { width, depth },
+            { width: depth, depth: width },
+          ]
+            .map((size) => ({ ...size, spot: findFreeSpot(size.width, size.depth, modules, shells) }))
+            .find((c) => c.spot)
+          if (!placed?.spot) return false
+          const id = crypto.randomUUID()
+          setModules([
+            ...modules,
+            { id, typeId, ...placed.spot, width: placed.width, depth: placed.depth },
+          ])
+          set({ ...NO_SELECTION, selectedId: id })
+          return true
+        },
+
+        resizeModule: (id, width, depth, x, y) => {
+          const { modules } = get()
+          const current = modules.find((m) => m.id === id)
+          if (!current) return false
+          const resized = {
+            ...current,
+            width,
+            depth,
+            x: x ?? current.x,
+            y: y ?? current.y,
+            typeId: 'custom',
+          }
+          const others = modules.filter((m) => m.id !== id)
+          if (!fits(resized, others, get().shells)) return false
+          setModules(modules.map((m) => (m.id === id ? resized : m)))
+          return true
+        },
+
+        moveModule: (id, x, y) => {
+          const { modules } = get()
+          const current = modules.find((m) => m.id === id)
+          if (!current) return
+          const { shells } = get()
+          const target = { ...current, x, y }
+          // Dentro de un módulo: el que contiene el centro de destino si la estancia
+          // cabe en él (así se puede pasar de un módulo a otro), o si no el suyo.
+          const cx = x + current.width / 2
+          const cy = y + current.depth / 2
+          const shell =
+            shells.find(
+              (s) =>
+                cx >= s.x &&
+                cx <= s.x + s.width &&
+                cy >= s.y &&
+                cy <= s.y + s.depth &&
+                s.width >= current.width - 1e-6 &&
+                s.depth >= current.depth - 1e-6,
+            ) ?? shells.find((s) => contains(s, current))
+          const moved = { ...current, ...(shell ? clampInto(shell, target) : clampToPlot(target)) }
+          const others = modules.filter((m) => m.id !== id)
+          if (!fits(moved, others, shells)) return
+          setModules(modules.map((m) => (m.id === id ? moved : m)))
+          // Los muebles que están dentro de la estancia se mueven con ella.
+          const dx = moved.x - current.x
+          const dy = moved.y - current.y
+          set((s) => ({
+            furniture: s.furniture.map((f) =>
+              inside(current, f) ? { ...f, x: roundSize(f.x + dx), y: roundSize(f.y + dy) } : f,
+            ),
+          }))
+        },
+
+        // Giro de 90° en sentido horario: n→e→s→w→n, también para grosores, lados abiertos y huecos.
+        rotateModule: (id) => {
+          const { modules, openings } = get()
+          const current = modules.find((m) => m.id === id)
+          if (!current) return
+          const turn = <T,>(sides?: Partial<Record<Side, T>>) =>
+            sides && { e: sides.n, s: sides.e, w: sides.s, n: sides.w }
+          const rotated = {
+            ...current,
+            ...clampToPlot({ ...current, width: current.depth, depth: current.width }),
+            walls: turn(current.walls),
+            open: turn(current.open),
+            sideColors: turn(current.sideColors),
+          }
+          const others = modules.filter((m) => m.id !== id)
+          if (!fits(rotated, others, get().shells)) return
+          setModules(
+            modules.map((m) => (m.id === id ? rotated : m)),
+            openings.map((o) => (o.moduleId === id ? rotateOpening(o, rotated.width) : o)),
+          )
+        },
+
+        removeModule: (id) => {
+          const { modules, openings } = get()
+          setModules(
+            modules.filter((m) => m.id !== id),
+            openings.filter((o) => o.moduleId !== id),
+          )
+          const removed = modules.find((m) => m.id === id)
+          set((s) => ({
+            furniture: removed ? s.furniture.filter((f) => !inside(removed, f)) : s.furniture,
+            ...NO_SELECTION,
+          }))
+        },
+
+        clear: () =>
+          set({
+            modules: [],
+            shells: [],
+            openings: [],
+            joints: {},
+            furniture: [],
+            tool: null,
+            ...NO_SELECTION,
+          }),
+
+        loadPlan: ({ modules, shells, openings, joints, furniture }) =>
+          set({
+            modules,
+            shells,
+            joints,
+            furniture,
+            openings: refitOpenings(modules, joints, openings),
+            tool: null,
+            ...NO_SELECTION,
+          }),
+
+        furniture: [],
+        furnitureMagnet: true,
+        setFurnitureMagnet: (furnitureMagnet) => set({ furnitureMagnet }),
+
+        addFurniture: (typeId, x, y) => {
+          if (!furnitureType(typeId)) return
+          const id = crypto.randomUUID()
+          const item = clampFurniture({ id, typeId, x, y, rotation: 0 })
+          set((s) => ({
+            furniture: [...s.furniture, item],
+            tool: null,
+            ...NO_SELECTION,
+            selectedFurnitureId: id,
+          }))
+        },
+
+        moveFurniture: (id, x, y) =>
+          set((s) => ({
+            furniture: s.furniture.map((f) => {
+              if (f.id !== id) return f
+              const moved = clampFurniture({ ...f, x, y })
+              return s.furnitureMagnet ? magnetize(moved, s.modules, s.joints) : moved
+            }),
+          })),
+
+        rotateFurniture: (id) =>
+          set((s) => ({
+            furniture: s.furniture.map((f) =>
+              f.id === id
+                ? clampFurniture({ ...f, rotation: ((f.rotation + 90) % 360) as Rotation })
+                : f,
+            ),
+          })),
+
+        snapFurnitureToWall: (id) => {
+          const { modules, joints, furniture } = get()
+          const item = furniture.find((f) => f.id === id)
+          const type = item && furnitureType(item.typeId)
+          const room = item && modules.find((m) => inside(m, item))
+          if (!item || !type || !room) return false
+
+          const distances: [Side, number][] = [
+            ['n', item.y - room.y],
+            ['s', room.y + room.depth - item.y],
+            ['w', item.x - room.x],
+            ['e', room.x + room.width - item.x],
+          ]
+          const [side] = distances.reduce((a, b) => (b[1] < a[1] ? b : a))
+          const horizontal = side === 'n' || side === 's'
+          const line = wallLine(room, side)
+
+          const along = horizontal ? item.x : item.y
+          const face = interiorFace(room, side, along, deriveWalls(modules, joints)) ?? line.pos
+
+          // De espaldas a la pared: con giro 0 la parte trasera mira al norte.
+          const rotation = ({ n: 0, e: 90, s: 180, w: 270 } as const)[side]
+          const across = side === 'n' || side === 'w' ? face + type.depth / 2 : face - type.depth / 2
+          // A lo largo de la pared se queda donde estaba, sin meterse en las dos
+          // paredes de los extremos (se descuenta su grosor exterior, que es el mayor).
+          const half = type.width / 2
+          const min = line.start + wallThickness(room, horizontal ? 'w' : 'n') + half
+          const max = line.start + line.length - wallThickness(room, horizontal ? 'e' : 's') - half
+          const slide = Math.min(Math.max(along, min), Math.max(min, max))
+          const snapped = {
+            ...item,
+            rotation,
+            x: roundSize(horizontal ? slide : across),
+            y: roundSize(horizontal ? across : slide),
+          }
+          set({ furniture: furniture.map((f) => (f.id === id ? snapped : f)) })
+          return true
+        },
+
+        removeFurniture: (id) =>
+          set((s) => ({
+            furniture: s.furniture.filter((f) => f.id !== id),
+            selectedFurnitureId: null,
+          })),
+
+        setFloor: (id, floor) =>
+          set((s) => ({ modules: s.modules.map((m) => (m.id === id ? { ...m, floor } : m)) })),
+        turnFloor: (id) =>
+          set((s) => ({
+            modules: s.modules.map((m) =>
+              m.id === id ? { ...m, floorTurned: !m.floorTurned } : m,
+            ),
+          })),
+
+        setWallColor: (id, color, side) =>
+          set((s) => ({
+            modules: s.modules.map((m) => {
+              if (m.id !== id) return m
+              if (!side) return { ...m, wallColor: color ?? undefined, sideColors: undefined }
+              return { ...m, sideColors: { ...m.sideColors, [side]: color ?? undefined } }
+            }),
+          })),
+        setWallThickness: (key, thickness) => patchWall(key, thickness),
+        setWallOpen: (key, open) => patchWall(key, undefined, open),
+
+        setTool: (tool) => set({ tool }),
+
+        addOpening: (typeId, wallKey, center) => {
+          const { modules, joints, openings } = get()
+          const type = OPENING_CATALOG.find((t) => t.id === typeId)
+          const walls = deriveWalls(modules, joints)
+          const wall = walls.find((w) => w.key === wallKey)
+          const module = wall && modules.find((m) => m.id === wall.moduleId)
+          if (!type || !wall || !module || wall.open) return false
+          const { kind, width, height, sill } = type
+          const id = crypto.randomUUID()
+          const offset = center - width / 2 - wallLine(module, wall.side).start
+          const opening = fitOpening(
+            { id, kind, moduleId: module.id, side: wall.side, offset, width, height, sill },
+            modules,
+            walls,
+            openings,
+          )
+          if (!opening) return false
+          set({ openings: [...openings, opening], tool: null, ...NO_SELECTION, selectedOpeningId: id })
+          return true
+        },
+
+        moveOpening: (id, from) => {
+          const { modules, joints, openings } = get()
+          const current = openings.find((o) => o.id === id)
+          const module = current && modules.find((m) => m.id === current.moduleId)
+          if (!current || !module) return
+          const offset = from - wallLine(module, current.side).start
+          const moved = fitOpening(
+            { ...current, offset },
+            modules,
+            deriveWalls(modules, joints),
+            openings,
+          )
+          if (moved) set({ openings: openings.map((o) => (o.id === id ? moved : o)) })
+        },
+
+        resizeOpening: (id, width, height) => {
+          const { modules, joints, openings } = get()
+          const current = openings.find((o) => o.id === id)
+          if (!current) return false
+          const candidate = { ...current, width, height }
+          if (!validOpeningSize(candidate)) return false
+          const resized = fitOpening(candidate, modules, deriveWalls(modules, joints), openings)
+          if (!resized) return false
+          set({ openings: openings.map((o) => (o.id === id ? resized : o)) })
+          return true
+        },
+
+        setOpeningSill: (id, sill) => {
+          const { openings } = get()
+          const current = openings.find((o) => o.id === id)
+          if (!current || sill < 0 || !validOpeningSize({ ...current, sill })) return false
+          set({ openings: openings.map((o) => (o.id === id ? { ...o, sill } : o)) })
+          return true
+        },
+
+        centerOpening: (id) => {
+          const { modules, joints, openings } = get()
+          const current = openings.find((o) => o.id === id)
+          const module = current && modules.find((m) => m.id === current.moduleId)
+          if (!current || !module) return false
+          const walls = deriveWalls(modules, joints)
+          const wall = wallOf(current, modules, walls)
+          if (!wall) return false
+          const from = (wall.from + wall.to - current.width) / 2
+          const offset = from - wallLine(module, current.side).start
+          const centered = fitOpening({ ...current, offset }, modules, walls, openings)
+          if (!centered) return false
+          set({ openings: openings.map((o) => (o.id === id ? centered : o)) })
+          return true
+        },
+
+        removeOpening: (id) =>
+          set((s) => ({ openings: s.openings.filter((o) => o.id !== id), selectedOpeningId: null })),
+      }
+    },
+    {
+      name: 'eurocasa-house',
+      partialize: (s) => ({
+        modules: s.modules,
+        shells: s.shells,
+        openings: s.openings,
+        joints: s.joints,
+        furniture: s.furniture,
+        furnitureMagnet: s.furnitureMagnet,
+        cameraPose: s.cameraPose,
+        walkMode: s.walkMode,
+        cameraFov: s.cameraFov,
+      }),
+    },
+  ),
+)
+
+// Sincronización entre ventanas (p. ej. la vista 3D abierta aparte): cuando otra
+// pestaña guarda el estado, esta lo vuelve a leer. El evento `storage` no se
+// dispara en la pestaña que escribe, así que no hay bucle.
+window.addEventListener('storage', (e) => {
+  if (e.key === useHouse.persist.getOptions().name) useHouse.persist.rehydrate()
+})

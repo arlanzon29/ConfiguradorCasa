@@ -1,0 +1,315 @@
+# Configurador EuroCasa
+
+Web para configurar casas prefabricadas: el cliente define la casa en un plano 2D,
+la ve en 3D y elige acabados y mobiliario. Se construye **poco a poco**, función a
+función, a petición del usuario (que escribe en español).
+
+Estado: prototipo funcional sin backend. Todo vive en el navegador.
+
+## Cómo arrancar
+
+```bash
+npm install
+npm run dev      # http://localhost:5173
+npm run build    # tsc --noEmit && vite build
+```
+
+- Vista 3D sola (para otra ventana): `http://localhost:5173/?vista=3d`
+- Comprobación mínima tras cualquier cambio: `npx tsc --noEmit`. No hay tests ni linter.
+- Node del equipo: 20.11.1. Por eso **Vite 5** (Vite 6+/create-vite actual exigen 20.19).
+- Repositorio **git** desde el 2026-10-10, rama `main`. Remoto `origin`:
+  `https://github.com/arlanzon29/ConfiguradorCasa`, que es **público**; no subir
+  nada sin que el usuario lo pida. Fuera de git: `node_modules`, `dist` y
+  `.claude/settings.local.json`.
+- El disco `D:` no guarda dueños de carpeta y git exige autorizarla una vez:
+  `git config --global --add safe.directory D:/IA/ConfiguradorEuroCasa`.
+
+## Stack
+
+React 18 + TypeScript + Vite 5. Estado con **zustand** (`persist` en `localStorage`).
+3D con **three.js** vía `@react-three/fiber` v8. El plano 2D es **SVG** puro, con el
+`viewBox` en metros. `@react-three/drei` está instalado pero ya no se usa.
+
+## Conceptos del dominio (lo más importante)
+
+Tres niveles, de fuera a dentro:
+
+1. **Módulo de fábrica** (`Shell`): la pieza que sale de fábrica y fija el contorno
+   de la casa. **Máximo 13 × 4,20 m** en cualquiera de las dos orientaciones, y
+   **hasta 2** por casa, unidos por un lado, en línea o en L. Dato real del usuario.
+2. **Estancia** (`PlacedModule`, en el código "module" por razones históricas): un
+   rectángulo dentro de un módulo. No puede salirse de su módulo ni solaparse con otra.
+3. **Paredes**: **no se guardan, se deducen** de los bordes de las estancias
+   (`deriveWalls` en `walls.ts`). Cada lado de una estancia se parte en tramos:
+   - *exterior*: no toca a otra estancia. Usa grosor/estado del lado de su estancia.
+   - *compartido*: toca a otra estancia y es **una sola pared de las dos**, centrada
+     en la línea de unión. Sus ajustes van por pareja de estancias (`joints`).
+
+Ojo con los nombres: en la interfaz "Módulos" = `shells`; "Estancias" = `modules`.
+
+Otros elementos:
+
+- **Huecos** (`Opening`, puertas y ventanas): anclados a un lado de una estancia
+  (`moduleId`, `side`, `offset`). En qué pared caen se deduce; uno puesto en una
+  pared compartida da paso entre las dos estancias. Al cambiar las estancias se
+  reencajan (`refitOpenings`) y el que ya no cabe se pierde.
+- **Acabados**: suelo por estancia (catálogo con textura) y color de pared por
+  estancia o por lado (`wallColor`, `sideColors`). Solo se ven en 3D.
+- **Mobiliario** (`FurnitureItem`): piezas de catálogo por familias, con centro y
+  giro en pasos de 90°. Parte trasera hacia el norte con giro 0.
+
+Unidades: todo en **metros**. Plano: x hacia la derecha, y hacia abajo; "norte" es
+arriba. En 3D el plano (x, y) pasa a (x, z) con la parcela centrada en el origen.
+
+## Estructura
+
+```
+src/
+  main.tsx, App.tsx, App.css     arranque, pestañas de modo, selector de vista
+  store.ts                       estado global y TODAS las acciones (zustand)
+  photos.ts                      fotos en calidad guardadas (IndexedDB) y su estado
+  model/                         lógica pura, sin React
+    house.ts        parcela, rejilla, estancias, módulos de fábrica, encaje
+    walls.ts        paredes deducidas, encaje de huecos en paredes
+    openings.ts     tipos y catálogo de puertas/ventanas
+    finishes.ts     catálogo de suelos, colores de pared
+    furniture.ts    catálogo de mobiliario por familias
+    planFile.ts     formato del archivo de plano (guardar/cargar)
+  editor/
+    Editor2D.tsx    plano SVG: dibujo y todos los arrastres
+    SizeForm.tsx    formulario de dos medidas reutilizable
+  panels/           un panel lateral por modo + PlanFileButtons + PhotoViewer
+  viewer/
+    View3D.tsx      escena 3D, cámara en primera persona, paredes y suelos
+    Furniture3D.tsx muebles como composición de cajas
+    PhotoTracer.tsx foto en calidad por trazado de rayos
+public/texturas/suelos/          imágenes de suelo
+planos/                          planos guardados a mano (copias de seguridad)
+fotos/                           fotos de referencia que pasa el usuario (exteriores e interiores)
+```
+
+## Constantes clave (`model/house.ts`)
+
+| Constante | Valor | Nota |
+|---|---|---|
+| `PLOT` | 28 × 20 m | Caben dos módulos en línea (26 m) y en L (17,2 m) |
+| `GRID` | 0,2 m | Rejilla visible y paso de arrastre. 13 × 4,2 = 65 × 21 cuadros |
+| `SHELL_MAX_LONG/SHORT`, `MAX_SHELLS` | 13 / 4,2 / 2 | Límite de fabricación |
+| `WALL_HEIGHT` | 2,7 m | Inventado; pendiente de confirmar |
+| `DEFAULT_WALL_THICKNESS` | 0,15 m | Exterior. Compartida: 0,10 m (`walls.ts`) |
+| `MIN_SIZE` | 1 m | Lado mínimo de estancia o módulo |
+
+Huecos y muebles se ajustan a 5 cm, más fino que la rejilla.
+
+## Interfaz
+
+**Modos** (pestañas del panel izquierdo; el modo decide qué se selecciona en el plano
+y qué muestra el panel). `Mode` en `store.ts`:
+
+| Modo | Pestaña | Qué se hace |
+|---|---|---|
+| `shells` | Módulos | Añadir (horizontal/vertical), mover, redimensionar, girar, eliminar módulos de fábrica. Se ve toda la parcela |
+| `modules` | Estancias | Añadir, mover, estirar (8 tiradores), girar, eliminar estancias |
+| `walls` | Paredes | Seleccionar pared: grosor y quitar/poner. Colocar, deslizar, centrar y redimensionar puertas y ventanas; altura de la ventana |
+| `finishes` | Acabados | Clic en el centro de una estancia: suelo y color de todas sus paredes. Clic junto a un lado: color de esa pared |
+| `options` | Opciones | Mobiliario por familias (Salón, Comedor, Dormitorio): colocar, mover, girar, pegar a pared. Icono de imán para activar o no el imantado a paredes |
+| `photos` | Fotos | Fotos en calidad guardadas: miniaturas, Anterior/Siguiente (la cámara va a donde se sacó cada una, con su objetivo), pinchar para verla grande, descargar y eliminar. En el plano, un icono numerado por foto donde se sacó; pincharlo lleva la cámara allí |
+
+Fuera del modo `shells`, el plano hace zoom para encuadrar los módulos.
+
+**Vistas** (botones sobre el lienzo): Plano 2D, Vista 3D, Plano + 3D (lado a lado),
+y "3D en otra ventana". En el plano, un marcador naranja muestra la cámara 3D y se
+puede arrastrar (posición) y orientar (tirador del cono).
+
+**Vista 3D**: cámara en primera persona. Arrastrar el ratón gira la vista; WASD y la
+rueda desplazan. "Bajar a pie" fija la altura de ojos (1,6 m) y movimiento horizontal.
+Sin techo (lo pidió el usuario). Las paredes no proyectan sombra; los muebles sí.
+No hay colisiones: se atraviesan paredes. Arriba a la izquierda de la vista:
+- **Foto en calidad**: imagen por trazado de rayos de lo que ve la cámara, con
+  techo y luz de techo solo durante la foto. Aviso "Generando la foto…" hasta la
+  primera muestra, contador hasta 200, "Guardar foto" (la manda a Fotos y vuelve a
+  la vista normal) y "Volver".
+- **Objetivo** (campo de visión): Normal 45°, Angular 60°, Gran angular 75°
+  (`LENSES` y `cameraFov` en `store.ts`). Vale para la vista y para la foto, se
+  guarda en `localStorage` y se sincroniza entre ventanas. Las estancias son
+  pequeñas y con el normal solo se ve una esquina.
+
+**Arriba del panel**: Nuevo plano (crea un módulo vacío de 13 × 4,2 en (0, 0) y abre
+el modo Módulos), Guardar plano y Cargar plano (archivo `.json`).
+
+Teclas: `R` gira lo seleccionado, `Supr` lo borra, `Esc` cancela la herramienta.
+
+## Decisiones de diseño que hay que respetar
+
+- **Las paredes son de la casa, no de cada estancia.** No volver a paredes dobles
+  entre estancias. Selección por `Wall.key` (`ext:<id>:<lado>:<n>` o `joint:<a>|<b>`).
+- **Los huecos se reencajan desde una copia durante el arrastre** (`dragOpenings`,
+  `beginDrag`/`endDrag`), para que pasar junto a otra estancia no los destruya.
+- **Imanes**: estancias y módulos se imantan a bordes de módulos y de otras
+  estancias (`snapEdge`/`snapSpan` en `Editor2D`); los muebles, a la cara interior
+  de las paredes de su estancia (`magnetize` en `store.ts`). El de los muebles se
+  apaga con el icono de imán del panel Opciones (`furnitureMagnet`, se guarda en
+  `localStorage`, no en el archivo de plano); "Pegar a la pared" funciona igual.
+- **Giro = 90° horario**, y arrastra todo lo que cuelga: lados (`n→e→s→w→n`),
+  huecos (`rotateOpening`), colores, muebles. `rotateShell` gira el módulo con sus
+  estancias; cuatro giros devuelven el estado inicial.
+- **Confirmaciones dentro de la página**, nunca `window.confirm`/`alert`: el
+  navegador integrado de la app de escritorio los bloquea y el botón "no hace nada".
+- **Sincronización entre ventanas** por el evento `storage` de `localStorage`
+  (final de `store.ts`). Solo mismo navegador y mismo equipo. La cámara se guarda
+  al soltar ratón/tecla, no por fotograma; `View3D` se suscribe a cambios externos.
+- **Planos antiguos sin módulos** (`shells: []`) siguen funcionando sin límite: la
+  restricción solo aplica si hay algún módulo. El formato de archivo tolera que
+  falten `shells` y `furniture`.
+- **Fotos** (`photos.ts`): se guardan en **IndexedDB** (base `eurocasa`, almacén
+  `photos`), no en `localStorage`, que es pequeño y lo comparte el plano. Cada foto
+  lleva la imagen (JPEG al 92 %, unos 300 KB; en PNG pesaban 2 MB), la pose de la
+  cámara, el objetivo y el tamaño. Son **de la casa**: "Guardar plano" las mete
+  dentro del `.json` como `data:` URL (campo `photos`), "Cargar plano" y "Nuevo
+  plano" sustituyen las que hubiera. Las ventanas se avisan por `BroadcastChannel`.
+  El visor (`PhotoViewer`) cuelga de `App` y se maneja con flechas y `Esc`.
+- **Vuelo de la cámara** (`flyCamera` en `store.ts`): al pasar a una foto la cámara
+  no salta, se mueve desde donde está. Se anima `cameraPose` en el propio estado,
+  no en la vista 3D, para que también se mueva el marcador del plano y las demás
+  ventanas. Durante el vuelo sí se escribe por fotograma. Cualquier
+  `setCameraPose` (o ratón, rueda y WASD en la vista 3D) lo corta; con la pestaña
+  oculta va directa. El objetivo cambia de golpe al empezar.
+- **Texturas a escala real**: cada suelo declara los metros que cubre su imagen
+  (`size`); la repetición se calcula por estancia.
+
+## Cómo ampliar catálogos
+
+- **Suelo**: imagen repetible (~1024 px) en `public/texturas/suelos/` + una línea en
+  `FLOORS` (`finishes.ts`) con `name`, `color`, `texture`, `size` en metros.
+- **Color de pared**: una línea en `WALL_COLORS`.
+- **Puerta/ventana**: una línea en `OPENING_CATALOG` (`openings.ts`).
+- **Mueble**: una línea en `FURNITURE` (`furniture.ts`) con su `family` y `shape`.
+  Una forma nueva necesita su caso en `boxes()` de `Furniture3D.tsx` y, si acaso,
+  en `FurnitureSymbol` de `Editor2D.tsx`.
+- **Familia**: una entrada en `FAMILIES`; la pestaña aparece sola.
+
+## Valores inventados, pendientes de datos reales de EuroCasa
+
+Medidas de puertas y ventanas, alféizar (0,9 m), altura de pared, grosores, catálogo
+de estancias (3×3, 3×6, 3×9), colores de pared, medidas y formas de los muebles, y
+que la textura "Madera de pino" cubre 2 × 2 m (supuesto, sin confirmar).
+
+## Limitaciones conocidas
+
+- Donde se tocan **dos módulos de fábrica** se dibuja una pared compartida única; en
+  la realidad hay dos (una por módulo). Sin decidir.
+- Los tramos exteriores de un mismo lado comparten grosor y estado.
+- Muebles: sin colisiones entre sí ni con huecos; no siguen a la estancia al
+  redimensionarla o girarla sola (sí al mover la estancia o girar/mover el módulo).
+- Un módulo sin estancias no se ve en 3D (suelo y paredes salen de las estancias).
+- Fachada sin configurar (color fijo): dependerá del aislante y el revestimiento.
+- "Guardar/Cargar plano" no se ha probado pulsando los botones (sí el formato,
+  también con fotos dentro).
+- Fotos: sin probar pulsando "Descargar" ni "Eliminar" con su confirmación. La
+  primera foto en un equipo tarda alrededor de un minuto en arrancar. Cargar un
+  plano sin fotos vacía la galería.
+- El cono de la cámara en el plano 2D no cambia con el objetivo elegido.
+
+## Pendiente / ideas habladas con el usuario
+
+Los temas que el usuario pide apuntar para más adelante van en `docs/PENDIENTES.md`
+(ruido de la foto, iluminación, paisajes, techo, piezas de pared, muebles de
+medida variable, exterior…).
+
+- **Tabiques dentro de una estancia** (p. ej. para un armario empotrado). El usuario
+  lo ve necesario; no está empezado.
+- Dudas sin contestar sobre los módulos: si 13 × 4,20 son medidas exteriores, si hay
+  tamaños estándar menores, si pueden ser más de dos, altura máxima por transporte.
+- **Destino visual**: una foto de referencia de cocina fotorrealista. Se habló de un
+  camino (techo e iluminación, materiales con relieve, marcos y rodapiés, modelos
+  GLB reales, cocina como conjunto, etiquetas sobre el 3D) y de alternativas fuera
+  del tiempo real (render bajo demanda, motor de juego). **Nada decidido ni
+  empezado**: el usuario paró el paso del techo para hablarlo antes.
+- **Foto en calidad bajo demanda**: **aceptada por el usuario** (2026-10-10), ya no
+  es una prueba. Botón "Foto en calidad" sobre la vista 3D: trazado
+  de rayos en la GPU con `three-gpu-pathtracer` 0.0.23 sobre la misma escena
+  (`viewer/PhotoTracer.tsx`), 200 muestras, se reinicia al mover la cámara, y
+  "Guardar foto" la manda a la pestaña Fotos. Mientras dura la foto se añaden un techo y un
+  panel de luz de 0,6 m por estancia (provisionales, en `View3D.tsx`) y un cielo
+  en degradado. Resultado de la prueba en `docs/pruebas/`. Lo aprendido:
+  - La 0.0.23 es la última que admite three 0.169; de la 0.0.25 en adelante exige
+    three ≥ 0.185 y three-mesh-bvh ≥ 0.9.15 (choca con drei 9.114, que no se usa).
+  - **No admite mallas con varios materiales** (descoloca los de toda la escena) y
+    al mezclar mallas espera el atributo `color` con 4 componentes. Por eso las
+    paredes llevan el color de cada cara en los vértices (`WallBox`).
+  - Su `dispose()` lanza una excepción; va envuelto en `try`.
+  - La primera foto en un equipo tarda alrededor de un minuto en arrancar
+    (compilación del sombreador, con la página parada unos 40 s); las siguientes,
+    menos de un segundo.
+  - Pendiente de hablar: luces como elemento que coloca el usuario, exterior tras
+    las ventanas (ahora solo cielo), reducción de ruido, y qué hacer en móviles.
+- Posibles: colisiones a pie, hojas y marcos de puerta, precio por m², más familias
+  de mobiliario (cocina, baño), acabados por familia de mueble.
+
+## Registro de cambios
+
+Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-10** · El proyecto pasa a ser un repositorio git (rama `main`) con un
+  primer commit de todo lo que había. Remoto `origin` apuntando al GitHub del
+  usuario, sin subir nada todavía: el repositorio es público.
+- **2026-10-10** · Carpeta `fotos/` con tres fotos de referencia de exteriores que
+  pasó el usuario (casa de teja y fachada roja; casa más sencilla, blanca; y la
+  "Gran Villa" con porche de madera, que le parece espectacular) y una de
+  interior (dormitorio pequeño con literas en L y armario a medida).
+- **2026-10-10** · Nuevo `docs/PENDIENTES.md` con los temas que el usuario pide
+  solo anotar. Empezó con tres (ruido de la foto, iluminación, paisajes tras las
+  ventanas) y va por once: techo, vinilos, espejos, interruptores, ornamentación,
+  armarios y encimera variables, y definir el exterior.
+- **2026-10-10** · Iconos de las fotos en el plano 2D, solo en el modo Fotos: un
+  círculo azul numerado por foto, donde se sacó, con una punta hacia donde miraba;
+  naranja el de la foto actual. Pincharlo lleva la cámara a esa foto (`.photo-marker`
+  en `Editor2D.tsx`). El usuario los echaba en falta.
+- **2026-10-10** · Al pasar a una foto la cámara **vuela** desde donde está (1,2 s,
+  giro por el camino corto) en vez de saltar: `flyCamera` en `store.ts`, que anima
+  `cameraPose` y se corta en cuanto el usuario mueve la cámara
+  (`stopCameraFlight`). Y al pulsar "Guardar foto" la vista **vuelve sola al modo
+  normal**, con un aviso de 4 s "Foto guardada en Fotos"; antes seguía trazando.
+- **2026-10-10** · Nueva pestaña **Fotos**. "Guardar foto" ya no descarga: guarda
+  la foto en IndexedDB con posición, giro y objetivo de la cámara (`photos.ts`).
+  Panel `PhotosPanel` (miniaturas, Anterior/Siguiente, ver, descargar, eliminar con
+  confirmación) y visor `PhotoViewer`. Las fotos van dentro del `.json` del plano
+  (`PlanPhoto`, `parsePhotos` en `planFile.ts`); cargar o empezar plano las
+  sustituye. Formato de imagen: JPEG en vez de PNG.
+- **2026-10-10** · La foto en calidad deja de ser una prueba (lo dijo el usuario):
+  el botón pasa a llamarse "Foto en calidad".
+- **2026-10-10** · Selector de objetivo en la vista 3D con tres posiciones: Normal
+  45°, Angular 60°, Gran angular 75° (`LENSES`, `cameraFov` en `store.ts`; botones
+  `.lens-toggle` en `View3D.tsx`). La foto se reinicia al cambiarlo.
+- **2026-10-10** · Aviso "Generando la foto…" centrado sobre la vista 3D desde que
+  se pulsa el botón hasta la primera muestra; luego se quita y queda el contador
+  (`waiting` en `View3D.tsx`, estilo `.photo-wait`). Lo pidió el usuario porque el
+  arranque tarda.
+- **2026-10-10** · Prueba de foto en calidad: instalado `three-gpu-pathtracer`
+  0.0.23 (y `xatlas-web`, que exige como dependencia), nuevo `PhotoTracer.tsx`,
+  botón y techo/luz provisionales en `View3D.tsx`, estilos `.view3d-wrap` /
+  `.photo-bar`. Las paredes pasan de seis materiales a colores por vértice
+  (`WallBox`); en la vista normal se ven igual. Imágenes en `docs/pruebas/`.
+- **2026-10-10** · Mirada la compatibilidad de `three-gpu-pathtracer` para la foto
+  en calidad (solo requisitos de npm; nada instalado). Resultado en "Pendiente".
+- **2026-10-10** · Marcador de la cámara en el plano 2D a la mitad de tamaño
+  (`scale(0.5)` en `CameraMarker`, `Editor2D.tsx`). Al usuario le parecía muy grande.
+- **2026-10-10** · Icono de imán en el panel Opciones para activar o no el imantado
+  de los muebles a las paredes (`furnitureMagnet` en `store.ts`, botón en
+  `OptionsPanel.tsx`, estilos `.section-head` / `.icon-toggle` en `App.css`).
+- **2026-10-10** · Entrada `pruebas` en `.claude/launch.json`: servidor en el puerto
+  5183, otro origen y por tanto otro `localStorage`, para verificar sin tocar el
+  plano del usuario.
+
+## Forma de trabajar con el usuario
+
+- **Anotar según se hace.** Cada cambio se apunta en el "Registro de cambios" de
+  este documento en el mismo turno, sin esperar a que lo pida.
+
+- **No programar sin una orden clara.** Si comenta u opina ("yo creo que…", "vamos a
+  hablar", "vamos a estudiar"), se conversa y se espera. Con la orden dada, avanzar.
+- **No hacer pruebas que cambien su plano.** Trabaja en vivo en el navegador
+  integrado sobre `localhost:5173`, cuyo `localStorage` (clave `eurocasa-house`)
+  comparten todas las pestañas. Verificar con `tsc`, lecturas y capturas; para
+  pruebas destructivas usar otro origen o decir qué no se probó.
+- Copia de su plano anterior a los módulos: `planos/plano-anterior-sin-modulos.json`.

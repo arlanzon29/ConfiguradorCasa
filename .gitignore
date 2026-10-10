@@ -1,0 +1,5 @@
+node_modules
+dist
+*.local
+# Ajustes de Claude Code propios de este equipo (permisos); launch.json sí se guarda.
+.claude/settings.local.json
