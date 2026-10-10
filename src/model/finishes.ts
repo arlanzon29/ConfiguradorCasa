@@ -43,4 +43,24 @@ export const WALL_COLORS: { name: string; color: string }[] = [
 export const interiorColor = (room: PlacedModule | undefined, side: Side) =>
   room?.sideColors?.[side] ?? room?.wallColor ?? DEFAULT_WALL_COLOR
 
-export const floorFinish = (id?: string) => FLOORS.find((f) => f.id === id) ?? FLOORS[0]
+/**
+ * Acabado de una superficie: un color liso (`#rrggbb`) o un material del
+ * catálogo (su `id`). Es el mismo concepto para carpintería, suelos y paredes:
+ * los suelos ya guardan el `id` de su material y las paredes, su color.
+ */
+export type Finish = string
+
+/** Materiales del catálogo: los acabados que llevan textura. */
+export const MATERIALS = FLOORS.filter((f) => f.texture)
+
+// Puertas y ventanas, mientras no se elija otro.
+export const DEFAULT_JOINERY_FINISH: Finish = '#f3f1ec'
+
+/** Color y, si es un material, textura de un acabado. Uno desconocido cae en `fallback`. */
+export function resolveFinish(finish: Finish | undefined, fallback: Finish): Omit<FloorFinish, 'id' | 'name'> {
+  const value = finish ?? fallback
+  if (value.startsWith('#')) return { color: value }
+  return MATERIALS.find((m) => m.id === value) ?? { color: fallback }
+}
+
+export const floorFinish =(id?: string) => FLOORS.find((f) => f.id === id) ?? FLOORS[0]

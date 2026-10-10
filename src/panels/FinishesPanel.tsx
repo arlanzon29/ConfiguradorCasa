@@ -1,9 +1,12 @@
 import {
   DEFAULT_WALL_COLOR,
   FLOORS,
+  Finish,
+  MATERIALS,
   WALL_COLORS,
   floorFinish,
   interiorColor,
+  resolveFinish,
 } from '../model/finishes'
 import { Side, formatMeters } from '../model/house'
 import { useHouse } from '../store'
@@ -34,6 +37,30 @@ export function ColorPicker({ value, onChange }: ColorPickerProps) {
         <input type="color" value={value} onChange={(e) => onChange(e.target.value)} />
       </label>
     </div>
+  )
+}
+
+/** Un acabado: un material del catálogo o un color liso. */
+export function FinishPicker({ value, onChange }: { value: Finish; onChange: (finish: Finish) => void }) {
+  return (
+    <>
+      <div className="swatches">
+        {MATERIALS.map((m) => (
+          <button
+            key={m.id}
+            className={m.id === value ? 'swatch active' : 'swatch'}
+            onClick={() => onChange(m.id)}
+          >
+            <span
+              className="swatch-sample"
+              style={{ backgroundColor: m.color, backgroundImage: `url(${m.texture})` }}
+            />
+            {m.name}
+          </button>
+        ))}
+      </div>
+      <ColorPicker value={resolveFinish(value, DEFAULT_WALL_COLOR).color} onChange={onChange} />
+    </>
   )
 }
 

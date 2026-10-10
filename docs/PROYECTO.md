@@ -62,7 +62,14 @@ Otros elementos:
   dos hojas de cristal solapadas. De cada puerta abatible se guarda en el hueco
   hacia dónde abre (`swing`: `in` hacia su estancia, `out` al otro lado), en qué
   canto gira (`hinge`: `start` el extremo oeste o norte, `end` el otro) y si se ve
-  cerrada en 3D (`closed`; si no, abierta a 90° como en el plano). Todo blanco.
+  cerrada en 3D (`closed`; si no, abierta a 90° como en el plano). Cerco y hojas
+  llevan el **acabado** del hueco (`Opening.finish`, por defecto blanco).
+- **Acabado** (`Finish` en `finishes.ts`): un solo concepto, un texto que es un
+  color liso (`#rrggbb`) o el `id` de un material del catálogo (`MATERIALS`, los
+  acabados con textura). `resolveFinish` da su color y su textura; `FinishPicker`
+  (`FinishesPanel.tsx`) lo elige: materiales arriba, colores debajo. Hoy lo usa
+  la carpintería. Suelos y paredes guardan ya valores compatibles (el suelo el
+  `id` de su material, la pared su color) pero siguen con sus selectores de antes.
 - **Acabados**: suelo por estancia (catálogo con textura) y color de pared por
   estancia o por lado (`wallColor`, `sideColors`). Solo se ven en 3D.
 - **Rodapié** (`Skirting`): alto y color **por pared**, guardados donde el grosor:
@@ -146,7 +153,7 @@ ella; `Esc` la deja como estaba; lo que no cabe se rechaza con un aviso debajo.
 | Módulo | distancia al borde izquierdo y superior de la parcela; ancho y fondo |
 | Estancia | distancia al borde izquierdo y superior de su módulo (de la parcela si no hay módulos); ancho y fondo |
 | Pared | grosor (cm); alto del rodapié (cm) y su color |
-| Puerta o ventana | distancia a cada extremo de su pared; ancho y alto; altura desde el suelo (ventanas). En puertas abatibles, botones "Abrir hacia el otro lado", "Girar desde el otro canto" y "Cerrar / Abrir la puerta en 3D" |
+| Puerta o ventana | distancia a cada extremo de su pared; ancho y alto; altura desde el suelo (ventanas). En puertas abatibles, botones "Abrir hacia el otro lado", "Girar desde el otro canto" y "Cerrar / Abrir la puerta en 3D". Debajo, el acabado de su carpintería (material o color) y "Aplicar a todas las puertas y ventanas" |
 | Mueble | distancia de cada borde del mueble a las cuatro paredes de su estancia (a los bordes de la parcela si está fuera) |
 
 El derecho solo existe en los modos Módulos, Estancias, Paredes y Opciones
@@ -262,7 +269,15 @@ que la textura "Madera de pino" cubre 2 × 2 m (supuesto, sin confirmar).
   aparte en la vista 3D normal (por defecto, y cambiando alto y color de una
   pared); sin probar a la vista el corte en una puerta, una pared compartida, el
   giro ni la foto en calidad.
-- Carpintería: color blanco fijo. La puerta abierta no choca con nada (muebles,
+- Acabados: el concepto único (color o material) solo está puesto en la
+  carpintería. El suelo no admite todavía un color liso y las paredes no admiten
+  material: sus caras van coloreadas por vértice (`WallBox`) y una textura pide
+  rehacer esa malla. En la carpintería el acabado es uno por hueco (cerco y hojas
+  iguales, las dos caras iguales); la manilla y el cristal son fijos. El único
+  material del catálogo es "Madera de pino". Probado a la vista en el servidor
+  aparte con clics simulados (material, color y "aplicar a todas"); sin probar en
+  la foto en calidad.
+- Carpintería: la puerta abierta no choca con nada (muebles,
   otra puerta, la pared de al lado). La corredera no elige hacia dónde desliza y
   las ventanas no eligen hojas ni sentido de apertura, ni llevan persiana ni
   vierteaguas. El plano 2D no dibuja el cerco. Probado a la vista en el servidor
@@ -337,6 +352,17 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-10** · **Acabado de puertas y ventanas**: color o material, como un
+  mismo concepto (lo pidió el usuario así, y que salga debajo en Propiedades).
+  `Finish`, `MATERIALS`, `resolveFinish` y `DEFAULT_JOINERY_FINISH` en
+  `finishes.ts`; campo `finish` en `Opening`; `setOpeningFinish` en `store.ts`
+  (con `null`, a todos los huecos); `FinishPicker` en `FinishesPanel.tsx`, puesto
+  al final de `OpeningProperties` con el botón "Aplicar a todas las puertas y
+  ventanas" (añadido mío); `JoineryBox` y `TexturedBox` en `View3D.tsx`, con la
+  textura a escala real y la veta a lo largo de las piezas altas. Suelos y
+  paredes no se han tocado: queda por decidir con el usuario si pasan al mismo
+  selector.
 
 - **2026-10-10** · **Puertas y ventanas con carpintería** (tema 16 de pendientes;
   el usuario pidió la puerta y la jamba, y elegir hacia qué lado abre y desde qué

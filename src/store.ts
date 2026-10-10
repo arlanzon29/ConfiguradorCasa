@@ -200,6 +200,8 @@ interface HouseState {
   setOpeningSill: (id: string, sill: number) => boolean
   /** Hacia dónde abre una puerta, en qué canto gira y si se ve cerrada en 3D. */
   setDoor: (id: string, patch: Pick<Opening, 'swing' | 'hinge' | 'closed'>) => void
+  /** Acabado de la carpintería de un hueco (color o material); con `null`, de todos. */
+  setOpeningFinish: (id: string | null, finish: string) => void
   /** Centra el hueco a lo largo de su pared. False si ahí pisa otro hueco. */
   centerOpening: (id: string) => boolean
   removeOpening: (id: string) => void
@@ -853,6 +855,11 @@ export const useHouse = create<HouseState>()(
 
         setDoor: (id, patch) =>
           set((s) => ({ openings: s.openings.map((o) => (o.id === id ? { ...o, ...patch } : o)) })),
+
+        setOpeningFinish: (id, finish) =>
+          set((s) => ({
+            openings: s.openings.map((o) => (id === null || o.id === id ? { ...o, finish } : o)),
+          })),
 
         centerOpening: (id) => {
           const { modules, joints, openings } = get()

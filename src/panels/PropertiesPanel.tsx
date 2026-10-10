@@ -22,7 +22,8 @@ import {
 import { CORNER_GAP, MIN_OPENING, Opening, swingDoor } from '../model/openings'
 import { Wall, deriveWalls, openingSpan, wallOf } from '../model/walls'
 import { Mode, furnitureBox, useHouse } from '../store'
-import { ColorPicker } from './FinishesPanel'
+import { DEFAULT_JOINERY_FINISH } from '../model/finishes'
+import { ColorPicker, FinishPicker } from './FinishesPanel'
 
 // Panel derecho: los datos de lo que está seleccionado en el plano, en casillas
 // que se pueden escribir a mano. Cada casilla se aplica sola, al pulsar Intro o
@@ -248,6 +249,7 @@ function OpeningProperties({ opening, walls }: { opening: Opening; walls: Wall[]
   const setOpeningSill = useHouse((s) => s.setOpeningSill)
   const centerOpening = useHouse((s) => s.centerOpening)
   const setDoor = useHouse((s) => s.setDoor)
+  const setOpeningFinish = useHouse((s) => s.setOpeningFinish)
   const removeOpening = useHouse((s) => s.removeOpening)
   const [notice, setNotice] = useState('')
 
@@ -340,6 +342,19 @@ function OpeningProperties({ opening, walls }: { opening: Opening; walls: Wall[]
         <button onClick={() => removeOpening(opening.id)}>Eliminar (Supr)</button>
       </div>
       {notice && <p className="notice">{notice}</p>}
+      <h3>{opening.kind === 'door' ? 'Acabado de la puerta' : 'Acabado de la ventana'}</h3>
+      <FinishPicker
+        value={opening.finish ?? DEFAULT_JOINERY_FINISH}
+        onChange={(finish) => setOpeningFinish(opening.id, finish)}
+      />
+      <div className="actions spaced">
+        <button
+          title="Pone este acabado en la carpintería de toda la casa"
+          onClick={() => setOpeningFinish(null, opening.finish ?? DEFAULT_JOINERY_FINISH)}
+        >
+          Aplicar a todas las puertas y ventanas
+        </button>
+      </div>
     </>
   )
 }

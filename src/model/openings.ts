@@ -1,3 +1,4 @@
+import type { Finish } from './finishes'
 import { PlacedModule, Side, WALL_HEIGHT, roundSize, sideLength } from './house'
 
 // Un hueco (puerta o ventana) se ancla a un lado de una estancia: su posición
@@ -44,6 +45,8 @@ export interface Opening {
   hinge?: 'start' | 'end'
   /** Puerta abatible dibujada cerrada en 3D; si no, abierta a 90° como en el plano. */
   closed?: boolean
+  /** Acabado de su carpintería (cerco y hojas): un color o un material. */
+  finish?: Finish
 }
 
 // Hasta este ancho una puerta es abatible; por encima, corredera.

@@ -10,14 +10,20 @@ import {
   TextureLoader,
   Vector3,
 } from 'three'
-import { DEFAULT_WALL_COLOR, floorFinish, interiorColor } from '../model/finishes'
+import {
+  DEFAULT_JOINERY_FINISH,
+  DEFAULT_WALL_COLOR,
+  floorFinish,
+  interiorColor,
+  resolveFinish,
+} from '../model/finishes'
 import { PLOT, PlacedModule, WALL_HEIGHT } from '../model/house'
 import { OPPOSITE, Opening } from '../model/openings'
 import { Joints, deriveWalls, openingsOf, wallAcross } from '../model/walls'
 import { Shot, usePhotos } from '../photos'
 import { LENSES, cameraFlying, samePose, stopCameraFlight, useHouse } from '../store'
 import Furniture3D from './Furniture3D'
-import { JoineryMaterial, joineryParts } from './joinery'
+import { JoineryMaterial, JoineryPart, joineryParts } from './joinery'
 import PhotoTracer, { PHOTO_SAMPLES } from './PhotoTracer'
 
 // Grosor de la losa, en metros.
@@ -30,9 +36,8 @@ const SKIRTING_DEPTH = 0.012
 // La fachada aún no es configurable (dependerá del aislante y del revestimiento).
 const FACADE_COLOR = DEFAULT_WALL_COLOR
 
-// Carpintería: de momento blanca en toda la casa, sin configurar.
-const JOINERY_MATERIALS: Record<JoineryMaterial, object> = {
-  wood: { color: '#f3f1ec', roughness: 0.55 },
+// Piezas de carpintería que no llevan el acabado del hueco.
+const JOINERY_MATERIALS: Record<Exclude<JoineryMaterial, 'wood'>, object> = {
   glass: { color: '#9fc6dd', transparent: true, opacity: 0.35 },
   metal: { color: '#8d9196', roughness: 0.35, metalness: 0.8 },
 }
@@ -358,6 +363,86 @@ function WallBox({ part }: { part: WallPart }) {
   )
 }
 
+/**
+ * Pieza de carpintería. El cristal y la manilla son fijos; cerco y hojas llevan
+ * el acabado de su hueco, que es un color liso o un material con textura.
+ */
+function JoineryBox({ part }: { part: JoineryPart }) {
+  const position: [number, number, number] = [
+    part.position[0],
+    SLAB + part.position[1],
+    part.position[2],
+  ]
+  if (part.material !== 'wood') {
+    return (
+      <mesh position={position} receiveShadow={part.material === 'metal'}>
+        <boxGeometry args={part.size} />
+        <meshStandardMaterial {...JOINERY_MATERIALS[part.material]} />
+      </mesh>
+    )
+  }
+  const finish = resolveFinish(part.finish, DEFAULT_JOINERY_FINISH)
+  const plain = (
+    <mesh position={position} receiveShadow>
+      <boxGeometry args={part.size} />
+      <meshStandardMaterial color={finish.color} roughness={0.55} />
+    </mesh>
+  )
+  if (!finish.texture) return plain
+  return (
+    <Suspense fallback={plain}>
+      <TexturedBox position={position} size={part.size} url={finish.texture} scale={finish.size ?? [1, 1]} />
+    </Suspense>
+  )
+}
+
+interface TexturedBoxProps {
+  position: [number, number, number]
+  size: [number, number, number]
+  url: string
+  /** Metros reales que cubre la imagen. */
+  scale: [number, number]
+}
+
+/** Caja con una textura a escala real en sus seis caras. */
+function TexturedBox({ position, size, url, scale }: TexturedBoxProps) {
+  const image = useLoader(TextureLoader, url)
+  const texture = useMemo(() => {
+    const t = image.clone()
+    t.wrapS = t.wrapT = RepeatWrapping
+    t.colorSpace = SRGBColorSpace
+    t.needsUpdate = true
+    return t
+  }, [image])
+  useEffect(() => () => texture.dispose(), [texture])
+
+  const [w, h, d] = size
+  const [sx, sy] = scale
+  const geometry = useMemo(() => {
+    const box = new BoxGeometry(w, h, d)
+    // Las UV de BoxGeometry van de 0 a 1 en cada cara: se pasan a metros para
+    // que la textura no se estire. Caras en el orden +x, -x, +y, -y, +z, -z.
+    const uv = box.getAttribute('uv')
+    for (let i = 0; i < uv.count; i++) {
+      const face = Math.floor(i / 4)
+      const [across, up] = face < 2 ? [d, h] : face < 4 ? [w, d] : [w, h]
+      const [u, v] = [(uv.getX(i) * across) / sx, (uv.getY(i) * up) / sy]
+      // La veta de la imagen va en horizontal: en las piezas más altas que
+      // anchas (largueros, hoja de la puerta) se gira para que suba con ellas.
+      if (up > across) uv.setXY(i, v, u)
+      else uv.setXY(i, u, v)
+    }
+    return box
+  }, [w, h, d, sx, sy])
+  useEffect(() => () => geometry.dispose(), [geometry])
+
+  return (
+    <mesh position={position} geometry={geometry} receiveShadow>
+      <meshStandardMaterial map={texture} roughness={0.7} />
+    </mesh>
+  )
+}
+
 /** Acabado del suelo de una estancia: una lámina sobre la losa, con la textura a escala real. */
 function Floor({ room }: { room: PlacedModule }) {
   const finish = floorFinish(room.floor)
@@ -606,14 +691,7 @@ export default function View3D() {
         ))}
         {/* Carpintería de puertas y ventanas: cercos, hojas, cristales y manillas. */}
         {joinery.map((part, i) => (
-          <mesh
-            key={i}
-            position={[part.position[0], SLAB + part.position[1], part.position[2]]}
-            receiveShadow={part.material !== 'glass'}
-          >
-            <boxGeometry args={part.size} />
-            <meshStandardMaterial {...JOINERY_MATERIALS[part.material]} />
-          </mesh>
+          <JoineryBox key={i} part={part} />
         ))}
         {skirtings.map((part, i) => (
           <mesh key={i} position={part.position} receiveShadow>

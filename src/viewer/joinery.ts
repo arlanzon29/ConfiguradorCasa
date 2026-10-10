@@ -1,3 +1,4 @@
+import type { Finish } from '../model/finishes'
 import { PlacedModule, WALL_HEIGHT } from '../model/house'
 import { Opening, swingDoor, swingSign } from '../model/openings'
 import { Joints, deriveWalls, openingsOf, wallAcross } from '../model/walls'
@@ -30,6 +31,8 @@ export interface JoineryPart {
   position: [number, number, number]
   size: [number, number, number]
   material: JoineryMaterial
+  /** Acabado elegido para el hueco; solo cuenta en las piezas `wood`. */
+  finish?: Finish
 }
 
 /** Cercos, hojas, cristales y manillas de todos los huecos de la casa. */
@@ -40,6 +43,8 @@ export function joineryParts(modules: PlacedModule[], joints: Joints, openings: 
     if (wall.open) continue
     const [acrossMin, acrossMax] = wallAcross(wall)
     const axis = (acrossMin + acrossMax) / 2
+    // Acabado del hueco que se está montando.
+    let finish: Finish | undefined
 
     // Caja dada por sus extremos a lo largo de la pared, a través de ella y en altura.
     const box = (
@@ -54,8 +59,8 @@ export function joineryParts(modules: PlacedModule[], joints: Joints, openings: 
       const [a, c, h] = [(a0 + a1) / 2, (c0 + c1) / 2, (y[0] + y[1]) / 2]
       parts.push(
         wall.horizontal
-          ? { position: [a, h, c], size: [a1 - a0, y[1] - y[0], c1 - c0], material }
-          : { position: [c, h, a], size: [c1 - c0, y[1] - y[0], a1 - a0], material },
+          ? { position: [a, h, c], size: [a1 - a0, y[1] - y[0], c1 - c0], material, finish }
+          : { position: [c, h, a], size: [c1 - c0, y[1] - y[0], a1 - a0], material, finish },
       )
     }
 
@@ -75,6 +80,7 @@ export function joineryParts(modules: PlacedModule[], joints: Joints, openings: 
     }
 
     for (const { opening: o, from, to } of openingsOf(wall, modules, walls, openings)) {
+      finish = o.finish
       const top = o.sill + o.height
       const thick: [number, number] = [acrossMin, acrossMax]
 
