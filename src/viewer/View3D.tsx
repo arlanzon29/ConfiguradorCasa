@@ -438,6 +438,19 @@ export default function View3D() {
   // Repetir una foto (panel Fotos): la cámara ya va hacia su sitio; se traza sola
   // hasta el final y sustituye a la anterior. Si se cancela, se vuelve a la vista normal.
   const retakeId = usePhotos((s) => s.retakeId)
+  // Con la cámara en el sitio y el objetivo de una foto guardada se ofrece repetirla
+  // desde aquí: vale también en la ventana de la vista 3D sola, que recibe la pose
+  // cuando en la otra se pasa a esa foto.
+  const photos = usePhotos((s) => s.photos)
+  const cameraPose = useHouse((s) => s.cameraPose)
+  const hereIndex = photos.findIndex(
+    (p) =>
+      p.fov === cameraFov &&
+      !!cameraPose &&
+      Math.abs(Math.sin((p.pose.yaw - cameraPose.yaw) / 2)) < 1e-4 &&
+      Math.abs(p.pose.pitch - cameraPose.pitch) < 1e-4 &&
+      p.pose.position.every((v, i) => Math.abs(v - cameraPose.position[i]) < 1e-3),
+  )
   const retaking = useRef(false)
   useEffect(() => {
     if (retakeId) startPhoto()
@@ -483,7 +496,17 @@ export default function View3D() {
             </button>
           </>
         ) : (
-          <button onClick={startPhoto}>Foto en calidad</button>
+          <>
+            <button onClick={startPhoto}>Foto en calidad</button>
+            {hereIndex >= 0 && (
+              <button
+                title="Vuelve a sacarla desde aquí, con el tamaño de esta vista, y sustituye a la anterior"
+                onClick={() => usePhotos.getState().retake(photos[hereIndex].id)}
+              >
+                Repetir foto {hereIndex + 1}
+              </button>
+            )}
+          </>
         )}
         {saved && <span>{saved}</span>}
         <div className="lens-toggle" title="Objetivo: cuánto abarca la cámara">

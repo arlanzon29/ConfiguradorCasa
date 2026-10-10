@@ -211,6 +211,10 @@ Teclas: `R` gira lo seleccionado, `Supr` lo borra, `Esc` cancela la herramienta.
   plano a la vista, `App` pasa a Plano + 3D; volver a Plano 2D, ir a otra foto o
   "Cancelar" la cancelan y la foto anterior queda como estaba. Se guarda la pose
   real de la cámara: si el usuario la mueve a mitad, la foto queda reencuadrada.
+  La vista 3D enseña además su propio botón **"Repetir foto N"** cuando la cámara
+  está en el sitio y con el objetivo de una foto guardada (`hereIndex` en
+  `View3D.tsx`, comparando poses con tolerancia): así sale también en la ventana
+  `?vista=3d`, que no tiene panel pero recibe la pose al pasar a la foto en la otra.
 - **Vuelo de la cámara** (`flyCamera` en `store.ts`): al pasar a una foto la cámara
   no salta, se mueve desde donde está. Se anima `cameraPose` en el propio estado,
   no en la vista 3D, para que también se mueva el marcador del plano y las demás
@@ -258,9 +262,10 @@ que la textura "Madera de pino" cubre 2 × 2 m (supuesto, sin confirmar).
   primera foto en un equipo tarda alrededor de un minuto en arrancar. Cargar un
   plano sin fotos vacía la galería.
 - Repetir una foto: sale con el tamaño que tenga la vista 3D en ese momento, no
-  con el de la original. No pide confirmación (se puede cancelar mientras
-  traza). Solo funciona con la vista 3D de la misma ventana, no con la de "3D en
-  otra ventana". Probado en un servidor aparte con una casa de dos estancias
+  con el de la original; para que salga igual hay que repetirla desde la misma
+  vista (p. ej. la ventana de "3D en otra ventana") con el botón "Repetir foto N"
+  de la propia vista. No pide confirmación (se puede cancelar mientras traza).
+  El "Repetir" del panel Fotos usa la vista 3D de su misma ventana. Probado en un servidor aparte con una casa de dos estancias
   (sustituye, conserva sitio, pose y objetivo; cancelar no toca la foto); allí la
   pestaña no dibujaba sola y hubo que forzar los fotogramas, y al volver a montar
   la vista 3D el trazador tardó otra vez cerca de un minuto en arrancar.
@@ -314,6 +319,12 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-10** · Botón **"Repetir foto N"** en la propia vista 3D, junto a
+  "Foto en calidad", cuando la cámara está donde se sacó una foto. Lo pidió el
+  usuario para repetirla desde la ventana `?vista=3d` y que salga con el mismo
+  tamaño. Probado en el servidor aparte en esa ventana: sustituyó la foto y
+  salió a 1280 × 720, el tamaño de la ventana.
 
 - **2026-10-10** · **Repetir una foto** (tema 15 de pendientes). Botón "Repetir"
   en la foto seleccionada del panel Fotos: la cámara vuela a su sitio con su
