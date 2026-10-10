@@ -16,7 +16,9 @@ npm run build    # tsc --noEmit && vite build
 
 - Vista 3D sola (para otra ventana): `http://localhost:5173/?vista=3d`
 - Comprobación mínima tras cualquier cambio: `npx tsc --noEmit`. No hay tests ni linter.
-- Node del equipo: 20.11.1. Por eso **Vite 5** (Vite 6+/create-vite actual exigen 20.19).
+- Node del equipo: 20.11.1. Por eso **Vite 6** y `@vitejs/plugin-react` 4: Vite 7
+  y 8 y el plugin 5 y 6 exigen Node 20.19 o 22.12. Para subirlos hay que
+  actualizar Node antes.
 - Repositorio **git** desde el 2026-10-10, rama `main`. Remoto `origin`:
   `https://github.com/arlanzon29/ConfiguradorCasa`, que es **público** (el usuario
   lo sabe; las fotos de `fotos/` son públicas). Fuera de git: `node_modules`, `dist` y
@@ -26,7 +28,7 @@ npm run build    # tsc --noEmit && vite build
 
 ## Stack
 
-React 19 + TypeScript + Vite 5. Estado con **zustand** (`persist` en `localStorage`).
+React 19 + TypeScript + Vite 6. Estado con **zustand** 5 (`persist` en `localStorage`).
 3D con **three.js** 0.186 vía `@react-three/fiber` v9, y foto en calidad con
 `three-gpu-pathtracer` 0.0.27. El plano 2D es **SVG** puro, con el `viewBox` en metros.
 
@@ -252,6 +254,10 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-10** · Versiones, paso 3: zustand 4 → 5.0.15 y Vite 5 → 6.4.4 (la
+  más nueva que admite Node 20.11.1; `npm audit` queda en 0 avisos). Sin tocar
+  código. Probado: carga del plano guardado, las seis pestañas, guardado en
+  `localStorage`, relectura al escribir otra ventana, imán, Fotos, vista 3D y foto.
 - **2026-10-10** · Versiones, paso 2: React 18 → 19.3 y `@react-three/fiber` 8 →
   9.8 (la 9 exige React 19), con sus tipos. Sin tocar código. npm 10.4 no resolvía
   el cambio sobre la instalación anterior: hubo que borrar `node_modules` y

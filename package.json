@@ -15,7 +15,7 @@
     "three": "0.186.1",
     "three-gpu-pathtracer": "0.0.27",
     "three-mesh-bvh": "0.9.16",
-    "zustand": "^4.5.5"
+    "zustand": "5.0.15"
   },
   "devDependencies": {
     "@types/react": "19.3.0",
@@ -23,6 +23,6 @@
     "@types/three": "0.186.0",
     "@vitejs/plugin-react": "^4.3.4",
     "typescript": "^5.6.3",
-    "vite": "^5.4.11"
+    "vite": "6.4.4"
   }
 }
