@@ -26,8 +26,8 @@ npm run build    # tsc --noEmit && vite build
 
 ## Stack
 
-React 18 + TypeScript + Vite 5. Estado con **zustand** (`persist` en `localStorage`).
-3D con **three.js** 0.186 vía `@react-three/fiber` v8, y foto en calidad con
+React 19 + TypeScript + Vite 5. Estado con **zustand** (`persist` en `localStorage`).
+3D con **three.js** 0.186 vía `@react-three/fiber` v9, y foto en calidad con
 `three-gpu-pathtracer` 0.0.27. El plano 2D es **SVG** puro, con el `viewBox` en metros.
 
 ## Conceptos del dominio (lo más importante)
@@ -252,6 +252,12 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-10** · Versiones, paso 2: React 18 → 19.3 y `@react-three/fiber` 8 →
+  9.8 (la 9 exige React 19), con sus tipos. Sin tocar código. npm 10.4 no resolvía
+  el cambio sobre la instalación anterior: hubo que borrar `node_modules` y
+  `package-lock.json` y reinstalar. Probado en el servidor aparte: las seis
+  pestañas, mover y girar un mueble, vista 3D, foto y guardado, panel y visor de
+  Fotos. Sin probar: arrastres con el ratón (la pestaña de pruebas estaba oculta).
 - **2026-10-10** · Versiones, paso 1 (lo que más pedía el usuario): three.js
   0.169 → 0.186.1, `three-gpu-pathtracer` 0.0.23 → 0.0.27, `three-mesh-bvh` →
   0.9.16, `@react-three/fiber` 8.17 → 8.18, y fuera `@react-three/drei`, que no se

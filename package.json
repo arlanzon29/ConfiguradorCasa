@@ -9,17 +9,17 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@react-three/fiber": "8.18.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "@react-three/fiber": "9.8.1",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
     "three": "0.186.1",
     "three-gpu-pathtracer": "0.0.27",
     "three-mesh-bvh": "0.9.16",
     "zustand": "^4.5.5"
   },
   "devDependencies": {
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
     "@types/three": "0.186.0",
     "@vitejs/plugin-react": "^4.3.4",
     "typescript": "^5.6.3",
