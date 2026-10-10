@@ -8,6 +8,7 @@ import {
 } from './model/furniture'
 import {
   MAX_SHELLS,
+  PLOT,
   PlacedModule,
   SHELL_MAX_LONG,
   SHELL_MAX_SHORT,
@@ -73,7 +74,10 @@ export const LENSES = [
   { name: 'Gran angular', fov: 75 },
 ]
 
-/** Modo del editor: decide qué se selecciona en el plano y qué muestra el panel izquierdo. */
+/**
+ * Modo del editor: decide qué se selecciona en el plano y qué muestran el panel
+ * izquierdo (lo que se añade) y el derecho (los datos de lo seleccionado).
+ */
 export type Mode = 'shells' | 'modules' | 'walls' | 'finishes' | 'options' | 'photos'
 
 interface HouseState {
@@ -164,6 +168,8 @@ interface HouseState {
   /** Coloca una pieza del catálogo centrada en (x, y). */
   addFurniture: (typeId: string, x: number, y: number) => void
   moveFurniture: (id: string, x: number, y: number) => void
+  /** Lleva la pieza a (x, y) tal cual, sin imán: para medidas escritas a mano. */
+  placeFurniture: (id: string, x: number, y: number) => void
   /** Gira la pieza 90° en sentido horario. */
   rotateFurniture: (id: string) => void
   removeFurniture: (id: string) => void
@@ -252,6 +258,30 @@ function magnetize(item: FurnitureItem, modules: PlacedModule[], joints: Joints)
     interiorFace(room, 's', item.x, walls),
   )
   return { ...item, x: roundSize(x), y: roundSize(y) }
+}
+
+/**
+ * Sitio de un mueble: media medida en cada eje según su giro y los cuatro
+ * límites entre los que se mueve, que son las caras interiores de las paredes
+ * de su estancia o, si no está en ninguna, los bordes de la parcela.
+ */
+export function furnitureBox(item: FurnitureItem, modules: PlacedModule[], joints: Joints) {
+  const type = furnitureType(item.typeId)
+  if (!type) return null
+  const turned = item.rotation === 90 || item.rotation === 270
+  const room = modules.find((m) => inside(m, item))
+  const walls = room ? deriveWalls(modules, joints) : []
+  const face = (side: Side, along: number, edge: number) =>
+    room ? (interiorFace(room, side, along, walls) ?? wallLine(room, side).pos) : edge
+  return {
+    inRoom: !!room,
+    halfX: (turned ? type.depth : type.width) / 2,
+    halfY: (turned ? type.width : type.depth) / 2,
+    west: face('w', item.y, 0),
+    east: face('e', item.y, PLOT.width),
+    north: face('n', item.x, 0),
+    south: face('s', item.x, PLOT.depth),
+  }
 }
 
 const NO_SELECTION = {
@@ -668,6 +698,13 @@ export const useHouse = create<HouseState>()(
               const moved = clampFurniture({ ...f, x, y })
               return s.furnitureMagnet ? magnetize(moved, s.modules, s.joints) : moved
             }),
+          })),
+
+        placeFurniture: (id, x, y) =>
+          set((s) => ({
+            furniture: s.furniture.map((f) =>
+              f.id === id ? clampFurniture({ ...f, x: roundSize(x), y: roundSize(y) }) : f,
+            ),
           })),
 
         rotateFurniture: (id) =>

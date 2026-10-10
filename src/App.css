@@ -22,7 +22,7 @@ body {
 
 .app {
   display: grid;
-  grid-template-columns: 280px 1fr;
+  /* Las columnas las pone App.tsx, según qué paneles hay y cuáles están plegados. */
   height: 100vh;
 }
 
@@ -31,6 +31,52 @@ body {
   border-right: 1px solid var(--border);
   padding: 20px;
   overflow-y: auto;
+}
+
+/* Panel plegado: una tira con el botón para volver a sacarlo. */
+.sidebar.collapsed {
+  padding: 12px 3px;
+  overflow: hidden;
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.panel-head h1,
+.panel-head h2 {
+  margin: 0;
+}
+
+.properties .panel-head {
+  justify-content: flex-start;
+}
+
+.panel-toggle {
+  flex-shrink: 0;
+  padding: 2px 7px;
+  line-height: 1.2;
+  color: var(--muted);
+}
+
+.properties {
+  border-right: 0;
+  border-left: 1px solid var(--border);
+}
+
+.properties h3 {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 14px 0 6px;
+}
+
+/* El aviso de una casilla ocupa una fila entera sin descolocar a su pareja. */
+.fields {
+  grid-auto-flow: dense;
 }
 
 .sidebar h1 {

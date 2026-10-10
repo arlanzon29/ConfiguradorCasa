@@ -7,14 +7,8 @@ const NO_ROOM = 'No queda sitio libre: encoge antes alguna estancia para hacerle
 
 export default function ModulesPanel() {
   const modules = useHouse((s) => s.modules)
-  const selectedId = useHouse((s) => s.selectedId)
   const addModule = useHouse((s) => s.addModule)
-  const resizeModule = useHouse((s) => s.resizeModule)
-  const rotateModule = useHouse((s) => s.rotateModule)
-  const removeModule = useHouse((s) => s.removeModule)
   const [notice, setNotice] = useState('')
-
-  const selected = modules.find((m) => m.id === selectedId)
 
   return (
     <>
@@ -41,32 +35,6 @@ export default function ModulesPanel() {
           submitLabel="Añadir estancia"
           onSubmit={(w, d) => (addModule(w, d) ? '' : NO_ROOM)}
         />
-      </section>
-
-      <section>
-        <h2>Selección</h2>
-        {selected ? (
-          <>
-            <p>{formatMeters(selected.width * selected.depth)} m²</p>
-            <SizeForm
-              key={selected.id}
-              width={selected.width}
-              depth={selected.depth}
-              submitLabel="Aplicar medidas"
-              onSubmit={(w, d) =>
-                resizeModule(selected.id, w, d)
-                  ? ''
-                  : 'Con esas medidas se sale de su módulo o pisa otra estancia.'
-              }
-            />
-            <div className="actions">
-              <button onClick={() => rotateModule(selected.id)}>Girar (R)</button>
-              <button onClick={() => removeModule(selected.id)}>Eliminar (Supr)</button>
-            </div>
-          </>
-        ) : (
-          <p className="muted">Haz clic en una estancia para seleccionarla y arrástrala para moverla.</p>
-        )}
       </section>
 
       <section>

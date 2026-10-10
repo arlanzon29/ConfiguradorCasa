@@ -80,7 +80,8 @@ src/
   editor/
     Editor2D.tsx    plano SVG: dibujo y todos los arrastres
     SizeForm.tsx    formulario de dos medidas reutilizable
-  panels/           un panel lateral por modo + PlanFileButtons + PhotoViewer
+  panels/           un panel izquierdo por modo + PropertiesPanel (el derecho)
+                    + PlanFileButtons + PhotoViewer
   viewer/
     View3D.tsx      escena 3D, cámara en primera persona, paredes y suelos
     Furniture3D.tsx muebles como composición de cajas
@@ -112,12 +113,31 @@ y qué muestra el panel). `Mode` en `store.ts`:
 |---|---|---|
 | `shells` | Módulos | Añadir (horizontal/vertical), mover, redimensionar, girar, eliminar módulos de fábrica. Se ve toda la parcela |
 | `modules` | Estancias | Añadir, mover, estirar (8 tiradores), girar, eliminar estancias |
-| `walls` | Paredes | Seleccionar pared: grosor y quitar/poner. Colocar, deslizar, centrar y redimensionar puertas y ventanas; altura de la ventana |
+| `walls` | Paredes | Seleccionar pared: grosor y quitar/poner. Colocar, deslizar, centrar y redimensionar puertas y ventanas; distancia al extremo de la pared y altura de la ventana |
 | `finishes` | Acabados | Clic en el centro de una estancia: suelo y color de todas sus paredes. Clic junto a un lado: color de esa pared |
 | `options` | Opciones | Mobiliario por familias (Salón, Comedor, Dormitorio): colocar, mover, girar, pegar a pared. Icono de imán para activar o no el imantado a paredes |
 | `photos` | Fotos | Fotos en calidad guardadas: miniaturas, Anterior/Siguiente (la cámara va a donde se sacó cada una, con su objetivo), pinchar para verla grande, descargar y eliminar. En el plano, un icono numerado por foto donde se sacó; pincharlo lleva la cámara allí |
 
 Fuera del modo `shells`, el plano hace zoom para encuadrar los módulos.
+
+**Dos paneles.** El izquierdo tiene lo que se **añade** en cada modo (catálogos y
+herramientas). El derecho, **Propiedades** (`PropertiesPanel.tsx`), los datos de lo
+seleccionado en casillas que se escriben a mano, más sus botones (girar, eliminar,
+centrar, pegar a la pared). Cada casilla se aplica sola con Intro o al salir de
+ella; `Esc` la deja como estaba; lo que no cabe se rechaza con un aviso debajo.
+
+| Seleccionado | Casillas |
+|---|---|
+| Módulo | distancia al borde izquierdo y superior de la parcela; ancho y fondo |
+| Estancia | distancia al borde izquierdo y superior de su módulo (de la parcela si no hay módulos); ancho y fondo |
+| Pared | grosor (cm) |
+| Puerta o ventana | distancia a cada extremo de su pared; ancho y alto; altura desde el suelo (ventanas) |
+| Mueble | distancia de cada borde del mueble a las cuatro paredes de su estancia (a los bordes de la parcela si está fuera) |
+
+El derecho solo existe en los modos Módulos, Estancias, Paredes y Opciones
+(`PROPERTY_HINTS`). Los dos se **pliegan** con el botón `‹` / `›` de su cabecera y
+queda una tira de 32 px para volver a sacarlos; se recuerda en `localStorage`
+(clave `eurocasa-paneles`).
 
 **Vistas** (botones sobre el lienzo): Plano 2D, Vista 3D, Plano + 3D (lado a lado),
 y "3D en otra ventana". En el plano, un marcador naranja muestra la cámara 3D y se
@@ -152,6 +172,13 @@ Teclas: `R` gira lo seleccionado, `Supr` lo borra, `Esc` cancela la herramienta.
   de las paredes de su estancia (`magnetize` en `store.ts`). El de los muebles se
   apaga con el icono de imán del panel Opciones (`furnitureMagnet`, se guarda en
   `localStorage`, no en el archivo de plano); "Pegar a la pared" funciona igual.
+- **El panel derecho no aparece y desaparece con la selección**: está siempre en
+  sus modos, aunque vacío. Si saliera al hacer clic, el plano cambiaría de tamaño a
+  mitad de un arrastre.
+- **Las medidas escritas a mano no pasan por el imán** (`placeFurniture`, frente a
+  `moveFurniture` que sí): si no, escribir 0,10 m a una pared lo pegaría a 0. Los
+  límites de un mueble los da `furnitureBox` (`store.ts`): caras interiores de las
+  paredes de su estancia.
 - **Giro = 90° horario**, y arrastra todo lo que cuelga: lados (`n→e→s→w→n`),
   huecos (`rotateOpening`), colores, muebles. `rotateShell` gira el módulo con sus
   estancias; cuatro giros devuelven el estado inicial.
@@ -211,6 +238,13 @@ que la textura "Madera de pino" cubre 2 × 2 m (supuesto, sin confirmar).
   primera foto en un equipo tarda alrededor de un minuto en arrancar. Cargar un
   plano sin fotos vacía la galería.
 - El cono de la cámara en el plano 2D no cambia con el objetivo elegido.
+- Panel Propiedades: probado en el servidor aparte con eventos simulados (la
+  pestaña estaba oculta), no con ratón y teclado reales, y sin captura de cómo
+  queda a la vista. Mover una estancia escribiendo la medida reencaja los huecos
+  sin copia de arrastre: el que deja de caber se pierde. Las distancias de un hueco
+  son al extremo del tramo de pared (la línea del borde de la estancia), no a la
+  cara interior de la pared perpendicular. El giro de un mueble se ve pero no se
+  escribe. En Acabados y Fotos no hay panel derecho.
 
 ## Pendiente / ideas habladas con el usuario
 
@@ -253,6 +287,18 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-10** · Los dos paneles laterales se pueden **plegar** (botón `‹` / `›`
+  en la cabecera; `togglePanel` y `readHiddenPanels` en `App.tsx`, estilos
+  `.panel-head`, `.panel-toggle`, `.sidebar.collapsed`). Las columnas de `.app` las
+  pone ahora `App.tsx` en línea. Lo pidió el usuario.
+- **2026-10-10** · Nuevo **panel derecho Propiedades** (`PropertiesPanel.tsx`): el
+  usuario quiere ver los números y poder cambiarlos. Posición y medidas de módulo,
+  estancia, pared, hueco y mueble en casillas editables (`Field`). En `store.ts`,
+  `placeFurniture` (colocar sin imán) y `furnitureBox` (límites de un mueble). Los
+  apartados "Selección" de los paneles izquierdos (Módulos, Estancias, Paredes,
+  Opciones) se han quitado: todo eso está ahora a la derecha.
+- **2026-10-10** · Anotado en `docs/PENDIENTES.md` el tema 15: poder repetir una foto.
 
 - **2026-10-10** · Versiones, paso 4: TypeScript 5.9 → 7.0.2. Solo afecta a la
   comprobación de tipos, que pasa sin cambios, igual que la compilación. Queda sin

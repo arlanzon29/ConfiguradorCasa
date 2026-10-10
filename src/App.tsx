@@ -6,6 +6,7 @@ import OptionsPanel from './panels/OptionsPanel'
 import PhotoViewer from './panels/PhotoViewer'
 import PhotosPanel from './panels/PhotosPanel'
 import PlanFileButtons from './panels/PlanFileButtons'
+import PropertiesPanel, { PROPERTY_HINTS } from './panels/PropertiesPanel'
 import ShellsPanel from './panels/ShellsPanel'
 import WallsPanel from './panels/WallsPanel'
 import { Mode, useHouse } from './store'
@@ -26,12 +27,28 @@ const MODES: { id: Mode; name: string }[] = [
   { id: 'photos', name: 'Fotos' },
 ]
 
+// Los dos paneles laterales se pueden plegar; queda una tira con el botón para
+// volver a sacarlos. Se recuerda en este navegador, fuera del plano.
+const PANELS_KEY = 'eurocasa-paneles'
+const PANEL_WIDTH = '280px'
+const PANEL_HIDDEN = '32px'
+
+function readHiddenPanels(): { left: boolean; right: boolean } {
+  try {
+    const saved = JSON.parse(localStorage.getItem(PANELS_KEY) ?? '{}')
+    return { left: saved.left === true, right: saved.right === true }
+  } catch {
+    return { left: false, right: false }
+  }
+}
+
 export default function App() {
   const mode = useHouse((s) => s.mode)
   const setMode = useHouse((s) => s.setMode)
   const walkMode = useHouse((s) => s.walkMode)
   const setWalkMode = useHouse((s) => s.setWalkMode)
   const [view, setView] = useState<'2d' | '3d' | 'split'>('2d')
+  const [hidden, setHidden] = useState(readHiddenPanels)
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -76,31 +93,70 @@ export default function App() {
     )
   }
 
+  // El panel derecho está siempre en los modos con algo que seleccionar, aunque
+  // no haya nada elegido: si apareciera al hacer clic, el plano cambiaría de
+  // tamaño a mitad de un arrastre.
+  const properties = mode in PROPERTY_HINTS
+
+  const togglePanel = (side: 'left' | 'right') => {
+    const next = { ...hidden, [side]: !hidden[side] }
+    setHidden(next)
+    localStorage.setItem(PANELS_KEY, JSON.stringify(next))
+  }
+  const columns = [
+    hidden.left ? PANEL_HIDDEN : PANEL_WIDTH,
+    '1fr',
+    ...(properties ? [hidden.right ? PANEL_HIDDEN : PANEL_WIDTH] : []),
+  ].join(' ')
+
   return (
-    <div className="app">
-      <aside className="sidebar">
-        <h1>Configurador EuroCasa</h1>
-        <PlanFileButtons />
-
-        <div className="mode-tabs">
-          {MODES.map((m) => (
+    <div className="app" style={{ gridTemplateColumns: columns }}>
+      {hidden.left ? (
+        <aside className="sidebar collapsed">
+          <button
+            className="panel-toggle"
+            title="Mostrar el panel"
+            aria-label="Mostrar el panel izquierdo"
+            onClick={() => togglePanel('left')}
+          >
+            ›
+          </button>
+        </aside>
+      ) : (
+        <aside className="sidebar">
+          <div className="panel-head">
+            <h1>Configurador EuroCasa</h1>
             <button
-              key={m.id}
-              className={mode === m.id ? 'active' : ''}
-              onClick={() => setMode(m.id)}
+              className="panel-toggle"
+              title="Ocultar el panel"
+              aria-label="Ocultar el panel izquierdo"
+              onClick={() => togglePanel('left')}
             >
-              {m.name}
+              ‹
             </button>
-          ))}
-        </div>
-
-        {mode === 'shells' && <ShellsPanel />}
-        {mode === 'modules' && <ModulesPanel />}
-        {mode === 'walls' && <WallsPanel />}
-        {mode === 'finishes' && <FinishesPanel />}
-        {mode === 'options' && <OptionsPanel />}
-        {mode === 'photos' && <PhotosPanel />}
-      </aside>
+          </div>
+          <PlanFileButtons />
+  
+          <div className="mode-tabs">
+            {MODES.map((m) => (
+              <button
+                key={m.id}
+                className={mode === m.id ? 'active' : ''}
+                onClick={() => setMode(m.id)}
+              >
+                {m.name}
+              </button>
+            ))}
+          </div>
+  
+          {mode === 'shells' && <ShellsPanel />}
+          {mode === 'modules' && <ModulesPanel />}
+          {mode === 'walls' && <WallsPanel />}
+          {mode === 'finishes' && <FinishesPanel />}
+          {mode === 'options' && <OptionsPanel />}
+          {mode === 'photos' && <PhotosPanel />}
+        </aside>
+      )}
       <PhotoViewer />
 
       <main className="canvas">
@@ -130,6 +186,9 @@ export default function App() {
           )}
         </div>
       </main>
+      {properties && (
+        <PropertiesPanel hidden={hidden.right} onToggle={() => togglePanel('right')} />
+      )}
     </div>
   )
 }

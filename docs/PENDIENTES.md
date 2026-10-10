@@ -5,6 +5,18 @@ está decidido ni empezado. Lo más reciente, arriba.
 
 ## Anotado el 2026-10-10
 
+### 15. Repetir una foto
+
+- **Idea del usuario:** que se pueda repetir una foto.
+- Ahora cada foto guarda la posición, el giro y el objetivo de la cámara, y desde
+  la pestaña Fotos la cámara vuela hasta allí; pero para sacarla otra vez hay que
+  pulsar "Foto en calidad" y guardarla a mano, y queda como una foto nueva.
+- Interpretación mía, por confirmar: un botón "Repetir" en cada foto que vuelva a
+  trazarla desde el mismo sitio y con el mismo objetivo, para actualizarla cuando
+  la casa ha cambiado (muebles, acabados).
+- Queda por hablar: si la nueva sustituye a la anterior o se guarda al lado, y si
+  hace falta "repetir todas" de una vez.
+
 ### 1. Ruido en la foto en calidad
 
 El trazado de rayos deja grano en la imagen.
