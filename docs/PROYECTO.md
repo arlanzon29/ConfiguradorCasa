@@ -388,6 +388,14 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-11** · **Prueba del ruido de la foto** (tema 1 de pendientes; la pidió
+  el usuario). Cuatro versiones de la misma vista en `docs/pruebas/ruido/`, con
+  el código del filtro probado (`denoise.ts`) al lado; la aplicación no cambia.
+  El filtro guiado por la geometría quita el grano y respeta las vetas, pero
+  deja los bordes en escalera; agrandar la luz del techo no mejora nada.
+  Detalle en `docs/PENDIENTES.md`. La casa del servidor de pruebas (5183) tiene
+  ahora sofá, mesa, mesilla, una corredera, una ventana y una puerta más.
+
 - **2026-10-11** · El usuario da por bueno el tema de los **vinilos** (tema 5 de
   pendientes): hecho.
 

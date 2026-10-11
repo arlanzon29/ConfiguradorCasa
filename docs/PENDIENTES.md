@@ -55,8 +55,26 @@ El trazado de rayos deja grano en la imagen.
 
 - **Pregunta del usuario:** ¿se puede aplicar un filtro posterior que quite el ruido
   sin perder calidad?
-- Sin estudiar todavía. Queda por ver qué filtros hay, cuánto emborronan los
-  detalles (vetas del suelo, bordes) y si compensa frente a sacar más muestras.
+- El usuario no quiere perder lo que ha calculado el trazado. Caminos hablados:
+  más muestras, un filtro guiado por la geometría, y un denoiser por IA (OIDN).
+  Los módulos de IA de las gráficas NVIDIA (DLSS, OptiX) no se alcanzan desde el
+  navegador.
+- **Prueba del 2026-10-11** (pedida por el usuario), en `docs/pruebas/ruido/`:
+  la misma vista a 200 muestras en cuatro versiones y un recorte ampliado
+  (`comparacion-detalle.jpg`). Grano medido en la pared (0 = liso): ahora 7,4;
+  con el filtro 0,2.
+  - **Filtro guiado por la geometría** (`denoise.ts`, guardado junto a las
+    imágenes, fuera de la aplicación): quita el grano de paredes, techo y
+    muebles, conserva las vetas del suelo y la sombra de la mesa, y tarda menos
+    de un segundo. Defecto visto: los bordes quedan **en escalera** (se pierde
+    el suavizado de contornos) y en algún canto queda una fila de puntos sin
+    filtrar. Habría que arreglarlo antes de darlo por bueno.
+  - **Ajuste en origen** (panel de luz de 1,8 m en vez de 0,6 y
+    `filterGlossyFactor` 0,5): **no mejora**; en la pared el grano sube a 10,0.
+    Era una suposición mía y la prueba la desmiente.
+  - Sin probar: más muestras, el denoiser por IA, una escena con espejos o
+    brillos, y el sol entrando de lleno en el suelo.
+- Sin decidir por el usuario. Nada de esto está en la aplicación.
 
 ### 2. Iluminación
 
