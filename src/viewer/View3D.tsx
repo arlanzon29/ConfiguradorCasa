@@ -2,6 +2,7 @@ import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber'
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import {
   BoxGeometry,
+  CanvasTexture,
   Color,
   Float32BufferAttribute,
   PerspectiveCamera,
@@ -18,9 +19,9 @@ import {
   resolveFinish,
 } from '../model/finishes'
 import { PLOT, PlacedModule, SIDES, Side, WALL_HEIGHT } from '../model/house'
-import { vinylPlacement, vinylType } from '../model/vinyls'
+import { VINYLS, VinylSheet, vinylPlacement, vinylSheets, vinylType } from '../model/vinyls'
 import { OPPOSITE, Opening } from '../model/openings'
-import { Joints, deriveWalls, openingsOf, wallAcross } from '../model/walls'
+import { Joints, Wall, deriveWalls, openingsOf, wallAcross } from '../model/walls'
 import { Shot, usePhotos } from '../photos'
 import { LENSES, cameraFlying, samePose, stopCameraFlight, useHouse } from '../store'
 import Furniture3D from './Furniture3D'
@@ -482,7 +483,7 @@ function vinylParts(modules: PlacedModule[], joints: Joints) {
 }
 
 /** Un vinilo: su imagen sobre un plano sin grosor; lo transparente deja ver la pared. */
-function VinylPlane({ part, photo }: { part: VinylPart; photo: boolean }) {
+function VinylPlane({ part }: { part: VinylPart }) {
   const image = useLoader(TextureLoader, part.url)
   const maxAnisotropy = useThree((s) => s.gl.capabilities.getMaxAnisotropy())
   const texture = useMemo(() => {
@@ -497,14 +498,85 @@ function VinylPlane({ part, photo }: { part: VinylPart; photo: boolean }) {
   return (
     <mesh position={part.position} rotation={[0, part.turn, -part.spin]} receiveShadow>
       <planeGeometry args={part.size} />
-      {/* En la foto, recortado y no translúcido: el trazador oscurece la pared tras un plano translúcido. */}
-      <meshStandardMaterial
-        key={String(photo)}
-        map={texture}
-        transparent={!photo}
-        alphaTest={photo ? 0.5 : 0}
-        roughness={0.9}
-      />
+      <meshStandardMaterial map={texture} transparent roughness={0.9} />
+    </mesh>
+  )
+}
+
+// Píxeles por metro de la lámina de vinilos de la foto, y su lado máximo en píxeles.
+const SHEET_DENSITY = 500
+const SHEET_MAX = 2048
+// Casi a ras de la pared: en el trazado no hay parpadeo entre superficies juntas, y
+// con más separación se veía una línea de sombra en el borde de la lámina.
+const SHEET_GAP = 0.0005
+
+/**
+ * Los vinilos de una cara de pared para la foto en calidad: una sola lámina
+ * opaca, pintada del color de la pared con los vinilos encima, que sustituye a
+ * la pared en ese recuadro. El trazador no ilumina igual la pared que se ve a
+ * través de la parte transparente de un plano, y con un plano por vinilo
+ * quedaba un recuadro alrededor de cada uno. Solo se deja transparente donde la
+ * pared tiene un hueco, para que un vinilo pueda ir sobre una ventana.
+ */
+function VinylSheetPlane({ sheet, walls }: { sheet: VinylSheet; walls: Wall[] }) {
+  const { box, holes, vinyls, room, side } = sheet
+  const types = vinyls.map((v) => vinylType(v.typeId))
+  const images = useLoader(
+    TextureLoader,
+    types.map((t) => t?.image ?? VINYLS[0].image),
+  )
+  const [width, height] = [box.x1 - box.x0, box.y1 - box.y0]
+  const color = interiorColor(room, side)
+
+  const texture = useMemo(() => {
+    const scale = Math.min(SHEET_DENSITY, SHEET_MAX / width, SHEET_MAX / height)
+    const canvas = document.createElement('canvas')
+    canvas.width = Math.ceil(width * scale)
+    canvas.height = Math.ceil(height * scale)
+    const ctx = canvas.getContext('2d')!
+    // Se pinta el lienzo entero, en píxeles: su tamaño se redondea hacia arriba y
+    // un último píxel a medio cubrir dejaba una línea oscura en el borde.
+    ctx.fillStyle = color
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    // De metros sobre la cara (y hacia arriba) a píxeles del lienzo (y hacia abajo).
+    ctx.setTransform(canvas.width / width, 0, 0, -canvas.height / height, 0, 0)
+    ctx.translate(-box.x0, -box.y1)
+    for (const hole of holes) ctx.clearRect(hole.x0, hole.y0, hole.x1 - hole.x0, hole.y1 - hole.y0)
+    vinyls.forEach((v, i) => {
+      if (!types[i]) return
+      ctx.save()
+      ctx.translate(v.x + v.width / 2, v.y + v.height / 2)
+      // Con la y hacia arriba el giro positivo es antihorario: el del vinilo es horario.
+      ctx.rotate((-(v.rotation ?? 0) * Math.PI) / 180)
+      // La imagen se dibuja con su y hacia abajo.
+      ctx.scale(1, -1)
+      ctx.drawImage(images[i].image as CanvasImageSource, -v.width / 2, -v.height / 2, v.width, v.height)
+      ctx.restore()
+    })
+    const t = new CanvasTexture(canvas)
+    t.colorSpace = SRGBColorSpace
+    return t
+  }, [sheet, images, color])
+  useEffect(() => () => texture.dispose(), [texture])
+
+  // La lámina se coloca como un vinilo más, del tamaño de su recuadro.
+  const place = vinylPlacement(
+    room,
+    side,
+    { id: '', typeId: '', x: box.x0, y: box.y0, width, height },
+    walls,
+    SHEET_GAP,
+  )
+  if (!place) return null
+  const y = SLAB + (box.y0 + box.y1) / 2
+  return (
+    <mesh
+      position={place.horizontal ? [place.along, y, place.across] : [place.across, y, place.along]}
+      rotation-y={VINYL_TURN[side]}
+    >
+      <planeGeometry args={[width, height]} />
+      {/* Mismo material que la pared, para que no se note dónde acaba la lámina. */}
+      <meshStandardMaterial map={texture} alphaTest={holes.length > 0 ? 0.5 : 0} />
     </mesh>
   )
 }
@@ -567,6 +639,11 @@ export default function View3D() {
     [modules, joints, openings],
   )
   const vinyls = useMemo(() => vinylParts(modules, joints), [modules, joints])
+  const walls = useMemo(() => deriveWalls(modules, joints), [modules, joints])
+  const vinylSheetList = useMemo(
+    () => vinylSheets(modules, walls, openings),
+    [modules, walls, openings],
+  )
   const joinery = useMemo(
     () => joineryParts(modules, joints, openings),
     [modules, joints, openings],
@@ -772,11 +849,18 @@ export default function View3D() {
         {joinery.map((part, i) => (
           <JoineryBox key={i} part={part} />
         ))}
-        {vinyls.map((part) => (
-          <Suspense key={part.key} fallback={null}>
-            <VinylPlane part={part} photo={photo} />
-          </Suspense>
-        ))}
+        {/* Vinilos: un plano por cada uno; en la foto, una lámina por cara de pared. */}
+        {photo
+          ? vinylSheetList.map((sheet) => (
+              <Suspense key={sheet.key} fallback={null}>
+                <VinylSheetPlane sheet={sheet} walls={walls} />
+              </Suspense>
+            ))
+          : vinyls.map((part) => (
+              <Suspense key={part.key} fallback={null}>
+                <VinylPlane part={part} />
+              </Suspense>
+            ))}
         {skirtings.map((part, i) => (
           <mesh key={i} position={part.position} receiveShadow>
             <boxGeometry args={part.size} />

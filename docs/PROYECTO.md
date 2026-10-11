@@ -288,6 +288,10 @@ que la textura "Madera de pino" cubre 2 × 2 m (supuesto, sin confirmar).
   aparte en la vista 3D normal (por defecto, y cambiando alto y color de una
   pared); sin probar a la vista el corte en una puerta, una pared compartida, el
   giro ni la foto en calidad.
+- Vinilos en la foto: la lámina toma el color de pared de su estancia; si un
+  tramo de esa cara tuviera otro grosor, la lámina va a la profundidad del
+  centro de su recuadro. Su imagen pasa por la textura de 1024 px del trazador:
+  en una lámina muy ancha el dibujo pierde nitidez.
 - Vinilos: los seis del catálogo son dibujos de prueba hechos aquí, a falta de
   los de EuroCasa. Un hueco no los recorta y pueden pisarse entre sí: es a
   propósito. Los límites de posición y medida son los del vinilo sin girar, así
@@ -383,6 +387,16 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-11** · Vinilos en la **foto en calidad**: el usuario veía un recuadro
+  más claro alrededor de cada uno. El trazador no ilumina igual la pared vista a
+  través de la parte transparente de un plano. Ahora, solo durante la foto, los
+  vinilos de cada cara de pared se pintan en **una lámina opaca** del color de
+  la pared (`vinylSheets` en `vinyls.ts`, `VinylSheetPlane` en `View3D.tsx`),
+  transparente únicamente donde la pared tiene un hueco, y a 0,5 mm de la pared
+  (`SHEET_GAP`): a 3 mm salía una línea oscura en dos bordes. La vista normal
+  sigue con un plano translúcido por vinilo. Probado en el servidor aparte con
+  vinilos en tres paredes, uno girado y uno sobre una ventana.
 
 - **2026-10-11** · Vinilos: **giro** y **barras deslizantes** (lo pidió el
   usuario). Campo `rotation` en `Vinyl`; en `VinylsSection.tsx`, `Slide` (casilla

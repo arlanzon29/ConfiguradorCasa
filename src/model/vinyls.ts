@@ -1,6 +1,6 @@
 import { PlacedModule, Side, WALL_HEIGHT, roundSize, sideLength } from './house'
-import { OPPOSITE, wallLine } from './openings'
-import { Wall } from './walls'
+import { OPPOSITE, Opening, wallLine } from './openings'
+import { Wall, openingSpan } from './walls'
 
 // Un vinilo es una imagen con fondo transparente pegada a la cara de una pared
 // que da a una estancia. No tiene grosor: es un acabado, no una pieza. Se
@@ -90,7 +90,13 @@ export function vinylProblem(v: Pick<Vinyl, 'x' | 'y' | 'width' | 'height'>, len
  * Dónde va un vinilo, en coordenadas del plano: su centro a lo largo de la
  * pared y la coordenada de la cara donde se pega. Null si ahí no hay pared.
  */
-export function vinylPlacement(room: PlacedModule, side: Side, v: Vinyl, walls: Wall[]) {
+export function vinylPlacement(
+  room: PlacedModule,
+  side: Side,
+  v: Vinyl,
+  walls: Wall[],
+  gap = GAP,
+) {
   const line = wallLine(room, side)
   const { left } = wallFace(room, side, walls)
   // En los lados norte y este la izquierda es el inicio de la línea; en los otros, el final.
@@ -101,5 +107,75 @@ export function vinylPlacement(room: PlacedModule, side: Side, v: Vinyl, walls: 
   const depth = inset(room, side, walls, along)
   if (depth === null) return null
   const inward = side === 'n' || side === 'w' ? 1 : -1
-  return { horizontal: line.horizontal, along, across: line.pos + inward * (depth + GAP) }
+  return { horizontal: line.horizontal, along, across: line.pos + inward * (depth + gap) }
+}
+
+/** Rectángulo sobre una cara de pared: x desde su esquina izquierda, y desde el suelo. */
+export interface FaceBox {
+  x0: number
+  y0: number
+  x1: number
+  y1: number
+}
+
+/** Todos los vinilos de una cara de pared, para pintarlos juntos en una sola lámina. */
+export interface VinylSheet {
+  key: string
+  room: PlacedModule
+  side: Side
+  /** Lo que ocupa la lámina: el recuadro que abarca sus vinilos, sin salirse de la cara. */
+  box: FaceBox
+  vinyls: Vinyl[]
+  /** Huecos de la pared que caen dentro de la lámina: ahí no hay pared que pintar. */
+  holes: FaceBox[]
+}
+
+/**
+ * Láminas de vinilos, una por cara de pared que tenga alguno. La foto en
+ * calidad las usa en vez de un plano por vinilo (`VinylSheetPlane` en View3D).
+ */
+export function vinylSheets(modules: PlacedModule[], walls: Wall[], openings: Opening[]) {
+  const sheets: VinylSheet[] = []
+  for (const room of modules) {
+    for (const side of Object.keys(LEFT) as Side[]) {
+      const vinyls = room.vinyls?.[side] ?? []
+      if (vinyls.length === 0) continue
+      const face = wallFace(room, side, walls)
+      const box = { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity }
+      for (const v of vinyls) {
+        // Media anchura y media altura del recuadro que abarca el vinilo ya girado.
+        const turn = ((v.rotation ?? 0) * Math.PI) / 180
+        const [c, s] = [Math.abs(Math.cos(turn)), Math.abs(Math.sin(turn))]
+        const halfX = (v.width * c + v.height * s) / 2
+        const halfY = (v.width * s + v.height * c) / 2
+        box.x0 = Math.min(box.x0, v.x + v.width / 2 - halfX)
+        box.x1 = Math.max(box.x1, v.x + v.width / 2 + halfX)
+        box.y0 = Math.min(box.y0, v.y + v.height / 2 - halfY)
+        box.y1 = Math.max(box.y1, v.y + v.height / 2 + halfY)
+      }
+      box.x0 = Math.max(box.x0, 0)
+      box.y0 = Math.max(box.y0, 0)
+      box.x1 = Math.min(box.x1, face.length)
+      box.y1 = Math.min(box.y1, WALL_HEIGHT)
+      if (box.x1 - box.x0 < 1e-3 || box.y1 - box.y0 < 1e-3) continue
+
+      const line = wallLine(room, side)
+      const end = line.start + line.length - face.left
+      const holes: FaceBox[] = []
+      for (const o of openings) {
+        const span = openingSpan(o, modules)
+        if (!span || span.line.horizontal !== line.horizontal) continue
+        if (Math.abs(span.line.pos - line.pos) > 1e-6) continue
+        // Del plano a la cara: desde su esquina izquierda, que en sur y oeste es el final de la línea.
+        const [a, b] =
+          side === 'n' || side === 'e'
+            ? [span.from - line.start - face.left, span.to - line.start - face.left]
+            : [end - span.to, end - span.from]
+        if (b <= box.x0 || a >= box.x1 || o.sill >= box.y1 || o.sill + o.height <= box.y0) continue
+        holes.push({ x0: a, x1: b, y0: o.sill, y1: o.sill + o.height })
+      }
+      sheets.push({ key: `${room.id}:${side}`, room, side, box, vinyls, holes })
+    }
+  }
+  return sheets
 }
