@@ -118,6 +118,7 @@ src/
     joinery.ts      carpintería de puertas y ventanas, como cajas
     Furniture3D.tsx muebles como composición de cajas
     PhotoTracer.tsx foto en calidad por trazado de rayos
+    denoise.ts      filtro de ruido de la foto, guiado por la geometría
 public/texturas/suelos/          imágenes de suelo
 public/texturas/vinilos/         dibujos de los vinilos (SVG con fondo transparente)
 planos/                          planos guardados a mano (copias de seguridad)
@@ -188,6 +189,14 @@ No hay colisiones: se atraviesan paredes. Arriba a la izquierda de la vista:
   en un recuadro abajo, con "Guardar en Fotos" y "No guardar" (vuelve a la vista
   normal sin guardarla); si se mueve la cámara, la foto empieza otra vez y la
   pregunta se quita. Al repetir una foto no pregunta: sustituye sola.
+- **Muestras**: 50, 100 o 200 (`PHOTO_SAMPLES` y `photoSamples` en `store.ts`),
+  botones junto al objetivo; donde arriba dice 200 es el número elegido. Se
+  guarda en `localStorage` y se sincroniza entre ventanas. Se puede cambiar a
+  mitad de foto: si se sube, sigue trazando.
+- **Filtro de ruido**: con la foto terminada, el recuadro de guardar trae
+  "Sin filtro / Con filtro". Primero se traza, luego se filtra, y se ve el
+  cambio al momento; **se guarda solo la que se esté viendo** (decisión del
+  usuario). Cada foto nueva empieza sin filtro.
 - **Objetivo** (campo de visión): Normal 45°, Angular 60°, Gran angular 75°
   (`LENSES` y `cameraFov` en `store.ts`). Vale para la vista y para la foto, se
   guarda en `localStorage` y se sincroniza entre ventanas. Las estancias son
@@ -246,6 +255,16 @@ Teclas: `R` gira lo seleccionado, `Supr` lo borra, `Esc` cancela la herramienta.
   está en el sitio y con el objetivo de una foto guardada (`hereIndex` en
   `View3D.tsx`, comparando poses con tolerancia): así sale también en la ventana
   `?vista=3d`, que no tiene panel pero recibe la pose al pasar a la foto en la otra.
+- **Filtro de ruido de la foto** (`PhotoDenoiser` en `viewer/denoise.ts`): no
+  emborrona la imagen, trabaja sobre la luz. Divide la foto trazada entre el
+  color propio de cada superficie (la escena dibujada sin luz), suaviza lo que
+  queda solo entre puntos de la misma superficie (misma orientación y mismo
+  plano, sacados de otra pasada de la escena) y con luz parecida, y vuelve a
+  multiplicar por el color: por eso no toca las vetas ni las sombras. Se
+  calcula **al doble de resolución** y se reduce al final; a la de la foto los
+  bordes salían en escalera. Lo translúcido (cristales) se esconde al dibujar
+  las guías. Lo aplica `PhotoTracer` sobre la foto terminada; la foto guarda
+  `filtered` y al repetirla se le vuelve a aplicar.
 - **Vuelo de la cámara** (`flyCamera` en `store.ts`): al pasar a una foto la cámara
   no salta, se mueve desde donde está. Se anima `cameraPose` en el propio estado,
   no en la vista 3D, para que también se mueva el marcador del plano y las demás
@@ -333,6 +352,15 @@ que la textura "Madera de pino" cubre 2 × 2 m (supuesto, sin confirmar).
   (sustituye, conserva sitio, pose y objetivo; cancelar no toca la foto); allí la
   pestaña no dibujaba sola y hubo que forzar los fotogramas, y al volver a montar
   la vista 3D el trazador tardó otra vez cerca de un minuto en arrancar.
+- Filtro de ruido: probado en el servidor aparte en una sola escena (una
+  estancia con sofá, mesa, ventanas y vinilos), a 50 y a 200 muestras, guardando
+  y repitiendo una foto filtrada. Sin probar con brillos, con el sol dando de
+  lleno en el suelo, en una pantalla de mucha resolución (por encima de 2048 px
+  de lado el cálculo ya no va al doble) ni en una gráfica con poca memoria:
+  usa unos 200 MB mientras dura la foto. Lo que se ve tras un cristal se filtra
+  como si el cristal no estuviera. La foto original no se conserva al guardar
+  la filtrada. Una foto repetida sale con las muestras elegidas en ese momento,
+  no con las que tuvo.
 - El cono de la cámara en el plano 2D no cambia con el objetivo elegido.
 - Panel Propiedades: probado en el servidor aparte con eventos simulados (la
   pestaña estaba oculta), no con ratón y teclado reales, y sin captura de cómo
@@ -387,6 +415,19 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-11** · **Filtro de ruido y número de muestras** en la foto en calidad
+  (tema 1 de pendientes; lo pidió el usuario tras ver la prueba: primero la
+  foto, luego el filtro, elegir, y quedarse con una sola; y muestras a elegir
+  entre 50, 100 y 200). `viewer/denoise.ts` pasa a la aplicación con los bordes
+  corregidos (cálculo al doble de resolución); `goal` y `filter` en
+  `PhotoTracer`; "Sin filtro / Con filtro" en el recuadro de guardar y botones
+  de muestras en `View3D.tsx`; `PHOTO_SAMPLES` y `photoSamples` en `store.ts`
+  (la constante deja de estar en `PhotoTracer.tsx`); `filtered` en `Shot`. El
+  archivo de plano no cambia de versión. Probado en el servidor aparte: a 50
+  muestras con filtro la pared queda tan lisa como a 200 (grano 0,18 frente a
+  7,4 sin filtro) en la cuarta parte de tiempo. Imágenes en
+  `docs/pruebas/ruido/` (`comparacion-filtro-corregido.jpg`).
 
 - **2026-10-11** · **Prueba del ruido de la foto** (tema 1 de pendientes; la pidió
   el usuario). Cuatro versiones de la misma vista en `docs/pruebas/ruido/`, con

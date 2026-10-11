@@ -74,7 +74,11 @@ El trazado de rayos deja grano en la imagen.
     Era una suposición mía y la prueba la desmiente.
   - Sin probar: más muestras, el denoiser por IA, una escena con espejos o
     brillos, y el sol entrando de lleno en el suelo.
-- Sin decidir por el usuario. Nada de esto está en la aplicación.
+- **Hecho el 2026-10-11.** El usuario eligió el filtro guiado por la geometría,
+  aplicado después de trazar, con "Sin filtro / Con filtro" y guardando solo la
+  elegida; y pidió poder escoger 50, 100 o 200 muestras. Los bordes en escalera
+  están corregidos. Queda por ver, si hiciera falta: el denoiser por IA y cómo
+  se porta el filtro con brillos, espejos y sol directo.
 
 ### 2. Iluminación
 

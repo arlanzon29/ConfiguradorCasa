@@ -3,13 +3,15 @@ import { MutableRefObject, useEffect, useRef } from 'react'
 import { Matrix4, Mesh, PerspectiveCamera } from 'three'
 import { GradientEquirectTexture, WebGLPathTracer } from 'three-gpu-pathtracer'
 import type { Shot } from '../photos'
-
-/** Muestras por píxel con las que la foto se da por terminada. */
-export const PHOTO_SAMPLES = 200
+import { PhotoDenoiser } from './denoise'
 
 interface Props {
   /** Lo que forma la casa: si cambia algo, se reconstruye la escena del trazador. */
   revision: unknown[]
+  /** Muestras por píxel con las que la foto se da por terminada. */
+  goal: number
+  /** Con la foto terminada, enseñarla (y guardarla) pasada por el filtro de ruido. */
+  filter: boolean
   onProgress: (samples: number) => void
   /** Se pone a true para capturar la imagen en el siguiente fotograma. */
   saveRequest: MutableRefObject<boolean>
@@ -21,7 +23,14 @@ interface Props {
  * por un trazado de rayos que se va afinando muestra a muestra. Al mover la
  * cámara o cambiar la casa empieza de nuevo.
  */
-export default function PhotoTracer({ revision, onProgress, saveRequest, onSave }: Props) {
+export default function PhotoTracer({
+  revision,
+  goal,
+  filter,
+  onProgress,
+  saveRequest,
+  onSave,
+}: Props) {
   const gl = useThree((s) => s.gl)
   const scene = useThree((s) => s.scene)
   const camera = useThree((s) => s.camera)
@@ -34,6 +43,9 @@ export default function PhotoTracer({ revision, onProgress, saveRequest, onSave 
   // Cambia con el objetivo (campo de visión) y con el tamaño de la vista.
   const lastLens = useRef(new Matrix4())
   const reported = useRef(-1)
+  const denoiser = useRef<PhotoDenoiser | null>(null)
+  // Lo que hay dibujado en el lienzo: la imagen tal como sale del trazado o la filtrada.
+  const shown = useRef<'traced' | 'filtered'>('traced')
 
   useEffect(() => {
     const pt = new WebGLPathTracer(gl)
@@ -58,6 +70,8 @@ export default function PhotoTracer({ revision, onProgress, saveRequest, onSave 
       scene.environment = previous.environment
       sky.dispose()
       tracer.current = null
+      denoiser.current?.dispose()
+      denoiser.current = null
       // La 0.0.23 falla dentro de su propio dispose(); sin esto, salir de la foto tumba la vista.
       try {
         pt.dispose()
@@ -105,10 +119,20 @@ export default function PhotoTracer({ revision, onProgress, saveRequest, onSave 
     lastLens.current.copy(camera.projectionMatrix)
 
     const save = saveRequest.current
+    // El filtro va sobre la foto terminada: a medias se ve siempre tal como sale.
+    const want = filter && pt.samples >= goal ? 'filtered' : 'traced'
     // Para guardar hay que dibujar en este mismo fotograma: el lienzo no conserva la imagen.
-    if (pt.samples < PHOTO_SAMPLES || save) pt.renderSample()
+    if (pt.samples < goal || save || want !== shown.current) {
+      if (want === 'filtered') {
+        denoiser.current ??= new PhotoDenoiser(gl)
+        denoiser.current.render(scene, camera, pt.target.texture)
+      } else {
+        pt.renderSample()
+      }
+      shown.current = want
+    }
 
-    const done = Math.min(PHOTO_SAMPLES, Math.floor(pt.samples))
+    const done = Math.min(goal, Math.floor(pt.samples))
     if (done !== reported.current) {
       reported.current = done
       onProgress(done)
@@ -126,6 +150,7 @@ export default function PhotoTracer({ revision, onProgress, saveRequest, onSave 
         fov: camera instanceof PerspectiveCamera ? camera.fov : 0,
         width: gl.domElement.width,
         height: gl.domElement.height,
+        filtered: want === 'filtered',
       }
       // JPEG y no PNG: el grano del trazado hace que un PNG pese varias veces más.
       gl.domElement.toBlob((blob) => blob && onSave(blob, shot), 'image/jpeg', 0.92)

@@ -521,6 +521,11 @@ button:disabled {
   pointer-events: auto;
 }
 
+.photo-ask .lens-toggle {
+  margin-left: 0;
+  justify-content: center;
+}
+
 .photo-ask .actions {
   display: flex;
   gap: 8px;

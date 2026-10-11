@@ -71,6 +71,12 @@ export function stopCameraFlight() {
  * dentro solo se ve una esquina; los angulares abarcan más a costa de deformar
  * los bordes.
  */
+/**
+ * Muestras por píxel entre las que se elige para la foto en calidad: con más,
+ * menos grano y más espera.
+ */
+export const PHOTO_SAMPLES = [50, 100, 200]
+
 export const LENSES = [
   { name: 'Normal', fov: 45 },
   { name: 'Angular', fov: 60 },
@@ -120,6 +126,9 @@ interface HouseState {
   /** Campo de visión vertical de la cámara 3D, en grados (uno de los de LENSES). */
   cameraFov: number
   setCameraFov: (fov: number) => void
+  /** Muestras con las que se da por terminada una foto en calidad (una de PHOTO_SAMPLES). */
+  photoSamples: number
+  setPhotoSamples: (samples: number) => void
 
   // Selección: como mucho una de las tres está activa.
   selectedId: string | null
@@ -413,6 +422,8 @@ export const useHouse = create<HouseState>()(
         setWalkMode: (walkMode) => set({ walkMode }),
         cameraFov: LENSES[0].fov,
         setCameraFov: (cameraFov) => set({ cameraFov }),
+        photoSamples: PHOTO_SAMPLES[PHOTO_SAMPLES.length - 1],
+        setPhotoSamples: (photoSamples) => set({ photoSamples }),
 
         select: (id, side = null) => set({ ...NO_SELECTION, selectedId: id, selectedSide: side }),
         selectWall: (key) => set({ ...NO_SELECTION, selectedWall: key }),
@@ -949,6 +960,7 @@ export const useHouse = create<HouseState>()(
         cameraPose: s.cameraPose,
         walkMode: s.walkMode,
         cameraFov: s.cameraFov,
+        photoSamples: s.photoSamples,
       }),
     },
   ),

@@ -23,10 +23,10 @@ import { VINYLS, VinylSheet, vinylPlacement, vinylSheets, vinylType } from '../m
 import { OPPOSITE, Opening } from '../model/openings'
 import { Joints, Wall, deriveWalls, openingsOf, wallAcross } from '../model/walls'
 import { Shot, usePhotos } from '../photos'
-import { LENSES, cameraFlying, samePose, stopCameraFlight, useHouse } from '../store'
+import { LENSES, PHOTO_SAMPLES, cameraFlying, samePose, stopCameraFlight, useHouse } from '../store'
 import Furniture3D from './Furniture3D'
 import { JoineryMaterial, JoineryPart, joineryParts } from './joinery'
-import PhotoTracer, { PHOTO_SAMPLES } from './PhotoTracer'
+import PhotoTracer from './PhotoTracer'
 
 // Grosor de la losa, en metros.
 const SLAB = 0.2
@@ -653,7 +653,11 @@ export default function View3D() {
   // techo y una luz de techo por estancia que solo existen mientras dura la foto.
   const cameraFov = useHouse((s) => s.cameraFov)
   const setCameraFov = useHouse((s) => s.setCameraFov)
+  const photoSamples = useHouse((s) => s.photoSamples)
+  const setPhotoSamples = useHouse((s) => s.setPhotoSamples)
   const [photo, setPhoto] = useState(false)
+  // Filtro de ruido: se elige con la foto ya terminada, y se guarda la que se esté viendo.
+  const [filter, setFilter] = useState(false)
   const [samples, setSamples] = useState(0)
   // Hasta la primera muestra no se ve avance (la primera vez tarda bastante): se avisa.
   const [waiting, setWaiting] = useState(false)
@@ -669,6 +673,7 @@ export default function View3D() {
     setSamples(0)
     setSaved('')
     setWaiting(true)
+    setFilter(false)
     setPhoto(true)
   }
   // Repetir una foto (panel Fotos): la cámara ya va hacia su sitio; se traza sola
@@ -689,14 +694,19 @@ export default function View3D() {
   )
   const retaking = useRef(false)
   useEffect(() => {
-    if (retakeId) startPhoto()
-    else if (retaking.current) setPhoto(false)
+    if (retakeId) {
+      startPhoto()
+      // La que se guardó filtrada se repite filtrada.
+      setFilter(!!usePhotos.getState().photos.find((p) => p.id === retakeId)?.filtered)
+    } else if (retaking.current) setPhoto(false)
     retaking.current = retakeId !== null
   }, [retakeId])
   const onProgress = (done: number) => {
     setSamples(done)
     if (done > 0) setWaiting(false)
-    if (done >= PHOTO_SAMPLES && usePhotos.getState().retakeId) saveRequest.current = true
+    if (done >= useHouse.getState().photoSamples && usePhotos.getState().retakeId) {
+      saveRequest.current = true
+    }
   }
   // Guardada la foto se vuelve a la vista normal: el trazado no tiene por qué seguir.
   const onSave = async (image: Blob, shot: Shot) => {
@@ -715,8 +725,8 @@ export default function View3D() {
             <span>
               {waiting
                 ? 'Preparando la foto…'
-                : samples < PHOTO_SAMPLES
-                ? `${retakeId ? 'Repitiendo la foto' : 'Foto'}: ${samples} / ${PHOTO_SAMPLES} muestras`
+                : samples < photoSamples
+                ? `${retakeId ? 'Repitiendo la foto' : 'Foto'}: ${samples} / ${photoSamples} muestras`
                 : 'Foto terminada'}
             </span>
             <button disabled={waiting} onClick={() => (saveRequest.current = true)}>
@@ -756,6 +766,20 @@ export default function View3D() {
             </button>
           ))}
         </div>
+        <div
+          className="lens-toggle"
+          title="Muestras de la foto en calidad: con más, menos grano y más espera"
+        >
+          {PHOTO_SAMPLES.map((n) => (
+            <button
+              key={n}
+              className={photoSamples === n ? 'active' : ''}
+              onClick={() => setPhotoSamples(n)}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
       </div>
       {photo && waiting && (
         <div className="photo-wait">
@@ -764,9 +788,20 @@ export default function View3D() {
         </div>
       )}
       {/* Terminada la foto se pregunta si se guarda. Al repetir una no: sustituye sola. */}
-      {photo && !waiting && !retakeId && samples >= PHOTO_SAMPLES && (
+      {photo && !waiting && !retakeId && samples >= photoSamples && (
         <div className="photo-wait photo-ask">
           <strong>¿Guardar la foto?</strong>
+          <div
+            className="lens-toggle"
+            title="El filtro quita el grano. Se guarda la que se esté viendo"
+          >
+            <button className={filter ? '' : 'active'} onClick={() => setFilter(false)}>
+              Sin filtro
+            </button>
+            <button className={filter ? 'active' : ''} onClick={() => setFilter(true)}>
+              Con filtro
+            </button>
+          </div>
           <div className="actions">
             <button onClick={() => (saveRequest.current = true)}>
               Guardar en Fotos
@@ -875,6 +910,8 @@ export default function View3D() {
           // Al repetir se empieza de cero aunque ya hubiera una foto terminada a la vista.
           key={retakeId ?? 'libre'}
           revision={[modules, parts, skirtings, joinery, furniture, vinyls]}
+          goal={photoSamples}
+          filter={filter}
           onProgress={onProgress}
           saveRequest={saveRequest}
           onSave={(image, shot) => void onSave(image, shot)}

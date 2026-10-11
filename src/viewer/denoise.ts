@@ -20,14 +20,24 @@ import {
 import { FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js'
 
 /**
- * PRUEBA. Filtro de ruido para la foto en calidad, guiado por la geometría.
+ * Filtro de ruido para la foto en calidad, guiado por la geometría.
  *
  * La imagen trazada se divide entre el color propio de cada superficie (su
  * textura, sin luz), de modo que queda solo la luz que le llega; esa luz se
  * suaviza entre píxeles vecinos que están en la misma superficie (misma
  * orientación y mismo plano) y con una luz parecida, y al final se vuelve a
  * multiplicar por el color. Así las vetas y los bordes no se emborronan.
+ *
+ * Todo se calcula al doble de resolución que la foto y se reduce al final: en
+ * un borde cada mitad de píxel toma la luz de su superficie y el contorno queda
+ * suavizado. A la resolución de la foto los bordes salían en escalera.
  */
+
+/** Cuántas veces la resolución de la foto, por lado, y el tope por lado en píxeles. */
+const SCALE = 2
+const MAX_SIDE = 4096
+/** Pasadas de suavizado; cada una alcanza el doble de lejos que la anterior. */
+const PASSES = 5
 
 const QUAD_VERTEX = /* glsl */ `
   varying vec2 vUv;
@@ -58,43 +68,48 @@ const GEOMETRY_WEIGHT = /* glsl */ `
     return wn * wz;
   }
 
+  // "luminance" ya es una función de three.js.
   float lum(vec3 c) {
     return dot(c, vec3(0.2126, 0.7152, 0.0722));
   }
 `
 
+const pass = (uniforms: ShaderMaterial['uniforms'], fragmentShader: string) =>
+  new ShaderMaterial({
+    blending: NoBlending,
+    depthTest: false,
+    depthWrite: false,
+    uniforms,
+    vertexShader: QUAD_VERTEX,
+    fragmentShader,
+  })
+
 export class PhotoDenoiser {
   private gl: WebGLRenderer
-  private albedo = new WebGLRenderTarget(1, 1, { type: HalfFloatType, samples: 4 })
+  private albedo = new WebGLRenderTarget(1, 1, { type: HalfFloatType })
+  // La profundidad necesita la precisión entera: con media, a unos metros ya
+  // baila medio centímetro y las superficies no se reconocen.
   private geometry = new WebGLRenderTarget(1, 1, {
     type: FloatType,
     minFilter: NearestFilter,
     magFilter: NearestFilter,
   })
-  private ping = new WebGLRenderTarget(1, 1, {
-    type: FloatType,
-    minFilter: NearestFilter,
-    magFilter: NearestFilter,
-  })
-  private pong = this.ping.clone()
+  private ping = new WebGLRenderTarget(1, 1, { type: HalfFloatType })
+  private pong = new WebGLRenderTarget(1, 1, { type: HalfFloatType })
   private albedoCache = new Map<Material, MeshBasicMaterial>()
   private geometryCache = new Map<Material, ShaderMaterial>()
   private quad = new FullScreenQuad()
 
-  /** Paso 0: deja solo la luz y mide cuánto varía alrededor de cada píxel. */
-  private prepare = new ShaderMaterial({
-    blending: NoBlending,
-    depthTest: false,
-    depthWrite: false,
-    uniforms: {
-      uTraced: { value: null as Texture | null },
-      uAlbedo: { value: null as Texture | null },
-      uGeometry: { value: null as Texture | null },
+  /** Paso 0: deja solo la luz y mide cuánto varía alrededor de cada punto. */
+  private prepare = pass(
+    {
+      uTraced: { value: null },
+      uAlbedo: { value: null },
+      uGeometry: { value: null },
       uInverseProjection: { value: new Matrix4() },
       uTexel: { value: new Vector2() },
     },
-    vertexShader: QUAD_VERTEX,
-    fragmentShader: /* glsl */ `
+    /* glsl */ `
       uniform sampler2D uTraced;
       uniform sampler2D uAlbedo;
       uniform vec2 uTexel;
@@ -102,7 +117,8 @@ export class PhotoDenoiser {
       ${GEOMETRY_WEIGHT}
 
       vec3 light(vec2 uv) {
-        return texture2D(uTraced, uv).rgb / max(texture2D(uAlbedo, uv).rgb, vec3(0.02));
+        vec3 l = texture2D(uTraced, uv).rgb / max(texture2D(uAlbedo, uv).rgb, vec3(0.02));
+        return min(l, vec3(1000.0));
       }
 
       void main() {
@@ -130,27 +146,21 @@ export class PhotoDenoiser {
         gl_FragColor = vec4(c, max(0.0, sum2 / max(total, 1e-4) - mean * mean));
       }
     `,
-  })
+  )
 
-  /** Pasos 1 a N: suavizado con huecos cada vez mayores (à-trous). */
-  private blur = new ShaderMaterial({
-    blending: NoBlending,
-    depthTest: false,
-    depthWrite: false,
-    uniforms: {
-      uLight: { value: null as Texture | null },
-      uGeometry: { value: null as Texture | null },
+  /** Pasos de suavizado, con huecos cada vez mayores entre los vecinos (à-trous). */
+  private blur = pass(
+    {
+      uLight: { value: null },
+      uGeometry: { value: null },
       uInverseProjection: { value: new Matrix4() },
       uTexel: { value: new Vector2() },
       uStep: { value: 1 },
-      uSigmaLight: { value: 4 },
     },
-    vertexShader: QUAD_VERTEX,
-    fragmentShader: /* glsl */ `
+    /* glsl */ `
       uniform sampler2D uLight;
       uniform vec2 uTexel;
       uniform float uStep;
-      uniform float uSigmaLight;
       varying vec2 vUv;
       ${GEOMETRY_WEIGHT}
 
@@ -163,7 +173,8 @@ export class PhotoDenoiser {
         }
         vec3 p = viewPosition(vUv, g.w);
         float lc = lum(c.rgb);
-        float sigma = uSigmaLight * sqrt(c.a) + 1e-3;
+        // Una diferencia de luz mayor que el ruido medido es una sombra: no se mezcla.
+        float sigma = 4.0 * sqrt(c.a) + 1e-3;
         float kernel[3];
         kernel[0] = 0.375;
         kernel[1] = 0.25;
@@ -189,36 +200,37 @@ export class PhotoDenoiser {
         gl_FragColor = vec4(sum / total, variance / (total * total));
       }
     `,
-  })
+  )
 
-  /** Último paso: vuelve a poner el color de cada superficie y lo saca al lienzo. */
-  private compose = new ShaderMaterial({
-    blending: NoBlending,
-    depthTest: false,
-    depthWrite: false,
-    uniforms: {
-      uTraced: { value: null as Texture | null },
-      uLight: { value: null as Texture | null },
-      uAlbedo: { value: null as Texture | null },
-      uStrength: { value: 1 },
-    },
-    vertexShader: QUAD_VERTEX,
-    fragmentShader: /* glsl */ `
-      uniform sampler2D uTraced;
+  /** Vuelve a poner a la luz el color de cada superficie. */
+  private tint = pass(
+    { uLight: { value: null }, uAlbedo: { value: null } },
+    /* glsl */ `
       uniform sampler2D uLight;
       uniform sampler2D uAlbedo;
-      uniform float uStrength;
       varying vec2 vUv;
 
       void main() {
-        vec3 traced = texture2D(uTraced, vUv).rgb;
-        vec3 clean = texture2D(uLight, vUv).rgb * max(texture2D(uAlbedo, vUv).rgb, vec3(0.02));
-        gl_FragColor = vec4(mix(traced, clean, uStrength), 1.0);
+        vec3 albedo = max(texture2D(uAlbedo, vUv).rgb, vec3(0.02));
+        gl_FragColor = vec4(texture2D(uLight, vUv).rgb * albedo, 1.0);
+      }
+    `,
+  )
+
+  /** Último paso: reduce al tamaño de la foto y la saca al lienzo. */
+  private compose = pass(
+    { uClean: { value: null } },
+    /* glsl */ `
+      uniform sampler2D uClean;
+      varying vec2 vUv;
+
+      void main() {
+        gl_FragColor = vec4(texture2D(uClean, vUv).rgb, 1.0);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
       }
     `,
-  })
+  )
 
   constructor(gl: WebGLRenderer) {
     this.gl = gl
@@ -242,7 +254,7 @@ export class PhotoDenoiser {
     if (!material) {
       material = new ShaderMaterial({
         side: source.side,
-        uniforms: { map: { value: null as Texture | null }, cut: { value: 0 } },
+        uniforms: { map: { value: null }, cut: { value: 0 } },
         vertexShader: /* glsl */ `
           varying vec3 vNormal;
           varying float vDepth;
@@ -275,15 +287,13 @@ export class PhotoDenoiser {
     return material
   }
 
-  /**
-   * Dibuja en el lienzo la imagen trazada ya filtrada. `strength` va de 0 (tal
-   * como salió) a 1 (filtro entero); `passes` es cuántas veces se suaviza.
-   */
-  render(scene: Scene, camera: Camera, traced: Texture, strength: number, passes = 5) {
+  /** Dibuja en el lienzo la imagen trazada (`traced`, la de esa escena y cámara) ya filtrada. */
+  render(scene: Scene, camera: Camera, traced: Texture) {
     const gl = this.gl
-    const size = gl.getDrawingBufferSize(new Vector2())
+    const photo = gl.getDrawingBufferSize(new Vector2())
+    const scale = Math.max(1, Math.min(SCALE, MAX_SIDE / Math.max(photo.x, photo.y)))
     for (const target of [this.albedo, this.geometry, this.ping, this.pong]) {
-      target.setSize(size.x, size.y)
+      target.setSize(Math.round(photo.x * scale), Math.round(photo.y * scale))
     }
 
     // Las dos imágenes de guía: se dibuja la escena con otros materiales. Lo
@@ -328,37 +338,37 @@ export class PhotoDenoiser {
     scene.background = previous.background
     gl.setClearColor(previous.color, previous.alpha)
 
-    const texel = new Vector2(1 / size.x, 1 / size.y)
+    // Los vecinos se toman a pasos de un píxel de la foto, que es el grano del ruido.
     for (const material of [this.prepare, this.blur]) {
       material.uniforms.uGeometry.value = this.geometry.texture
       material.uniforms.uInverseProjection.value.copy(camera.projectionMatrixInverse)
-      material.uniforms.uTexel.value.copy(texel)
+      material.uniforms.uTexel.value.set(1 / photo.x, 1 / photo.y)
+    }
+    const draw = (material: ShaderMaterial, target: WebGLRenderTarget | null) => {
+      this.quad.material = material
+      gl.setRenderTarget(target)
+      this.quad.render(gl)
     }
 
     this.prepare.uniforms.uTraced.value = traced
     this.prepare.uniforms.uAlbedo.value = this.albedo.texture
-    this.quad.material = this.prepare
-    gl.setRenderTarget(this.ping)
-    this.quad.render(gl)
+    draw(this.prepare, this.ping)
 
     let from = this.ping
     let to = this.pong
-    this.quad.material = this.blur
-    for (let i = 0; i < passes; i++) {
+    for (let i = 0; i < PASSES; i++) {
       this.blur.uniforms.uLight.value = from.texture
       this.blur.uniforms.uStep.value = 2 ** i
-      gl.setRenderTarget(to)
-      this.quad.render(gl)
+      draw(this.blur, to)
       ;[from, to] = [to, from]
     }
 
-    this.compose.uniforms.uTraced.value = traced
-    this.compose.uniforms.uLight.value = from.texture
-    this.compose.uniforms.uAlbedo.value = this.albedo.texture
-    this.compose.uniforms.uStrength.value = strength
-    this.quad.material = this.compose
-    gl.setRenderTarget(null)
-    this.quad.render(gl)
+    this.tint.uniforms.uLight.value = from.texture
+    this.tint.uniforms.uAlbedo.value = this.albedo.texture
+    draw(this.tint, to)
+
+    this.compose.uniforms.uClean.value = to.texture
+    draw(this.compose, null)
     gl.setRenderTarget(previous.target)
   }
 
@@ -366,9 +376,7 @@ export class PhotoDenoiser {
     for (const target of [this.albedo, this.geometry, this.ping, this.pong]) target.dispose()
     for (const material of this.albedoCache.values()) material.dispose()
     for (const material of this.geometryCache.values()) material.dispose()
-    this.prepare.dispose()
-    this.blur.dispose()
-    this.compose.dispose()
+    for (const material of [this.prepare, this.blur, this.tint, this.compose]) material.dispose()
     this.quad.dispose()
   }
 }
