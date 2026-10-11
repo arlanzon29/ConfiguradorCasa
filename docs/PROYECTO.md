@@ -125,7 +125,7 @@ arriba. En 3D el plano (x, y) pasa a (x, z) con la parcela centrada en el origen
 
 ```
 src/
-  main.tsx, App.tsx, App.css     arranque, pestañas de modo, selector de vista
+  main.tsx, App.tsx, App.css     arranque, los dos paneles, selector de vista
   store.ts                       estado global y TODAS las acciones (zustand)
   photos.ts                      fotos en calidad guardadas (IndexedDB) y su estado
   model/                         lógica pura, sin React
@@ -142,8 +142,9 @@ src/
   editor/
     Editor2D.tsx    plano SVG: dibujo y todos los arrastres
     SizeForm.tsx    formulario de dos medidas reutilizable
-  panels/           un panel izquierdo por modo + PropertiesPanel (el derecho)
-                    + PlanFileButtons + PhotoViewer
+  panels/           HouseTree (el árbol, a la izquierda), PropertiesPanel (a la
+                    derecha, que reúne los apartados de cada cosa), PlanFileButtons
+                    y PhotoViewer
   viewer/
     View3D.tsx      escena 3D, cámara en primera persona, paredes y suelos
     joinery.ts      carpintería de puertas y ventanas, como cajas
@@ -172,40 +173,65 @@ Huecos y muebles se ajustan a 5 cm, más fino que la rejilla.
 
 ## Interfaz
 
-**Modos** (pestañas del panel izquierdo; el modo decide qué se selecciona en el plano
-y qué muestra el panel). `Mode` en `store.ts`:
+**No hay pestañas** (desde el 2026-10-11). A la izquierda, el **árbol de la casa**
+(`HouseTree.tsx`); a la derecha, **Propiedades** (`PropertiesPanel.tsx`), que
+está siempre. La regla: se elige una cosa, en el árbol o pinchándola en el
+plano, y a la derecha salen arriba sus datos y debajo lo que se le puede añadir.
 
-| Modo | Pestaña | Qué se hace |
+**El árbol** solo enseña y elige; no se reordena ni se mueve nada de rama.
+
+```
+Casa
+├─ Módulo 1 · 13 × 4,2 m
+│  ├─ Estancia 1 · 3 × 3 m        (se pliega; se abre sola si tiene lo elegido)
+│  │  ├─ Pared norte
+│  │  ├─ Pared este · con la Estancia 2
+│  │  └─ Sofá
+│  └─ Estancia 2 · 6 × 3 m
+└─ Fotos · 3
+```
+
+- **Cada pared cuelga de una sola estancia** (decisión del usuario): la que da
+  `deriveWalls` en `Wall.moduleId`; en una compartida, la del norte u oeste. Un
+  lado partido en varios tramos los numera ("Pared norte 1", "Pared norte 2").
+- **Cada mueble es de una estancia** (decisión del usuario): la primera que
+  contiene su centro (`furnitureInside`); al arrastrarlo a otra cambia de rama.
+  El que queda fuera de todas sale suelto bajo "Casa".
+- Lo que cuelga de una pared (huecos, vinilos, espejos, tableros) y los focos no
+  salen en el árbol: están en Propiedades de su pared o de su estancia.
+- Estancias de planos antiguos sin módulos cuelgan directamente de "Casa".
+
+**Qué sale en Propiedades** según lo elegido:
+
+| Elegido | Arriba (datos) | Debajo (añadir y acabados) |
 |---|---|---|
-| `shells` | Módulos | Añadir (horizontal/vertical), mover, redimensionar, girar, eliminar módulos de fábrica. Se ve toda la parcela |
-| `modules` | Estancias | Añadir, mover, estirar (8 tiradores), girar, eliminar estancias |
-| `walls` | Paredes | Seleccionar pared: grosor, rodapié (alto y color) y quitar/poner. Colocar, deslizar, centrar y redimensionar puertas y ventanas; distancia al extremo de la pared y altura de la ventana |
-| `finishes` | Acabados | Clic en el centro de una estancia: suelo y color de todas sus paredes. Clic junto a un lado: color de esa pared y sus vinilos (pegar del catálogo, y casillas con barra deslizante para la distancia a la izquierda y al suelo, ancho, alto y giro; "Mantener la proporción" y "Eliminar"), y debajo sus espejos ("Añadir espejo" y las mismas casillas, sin giro) |
-| `pieces` | Piezas | Clic junto a un lado de una estancia: los tableros de esa pared (`PiecesPanel.tsx`). "Añadir tablero", postura (Contra la pared, De canto, Balda), casillas con barra para la distancia a la izquierda y al suelo, ancho, alto y fondo, el acabado y "Eliminar". En el plano, cada tablero es un rectángulo marrón con su ancho y su fondo |
-| `lights` | Luces | Clic en una estancia: los focos de su techo (`LightsPanel.tsx`). "Añadir foco de techo" (sale en el centro, o corrido 40 cm si ya hay uno), casillas con barra para la distancia a la izquierda y arriba y la potencia (%), el tono (Cálida, Neutra, Fría) y "Eliminar". En el plano, cada foco es un círculo amarillo |
-| `options` | Opciones | Mobiliario por familias (Salón, Comedor, Dormitorio): colocar, mover, girar, pegar a pared. Icono de imán para activar o no el imantado a paredes |
-| `photos` | Fotos | Fotos en calidad guardadas: miniaturas, Anterior/Siguiente (la cámara va a donde se sacó cada una, con su objetivo), pinchar para verla grande, descargar, repetir (la saca otra vez desde el mismo sitio y sustituye a la anterior) y eliminar. En el plano, un icono numerado por foto donde se sacó; pincharlo lleva la cámara allí |
+| Casa | — | Añadir módulo horizontal o vertical. Se ve toda la parcela |
+| Módulo | distancia al borde izquierdo y superior de la parcela; ancho y fondo; girar, eliminar | Añadir estancia (catálogo y medida personalizada) y el resumen |
+| Estancia | distancia al borde de su módulo; ancho y fondo; girar, eliminar | Suelo, color de todas sus paredes, **luces** (focos de techo) y el catálogo de **mobiliario** con el icono de imán |
+| Pared | grosor (cm); rodapié (alto y color); quitar/poner | Añadir hueco (puerta, corredera, ventana); en una compartida, de qué estancia es **la cara** que se viste; color de esa cara, sus vinilos, espejos y tableros |
+| Puerta o ventana | distancia a cada extremo de su pared; ancho y alto; altura (ventanas); en abatibles, hacia dónde abre, canto y cerrar/abrir en 3D; acabado de la carpintería y "Aplicar a todas" | — |
+| Mueble | distancia de cada borde a las cuatro paredes de su estancia; pegar a la pared, girar, eliminar | El catálogo de mobiliario |
+| Fotos | — | Las fotos guardadas: miniaturas, Anterior/Siguiente, ver, descargar, repetir, eliminar. En el plano, un icono numerado por foto |
 
-Fuera del modo `shells`, el plano hace zoom para encuadrar los módulos.
+Cada casilla se aplica sola con Intro o al salir de ella; `Esc` la deja como
+estaba; lo que no cabe se rechaza con un aviso debajo.
 
-**Dos paneles.** El izquierdo tiene lo que se **añade** en cada modo (catálogos y
-herramientas). El derecho, **Propiedades** (`PropertiesPanel.tsx`), los datos de lo
-seleccionado en casillas que se escriben a mano, más sus botones (girar, eliminar,
-centrar, pegar a la pared). Cada casilla se aplica sola con Intro o al salir de
-ella; `Esc` la deja como estaba; lo que no cabe se rechaza con un aviso debajo.
+**Clics en el plano** (`Editor2D.tsx`): sobre un hueco o un mueble, lo elige y
+lo arrastra; a menos de 35 cm de una pared (`WALL_NEAR`), elige la pared; en
+el centro de una estancia, la elige, y **solo ya elegida se arrastra** (el
+primer clic elige, el segundo mueve). Los tiradores para estirarla son solo los
+ocho círculos, no el lado entero. Los módulos se eligen en el árbol; con "Casa"
+o un módulo elegido, el plano enseña toda la parcela y los módulos se arrastran.
+Con algo del catálogo por colocar, el clic lo coloca.
 
-| Seleccionado | Casillas |
-|---|---|
-| Módulo | distancia al borde izquierdo y superior de la parcela; ancho y fondo |
-| Estancia | distancia al borde izquierdo y superior de su módulo (de la parcela si no hay módulos); ancho y fondo |
-| Pared | grosor (cm); alto del rodapié (cm) y su color |
-| Puerta o ventana | distancia a cada extremo de su pared; ancho y alto; altura desde el suelo (ventanas). En puertas abatibles, botones "Abrir hacia el otro lado", "Girar desde el otro canto" y "Cerrar / Abrir la puerta en 3D". Debajo, el acabado de su carpintería (material o color) y "Aplicar a todas las puertas y ventanas" |
-| Mueble | distancia de cada borde del mueble a las cuatro paredes de su estancia (a los bordes de la parcela si está fuera) |
+Por dentro sigue habiendo un `mode` en `store.ts` (`shells`, `modules`,
+`walls`, `options`, `photos`): es la clase de cosa elegida, lo fija `pick` y
+ya no lo elige el usuario. El plano dibuja vinilos, espejos y tableros con una
+pared elegida, y los focos con una estancia elegida.
 
-El derecho solo existe en los modos Módulos, Estancias, Paredes y Opciones
-(`PROPERTY_HINTS`). Los dos se **pliegan** con el botón `‹` / `›` de su cabecera y
-queda una tira de 32 px para volver a sacarlos; se recuerda en `localStorage`
-(clave `eurocasa-paneles`).
+Los dos paneles se **pliegan** con el botón `‹` / `›` de su cabecera y queda una
+tira de 32 px para volver a sacarlos; se recuerda en `localStorage` (clave
+`eurocasa-paneles`).
 
 **Vistas** (botones sobre el lienzo): Plano 2D, Vista 3D, Plano + 3D (lado a lado),
 y "3D en otra ventana". En el plano, un marcador naranja muestra la cámara 3D y se
@@ -237,7 +263,7 @@ No hay colisiones: se atraviesan paredes. Arriba a la izquierda de la vista:
   guarda en `localStorage` y se sincroniza entre ventanas. Las estancias son
   pequeñas y con el normal solo se ve una esquina.
 
-**Arriba del panel**: Nuevo plano (crea un módulo vacío de 13 × 4,2 en (0, 0) y abre
+**Arriba del panel izquierdo**: Nuevo plano (crea un módulo vacío de 13 × 4,2 en (0, 0) y abre
 el modo Módulos), Guardar plano y Cargar plano (archivo `.json`).
 
 Teclas: `R` gira lo seleccionado, `Supr` lo borra, `Esc` cancela la herramienta.
@@ -257,8 +283,13 @@ Teclas: `R` gira lo seleccionado, `Supr` lo borra, `Esc` cancela la herramienta.
   de las paredes de su estancia (`magnetize` en `store.ts`). El de los muebles se
   apaga con el icono de imán del panel Opciones (`furnitureMagnet`, se guarda en
   `localStorage`, no en el archivo de plano); "Pegar a la pared" funciona igual.
-- **El panel derecho no aparece y desaparece con la selección**: está siempre en
-  sus modos, aunque vacío. Si saliera al hacer clic, el plano cambiaría de tamaño a
+- **Fácil antes que flexible** (lo dijo el usuario el 2026-10-11, al rehacer la
+  interfaz): se acepta no poder hacerlo todo a cambio de que las cosas se
+  encuentren. El modelo es el de Unity: jerarquía a la izquierda, inspector a
+  la derecha. Lo usará un comercial con el cliente delante, y conviene que el
+  cliente pueda manejarlo solo.
+- **El panel derecho no aparece y desaparece con la selección**: está siempre,
+  aunque vacío. Si saliera al hacer clic, el plano cambiaría de tamaño a
   mitad de un arrastre.
 - **Las medidas escritas a mano no pasan por el imán** (`placeFurniture`, frente a
   `moveFurniture` que sí): si no, escribir 0,10 m a una pared lo pegaría a 0. Los
@@ -350,19 +381,29 @@ que la textura "Madera de pino" cubre 2 × 2 m (supuesto, sin confirmar).
 - Luces: valores inventados (foco de 12 cm; al 100 % alumbra un tercio del
   panel provisional, `LIGHT_INTENSITY` en `View3D.tsx`; se separa 20 cm del
   borde de la estancia, sin descontar el grosor de las paredes). No hay
-  encendido y apagado, ni luz en la vista normal, ni arrastre en el plano, ni
-  panel derecho. Al encoger la estancia no se reencajan. El foco es pequeño y
+  encendido y apagado, ni luz en la vista normal, ni arrastre en el plano. Al encoger la estancia no se reencajan. El foco es pequeño y
   da más grano que el panel: a 50 muestras se nota sin filtro. Probado en el
   servidor aparte (5184) en una estancia de 3 × 3 vacía: añadir dos focos,
   cambiar el tono, el círculo en el plano, el disco en la vista normal y una
   foto a 50 muestras con y sin filtro. Sin probar: las casillas y barras,
   "Eliminar", el giro de estancia o módulo, estancias con y sin focos en la
   misma foto, ni guardar y cargar un plano con luces.
+- Interfaz de árbol: es el paso 1 de tres (faltan los nombres de estancia y
+  ordenar el panel derecho, que en una pared es muy largo). Tras añadir una
+  estancia hay que volver a elegir el módulo para añadir otra. Vinilos, espejos
+  y tableros son del lado entero de su estancia: si el lado tiene varios tramos
+  de pared, todos enseñan la misma lista. El marcador de la cámara tapa los
+  clics de lo que tiene debajo. Las estancias se llaman por su número, que
+  cambia si se borra una anterior. Probado en el servidor aparte (5184) con un
+  módulo y dos estancias: el árbol, añadir estancias desde el módulo, elegir
+  una pared exterior y la compartida pinchando en el plano, colocar una puerta
+  y un sofá. Sin probar: arrastrar estancia, módulo, hueco y mueble con el
+  ratón, estirar con los tiradores, las teclas, Fotos, plegar ramas, ni un
+  plano antiguo sin módulos con muebles.
 - Tableros: medidas inventadas (1 × 1 m y 2 cm de grueso al colocarlo, apoyado
   en el suelo; mínimo 5 mm en cualquier medida). No chocan con muebles, huecos
   ni otras piezas, y al encoger la estancia no se reencajan. El fondo máximo es
-  el de la estancia sin descontar paredes. No hay panel derecho en Piezas ni
-  arrastre en el plano. Los espejos siguen en Acabados. Probado en el servidor
+  el de la estancia sin descontar paredes. No hay arrastre en el plano. Probado en el servidor
   aparte: añadir uno, las tres posturas en el plano y en la vista 3D con
   "Madera de pino". Sin probar: las casillas y barras, el color liso,
   "Eliminar", el giro de estancia o módulo, la foto en calidad, ni guardar y
@@ -488,12 +529,26 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-11** · **Interfaz rehecha: árbol de la casa e inspector**, paso 1
+  (el usuario: cuesta encontrar dónde están las cosas; propuso la jerarquía de
+  Unity y decidió que cada pared cuelga de una sola estancia, que los muebles
+  son de una estancia y que prima lo fácil sobre lo flexible). Fuera las ocho
+  pestañas. Nuevo `HouseTree.tsx`; `PropertiesPanel` está siempre y reúne los
+  apartados según lo elegido (`WallFaces` para las caras de una pared); `pick`
+  y `furnitureInside` en `store.ts`, y `Mode` se queda en cinco valores
+  internos; `clickPlan` y `WALL_NEAR` en `Editor2D.tsx`, con el primer clic
+  que solo elige la estancia y tiradores reducidos a los círculos.
+  `FinishesPanel` se parte en `RoomFinishes` y `FaceFinishes`;
+  `PiecesPanel.tsx` y `LightsPanel.tsx` pasan a `BoardsSection.tsx` y
+  `LightsSection.tsx`. La pestaña Luces, hecha horas antes, desaparece: los
+  focos están en su estancia. El archivo de plano no cambia.
+
 - **2026-10-11** · **Luces de estancia** y pestaña **Luces** (tema 2 de
   pendientes; el usuario pidió empezar por las luces de la estancia). Primer
   tipo: el foco de techo, con posición, potencia y tono. Nuevo
   `model/lights.ts`, campo `lights` en `PlacedModule` (gira con la estancia y
   el módulo), `addLight`, `patchLight` y `removeLight` en `store.ts`, modo
-  `lights` y `LightsPanel.tsx`, el disco y su `rectAreaLight` en `View3D.tsx`,
+  `lights` y `LightsPanel.tsx` (luego `LightsSection.tsx`, sin modo), el disco y su `rectAreaLight` en `View3D.tsx`,
   y un círculo por foco en el plano. El archivo de plano no cambia de versión.
   Decisión mía, por confirmar con el usuario: la estancia sin focos sigue con
   el panel provisional, para que los planos y fotos de antes no salgan a

@@ -1,18 +1,11 @@
 import { Suspense, lazy, useEffect, useState } from 'react'
 import Editor2D from './editor/Editor2D'
-import FinishesPanel from './panels/FinishesPanel'
-import ModulesPanel from './panels/ModulesPanel'
-import OptionsPanel from './panels/OptionsPanel'
+import HouseTree from './panels/HouseTree'
 import PhotoViewer from './panels/PhotoViewer'
-import PhotosPanel from './panels/PhotosPanel'
-import LightsPanel from './panels/LightsPanel'
-import PiecesPanel from './panels/PiecesPanel'
 import PlanFileButtons from './panels/PlanFileButtons'
-import PropertiesPanel, { PROPERTY_HINTS } from './panels/PropertiesPanel'
-import ShellsPanel from './panels/ShellsPanel'
-import WallsPanel from './panels/WallsPanel'
+import PropertiesPanel from './panels/PropertiesPanel'
 import { usePhotos } from './photos'
-import { Mode, useHouse } from './store'
+import { useHouse } from './store'
 
 // Three.js pesa bastante: solo se descarga al abrir la vista 3D.
 const View3D = lazy(() => import('./viewer/View3D'))
@@ -20,17 +13,6 @@ const View3D = lazy(() => import('./viewer/View3D'))
 // Con ?vista=3d la página muestra solo la vista 3D, para tenerla en otra ventana
 // mientras se edita el plano; el estado se sincroniza entre ventanas (store.ts).
 const STANDALONE_3D = new URLSearchParams(location.search).get('vista') === '3d'
-
-const MODES: { id: Mode; name: string }[] = [
-  { id: 'shells', name: 'Módulos' },
-  { id: 'modules', name: 'Estancias' },
-  { id: 'walls', name: 'Paredes' },
-  { id: 'finishes', name: 'Acabados' },
-  { id: 'pieces', name: 'Piezas' },
-  { id: 'lights', name: 'Luces' },
-  { id: 'options', name: 'Opciones' },
-  { id: 'photos', name: 'Fotos' },
-]
 
 // Los dos paneles laterales se pueden plegar; queda una tira con el botón para
 // volver a sacarlos. Se recuerda en este navegador, fuera del plano.
@@ -48,8 +30,6 @@ function readHiddenPanels(): { left: boolean; right: boolean } {
 }
 
 export default function App() {
-  const mode = useHouse((s) => s.mode)
-  const setMode = useHouse((s) => s.setMode)
   const walkMode = useHouse((s) => s.walkMode)
   const setWalkMode = useHouse((s) => s.setWalkMode)
   const [view, setView] = useState<'2d' | '3d' | 'split'>('2d')
@@ -71,7 +51,7 @@ export default function App() {
       if (e.target instanceof HTMLInputElement) return
       const s = useHouse.getState()
       if (e.key === 'Escape') s.setTool(null)
-      // Las estancias solo se giran y borran en su modo, no al elegirles acabados.
+      // La estancia solo se gira y borra si es ella lo elegido, no una pared suya.
       const room = s.mode === 'modules' ? s.selectedId : null
       const turn = e.key === 'r' || e.key === 'R'
       if (turn && room) s.rotateModule(room)
@@ -108,11 +88,8 @@ export default function App() {
     )
   }
 
-  // El panel derecho está siempre en los modos con algo que seleccionar, aunque
-  // no haya nada elegido: si apareciera al hacer clic, el plano cambiaría de
-  // tamaño a mitad de un arrastre.
-  const properties = mode in PROPERTY_HINTS
-
+  // El panel derecho está siempre, aunque no haya nada elegido: si apareciera al
+  // hacer clic, el plano cambiaría de tamaño a mitad de un arrastre.
   const togglePanel = (side: 'left' | 'right') => {
     const next = { ...hidden, [side]: !hidden[side] }
     setHidden(next)
@@ -121,7 +98,7 @@ export default function App() {
   const columns = [
     hidden.left ? PANEL_HIDDEN : PANEL_WIDTH,
     '1fr',
-    ...(properties ? [hidden.right ? PANEL_HIDDEN : PANEL_WIDTH] : []),
+    hidden.right ? PANEL_HIDDEN : PANEL_WIDTH,
   ].join(' ')
 
   return (
@@ -151,27 +128,7 @@ export default function App() {
             </button>
           </div>
           <PlanFileButtons />
-  
-          <div className="mode-tabs">
-            {MODES.map((m) => (
-              <button
-                key={m.id}
-                className={mode === m.id ? 'active' : ''}
-                onClick={() => setMode(m.id)}
-              >
-                {m.name}
-              </button>
-            ))}
-          </div>
-  
-          {mode === 'shells' && <ShellsPanel />}
-          {mode === 'modules' && <ModulesPanel />}
-          {mode === 'walls' && <WallsPanel />}
-          {mode === 'finishes' && <FinishesPanel />}
-          {mode === 'pieces' && <PiecesPanel />}
-          {mode === 'lights' && <LightsPanel />}
-          {mode === 'options' && <OptionsPanel />}
-          {mode === 'photos' && <PhotosPanel />}
+          <HouseTree />
         </aside>
       )}
       <PhotoViewer />
@@ -203,9 +160,7 @@ export default function App() {
           )}
         </div>
       </main>
-      {properties && (
-        <PropertiesPanel hidden={hidden.right} onToggle={() => togglePanel('right')} />
-      )}
+      <PropertiesPanel hidden={hidden.right} onToggle={() => togglePanel('right')} />
     </div>
   )
 }

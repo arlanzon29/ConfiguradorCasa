@@ -90,7 +90,19 @@ export const LENSES = [
  * Modo del editor: decide qué se selecciona en el plano y qué muestran el panel
  * izquierdo (lo que se añade) y el derecho (los datos de lo seleccionado).
  */
-export type Mode = 'shells' | 'modules' | 'walls' | 'finishes' | 'pieces' | 'lights' | 'options' | 'photos'
+// Qué clase de cosa se está tocando. No hay pestañas: lo decide lo que se elige en
+// el árbol de la casa o en el plano (`pick`).
+export type Mode = 'shells' | 'modules' | 'walls' | 'options' | 'photos'
+
+type Selection = Pick<
+  HouseState,
+  | 'selectedId'
+  | 'selectedWall'
+  | 'selectedOpeningId'
+  | 'selectedSide'
+  | 'selectedFurnitureId'
+  | 'selectedShellId'
+>
 
 interface HouseState {
   /** Estancias: los rectángulos del plano. Las paredes se deducen de sus bordes (walls.ts). */
@@ -118,6 +130,8 @@ interface HouseState {
   joints: Joints
   mode: Mode
   setMode: (mode: Mode) => void
+  /** Elige algo del árbol o del plano: pasa a su modo y deja solo eso seleccionado. */
+  pick: (mode: Mode, selection?: Partial<Selection>) => void
   /** null hasta que se abre la vista 3D por primera vez. */
   cameraPose: CameraPose | null
   setCameraPose: (pose: CameraPose) => void
@@ -334,7 +348,7 @@ export function furnitureBox(item: FurnitureItem, modules: PlacedModule[], joint
   }
 }
 
-const NO_SELECTION = {
+const NO_SELECTION: Selection = {
   selectedId: null,
   selectedWall: null,
   selectedOpeningId: null,
@@ -342,6 +356,9 @@ const NO_SELECTION = {
   selectedFurnitureId: null,
   selectedShellId: null,
 }
+
+/** El mueble `f` tiene su centro dentro de la estancia `m`. */
+export const furnitureInside = (m: PlacedModule, f: FurnitureItem) => inside(m, f)
 
 export const useHouse = create<HouseState>()(
   persist(
@@ -438,6 +455,7 @@ export const useHouse = create<HouseState>()(
         ...NO_SELECTION,
 
         setMode: (mode) => set({ mode, tool: null, ...NO_SELECTION }),
+        pick: (mode, selection) => set({ mode, tool: null, ...NO_SELECTION, ...selection }),
         setCameraPose: (cameraPose) => {
           stopCameraFlight()
           set({ cameraPose })
@@ -512,7 +530,7 @@ export const useHouse = create<HouseState>()(
           if (!spot) return false
           // El módulo nace vacío: las estancias se añaden después, en su modo.
           const shell = { id: crypto.randomUUID(), ...spot, width, depth }
-          set({ shells: [...shells, shell], ...NO_SELECTION, selectedShellId: shell.id })
+          set({ shells: [...shells, shell], ...NO_SELECTION, selectedShellId: shell.id, mode: 'shells' })
           return true
         },
 
@@ -661,7 +679,7 @@ export const useHouse = create<HouseState>()(
             ...modules,
             { id, typeId, ...placed.spot, width: placed.width, depth: placed.depth },
           ])
-          set({ ...NO_SELECTION, selectedId: id })
+          set({ ...NO_SELECTION, selectedId: id, mode: 'modules' })
           return true
         },
 
@@ -792,6 +810,7 @@ export const useHouse = create<HouseState>()(
             tool: null,
             ...NO_SELECTION,
             selectedFurnitureId: id,
+            mode: 'options',
           }))
         },
 
@@ -1037,7 +1056,7 @@ export const useHouse = create<HouseState>()(
             openings,
           )
           if (!opening) return false
-          set({ openings: [...openings, opening], tool: null, ...NO_SELECTION, selectedOpeningId: id })
+          set({ openings: [...openings, opening], tool: null, ...NO_SELECTION, selectedOpeningId: id, mode: 'walls' })
           return true
         },
 

@@ -6,12 +6,11 @@ import {
   PLOT,
   PlacedModule,
   Rect,
-  Side,
   formatMeters,
   roundSize,
   snap,
 } from '../model/house'
-import { Opening, swingDoor, swingSign } from '../model/openings'
+import { OPENING_CATALOG, Opening, swingDoor, swingSign } from '../model/openings'
 import { Wall, deriveWalls, nearestWall, openingsOf, wallAcross } from '../model/walls'
 import { vinylPlacement } from '../model/vinyls'
 import { usePhotos } from '../photos'
@@ -20,10 +19,10 @@ import { CameraPose, useHouse } from '../store'
 const MARGIN = 1
 // Grosor (m) de la franja invisible que hace de tirador en cada lado.
 const HANDLE = 0.5
-// En modo paredes, distancia máxima (m) del clic a la pared que selecciona.
+// Con un hueco por colocar, distancia máxima (m) del clic a la pared donde va.
 const WALL_PICK = 1
-// En modo acabados, un clic a menos de esta distancia (m) de un lado elige su pared.
-const SIDE_PICK = 0.8
+// Un clic a menos de esta distancia (m) de una pared la elige a ella y no a la estancia.
+const WALL_NEAR = 0.35
 // Los huecos se deslizan por la pared en pasos de 5 cm.
 const snapOpening = (v: number) => Math.round(v * 20) / 20
 
@@ -84,28 +83,6 @@ function dragEdge(m: PlacedModule, edge: Edge, px: number, py: number, xs: numbe
     depth = bottom - y
   }
   return { x: roundSize(x), y: roundSize(y), width: roundSize(width), depth: roundSize(depth) }
-}
-
-/** Lado de `m` que queda a menos de SIDE_PICK metros del punto, o null si está hacia el centro. */
-function sideNear(m: PlacedModule, px: number, py: number): Side | null {
-  const distances: [Side, number][] = [
-    ['n', py - m.y],
-    ['s', m.y + m.depth - py],
-    ['w', px - m.x],
-    ['e', m.x + m.width - px],
-  ]
-  const [side, dist] = distances.reduce((a, b) => (b[1] < a[1] ? b : a))
-  return dist <= SIDE_PICK ? side : null
-}
-
-/** Línea que marca por dentro el lado seleccionado, en coordenadas de la estancia. */
-function sideMark(m: PlacedModule, side: Side) {
-  const inset = 0.3
-  const horizontal = side === 'n' || side === 's'
-  const across = side === 'n' || side === 'w' ? inset : (horizontal ? m.depth : m.width) - inset
-  return horizontal
-    ? { x1: inset, y1: across, x2: m.width - inset, y2: across }
-    : { x1: across, y1: inset, x2: across, y2: m.depth - inset }
 }
 
 /**
@@ -255,20 +232,16 @@ export default function Editor2D() {
   const tool = useHouse((s) => s.tool)
   const selectedId = useHouse((s) => s.selectedId)
   const selectedWall = useHouse((s) => s.selectedWall)
-  const selectedSide = useHouse((s) => s.selectedSide)
   const shells = useHouse((s) => s.shells)
   const selectedShellId = useHouse((s) => s.selectedShellId)
   const selectShell = useHouse((s) => s.selectShell)
   const moveShell = useHouse((s) => s.moveShell)
   const furniture = useHouse((s) => s.furniture)
   const selectedFurnitureId = useHouse((s) => s.selectedFurnitureId)
-  const selectFurniture = useHouse((s) => s.selectFurniture)
+  const pick = useHouse((s) => s.pick)
   const addFurniture = useHouse((s) => s.addFurniture)
   const moveFurniture = useHouse((s) => s.moveFurniture)
   const selectedOpeningId = useHouse((s) => s.selectedOpeningId)
-  const select = useHouse((s) => s.select)
-  const selectWall = useHouse((s) => s.selectWall)
-  const selectOpening = useHouse((s) => s.selectOpening)
   const moveModule = useHouse((s) => s.moveModule)
   const resizeModule = useHouse((s) => s.resizeModule)
   const addOpening = useHouse((s) => s.addOpening)
@@ -326,22 +299,22 @@ export default function Editor2D() {
     }
   }
 
-  // En modo paredes el clic va a la pared más cercana: coloca el hueco elegido o la selecciona.
-  const clickWalls = (e: React.PointerEvent) => {
+  // El clic que no ha recogido nadie: coloca lo que haya elegido en un catálogo
+  // (un hueco en la pared más cercana, un mueble donde cae) o, si no, elige la
+  // pared que quede cerca. En vacío quita la selección sin cambiar de modo.
+  const clickPlan = (e: React.PointerEvent) => {
     const p = toMeters(e)
-    const hit = nearestWall(p.x, p.y, walls, WALL_PICK)
     if (tool) {
-      if (hit) addOpening(tool, hit.wall.key, hit.along)
-    } else {
-      selectWall(hit ? hit.wall.key : null)
+      if (OPENING_CATALOG.some((t) => t.id === tool)) {
+        const hit = nearestWall(p.x, p.y, walls, WALL_PICK)
+        if (hit) addOpening(tool, hit.wall.key, hit.along)
+      } else addFurniture(tool, snapFurniture(p.x), snapFurniture(p.y))
+      return
     }
-  }
-
-  // En modo opciones el clic en el plano coloca el mueble elegido, o deselecciona.
-  const clickOptions = (e: React.PointerEvent) => {
-    if (!tool) return selectFurniture(null)
-    const p = toMeters(e)
-    addFurniture(tool, snapFurniture(p.x), snapFurniture(p.y))
+    if (mode === 'shells') return selectShell(null)
+    const hit = nearestWall(p.x, p.y, walls, WALL_NEAR)
+    if (hit) pick('walls', { selectedWall: hit.wall.key })
+    else pick(mode)
   }
 
   /** La estancia `id` y los bordes a los que se imanta: módulos y demás estancias. */
@@ -360,14 +333,15 @@ export default function Editor2D() {
     }))
 
   const handleRect = (m: PlacedModule, edge: Edge) => {
-    // null = el tirador no está pegado a ningún lado en ese eje y lo ocupa entero.
+    // null = el tirador no está pegado a ningún lado en ese eje: va en su centro,
+    // y el resto del lado queda libre para pinchar la pared.
     const hx = edge.includes('w') ? 0 : edge.includes('e') ? m.width : null
     const hy = edge.includes('n') ? 0 : edge.includes('s') ? m.depth : null
     return {
-      x: hx === null ? 0 : hx - HANDLE / 2,
-      y: hy === null ? 0 : hy - HANDLE / 2,
-      width: hx === null ? m.width : HANDLE,
-      height: hy === null ? m.depth : HANDLE,
+      x: (hx ?? m.width / 2) - HANDLE / 2,
+      y: (hy ?? m.depth / 2) - HANDLE / 2,
+      width: HANDLE,
+      height: HANDLE,
     }
   }
 
@@ -409,9 +383,9 @@ export default function Editor2D() {
             transform={`translate(${from - wall.from} 0)`}
             onPointerDown={(e) => {
               // Con un hueco por colocar, el clic sigue hasta el lienzo.
-              if (mode !== 'walls' || tool) return
+              if (tool) return
               e.stopPropagation()
-              selectOpening(o.id)
+              pick('walls', { selectedOpeningId: o.id })
               const p = toMeters(e)
               const grab = (wall.horizontal ? p.x : p.y) - from
               drag.current = { opening: o.id, grab, horizontal: wall.horizontal }
@@ -439,15 +413,7 @@ export default function Editor2D() {
       ref={svgRef}
       className={`editor2d mode-${mode}${tool ? ' placing' : ''}`}
       viewBox={`${view.x} ${view.y} ${view.width} ${view.height}`}
-      onPointerDown={(e) =>
-        mode === 'walls'
-          ? clickWalls(e)
-          : mode === 'options'
-            ? clickOptions(e)
-            : mode === 'shells'
-              ? selectShell(null)
-              : select(null)
-      }
+      onPointerDown={clickPlan}
       onPointerMove={(e) => {
         const d = drag.current
         if (!d) return
@@ -526,18 +492,13 @@ export default function Editor2D() {
           className={m.id === selectedId ? 'module selected' : 'module'}
           transform={`translate(${m.x} ${m.y})`}
           onPointerDown={(e) => {
-            // Las estancias se mueven en su modo; en acabados solo se seleccionan.
-            if (mode !== 'modules' && mode !== 'finishes' && mode !== 'pieces' && mode !== 'lights') return
-            e.stopPropagation()
-            // Las luces son del techo de la estancia, no de una pared.
-            if (mode === 'lights') return select(m.id)
+            // Con algo por colocar, o junto a una pared, el clic sigue hasta el lienzo.
+            if (tool) return
             const p = toMeters(e)
-            if (mode !== 'modules') {
-              // Junto a una pared se elige esa pared; en el centro, la estancia entera.
-              select(m.id, sideNear(m, p.x, p.y))
-              return
-            }
-            select(m.id)
+            if (nearestWall(p.x, p.y, walls, WALL_NEAR)) return
+            e.stopPropagation()
+            // El primer clic solo la elige; ya elegida, se arrastra.
+            if (mode !== 'modules' || m.id !== selectedId) return pick('modules', { selectedId: m.id })
             beginDrag()
             drag.current = { id: m.id, dx: p.x - m.x, dy: p.y - m.y }
             svgRef.current!.setPointerCapture(e.pointerId)
@@ -547,11 +508,8 @@ export default function Editor2D() {
           <text x={m.width / 2} y={m.depth / 2}>
             {formatMeters(m.width)} × {formatMeters(m.depth)} m
           </text>
-          {m.id === selectedId && selectedSide && (
-            <line className="side-mark" {...sideMark(m, selectedSide)} />
-          )}
           {/* Vinilos: una raya pegada a su pared, a lo ancho de cada uno. */}
-          {mode === 'finishes' &&
+          {mode === 'walls' &&
             (['n', 's', 'e', 'w'] as const).flatMap((side) =>
               (m.vinyls?.[side] ?? []).map((v) => {
                 const place = vinylPlacement(m, side, v, walls)
@@ -567,7 +525,7 @@ export default function Editor2D() {
               }),
             )}
           {/* Espejos: otra raya, a ras de la pared. */}
-          {mode === 'finishes' &&
+          {mode === 'walls' &&
             (['n', 's', 'e', 'w'] as const).flatMap((side) =>
               (m.mirrors?.[side] ?? []).map((v) => {
                 const place = vinylPlacement(m, side, v, walls)
@@ -582,7 +540,7 @@ export default function Editor2D() {
               }),
             )}
           {/* Tableros: una raya tan gruesa como su fondo, desde la cara de la pared. */}
-          {mode === 'pieces' &&
+          {mode === 'walls' &&
             (['n', 's', 'e', 'w'] as const).flatMap((side) =>
               (m.boards?.[side] ?? []).map((v) => {
                 const place = vinylPlacement(m, side, v, walls, v.depth / 2)
@@ -597,7 +555,7 @@ export default function Editor2D() {
               }),
             )}
           {/* Luces: un círculo por foco, donde cae en el techo. */}
-          {mode === 'lights' &&
+          {mode === 'modules' &&
             (m.lights ?? []).map((l) => (
               <circle key={l.id} className="light-mark" cx={l.x} cy={l.y} r={0.1} />
             ))}
@@ -613,9 +571,9 @@ export default function Editor2D() {
           transform={`translate(${item.x} ${item.y}) rotate(${item.rotation})`}
           onPointerDown={(e) => {
             // Con un mueble por colocar, el clic sigue hasta el lienzo.
-            if (mode !== 'options' || tool) return
+            if (tool) return
             e.stopPropagation()
-            selectFurniture(item.id)
+            pick('options', { selectedFurnitureId: item.id })
             const p = toMeters(e)
             drag.current = { furniture: item.id, dx: p.x - item.x, dy: p.y - item.y }
             svgRef.current!.setPointerCapture(e.pointerId)

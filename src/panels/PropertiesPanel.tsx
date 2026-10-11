@@ -19,14 +19,23 @@ import {
   validSize,
   validWallThickness,
 } from '../model/house'
-import { CORNER_GAP, MIN_OPENING, Opening, swingDoor } from '../model/openings'
+import { CORNER_GAP, MIN_OPENING, OPPOSITE, Opening, swingDoor } from '../model/openings'
 import { Wall, deriveWalls, openingSpan, wallOf } from '../model/walls'
 import { Mode, furnitureBox, useHouse } from '../store'
 import { DEFAULT_JOINERY_FINISH } from '../model/finishes'
 import { Field, Fields } from './Field'
-import { ColorPicker, FinishPicker } from './FinishesPanel'
+import { BoardsSection } from './BoardsSection'
+import { ColorPicker, FaceFinishes, FinishPicker, RoomFinishes } from './FinishesPanel'
+import { roomName } from './HouseTree'
+import { LightsSection } from './LightsSection'
+import ModulesPanel from './ModulesPanel'
+import OptionsPanel from './OptionsPanel'
+import PhotosPanel from './PhotosPanel'
+import ShellsPanel from './ShellsPanel'
+import WallsPanel from './WallsPanel'
 
-// Panel derecho: los datos de lo que está seleccionado en el plano, en casillas
+// Panel derecho: los datos de lo que está elegido en el árbol o en el plano y,
+// debajo, lo que se le puede añadir. Los datos van en casillas
 // que se pueden escribir a mano. Cada casilla se aplica sola, al pulsar Intro o
 // al salir de ella, y lo que no cabe se rechaza con un aviso debajo.
 
@@ -384,14 +393,50 @@ function FurnitureProperties({ item }: { item: FurnitureItem }) {
   )
 }
 
-/** Qué se puede seleccionar en cada modo; los que no están aquí no tienen panel derecho. */
-export const PROPERTY_HINTS: Partial<Record<Mode, string>> = {
-  shells:
-    'Haz clic en un módulo para seleccionarlo y arrástralo para moverlo; al acercarlo al otro se pega a él.',
-  modules: 'Haz clic en una estancia para seleccionarla y arrástrala para moverla.',
-  walls:
-    'Haz clic cerca de una pared para seleccionarla, o sobre una puerta o ventana para moverla a lo largo de su pared.',
-  options: 'Haz clic en un mueble del plano para seleccionarlo y arrástralo para moverlo.',
+/** Las caras de una pared: la de su estancia y, si es compartida, la de la otra. */
+function WallFaces({ wall }: { wall: Wall }) {
+  const modules = useHouse((s) => s.modules)
+  // En una compartida se elige a qué estancia da la cara que se está vistiendo.
+  const [other, setOther] = useState(false)
+  const faces = [
+    { id: wall.moduleId, side: wall.side },
+    ...(wall.otherId ? [{ id: wall.otherId, side: OPPOSITE[wall.side] }] : []),
+  ]
+  const face = faces[other && wall.otherId ? 1 : 0]
+  const room = modules.find((m) => m.id === face.id)
+  if (!room) return null
+
+  return (
+    <>
+      {faces.length > 1 && (
+        <section className="vinyls">
+          <h2>Cara de la pared</h2>
+          <div className="actions">
+            {faces.map((f, n) => (
+              <button
+                key={f.id}
+                className={f === face ? 'active' : ''}
+                onClick={() => setOther(n === 1)}
+              >
+                La que da a la {roomName(modules, f.id)}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+      <FaceFinishes room={room} side={face.side} />
+      <BoardsSection key={`${room.id}:${face.side}`} room={room} side={face.side} />
+    </>
+  )
+}
+
+/** Qué hacer cuando no hay nada elegido de esa clase. */
+const HINTS: Record<Mode, string> = {
+  shells: 'Elige un módulo en el árbol o en el plano; elegido, se arrastra para moverlo.',
+  modules: 'Elige una estancia en el árbol o haciendo clic en su centro en el plano.',
+  walls: 'Elige una pared en el árbol o haciendo clic sobre ella en el plano.',
+  options: 'Elige un mueble en el árbol o en el plano.',
+  photos: '',
 }
 
 interface Props {
@@ -417,14 +462,61 @@ export default function PropertiesPanel({ hidden, onToggle }: Props) {
   )
   const wall = walls.find((w) => w.key === selectedWall)
 
-  // La clave hace que al cambiar de objeto las casillas empiecen de cero.
-  let body: ReactNode = null
-  if (mode === 'shells' && shell) body = <ShellProperties key={shell.id} shell={shell} />
-  else if (mode === 'modules' && room) body = <RoomProperties key={room.id} room={room} />
+  // Arriba los datos de lo elegido; debajo, lo que se le puede añadir. La clave
+  // hace que al cambiar de objeto las casillas empiecen de cero.
+  let body: ReactNode = <p className="muted">{HINTS[mode]}</p>
+  if (mode === 'photos') body = <PhotosPanel />
+  else if (mode === 'shells')
+    body = shell ? (
+      <>
+        <section>
+          <ShellProperties key={shell.id} shell={shell} />
+        </section>
+        <ModulesPanel />
+      </>
+    ) : (
+      <ShellsPanel />
+    )
+  else if (mode === 'modules' && room)
+    body = (
+      <>
+        <section>
+          <RoomProperties key={room.id} room={room} />
+        </section>
+        <RoomFinishes room={room} />
+        <LightsSection key={room.id} room={room} />
+        <OptionsPanel />
+      </>
+    )
   else if (mode === 'walls' && opening)
-    body = <OpeningProperties key={opening.id} opening={opening} walls={walls} />
-  else if (mode === 'walls' && wall) body = <WallProperties key={wall.key} wall={wall} />
-  else if (mode === 'options' && item) body = <FurnitureProperties key={item.id} item={item} />
+    body = (
+      <section>
+        <OpeningProperties key={opening.id} opening={opening} walls={walls} />
+      </section>
+    )
+  else if (mode === 'walls' && wall)
+    body = (
+      <>
+        <section>
+          <WallProperties key={wall.key} wall={wall} />
+        </section>
+        <WallsPanel />
+        <WallFaces key={wall.key} wall={wall} />
+      </>
+    )
+  else if (mode === 'options')
+    body = (
+      <>
+        {item ? (
+          <section>
+            <FurnitureProperties key={item.id} item={item} />
+          </section>
+        ) : (
+          <p className="muted">{HINTS.options}</p>
+        )}
+        <OptionsPanel />
+      </>
+    )
 
   const toggle = (
     <button
@@ -444,7 +536,7 @@ export default function PropertiesPanel({ hidden, onToggle }: Props) {
         {toggle}
         <h2>Propiedades</h2>
       </div>
-      {body ?? <p className="muted">{PROPERTY_HINTS[mode]}</p>}
+      {body}
     </aside>
   )
 }

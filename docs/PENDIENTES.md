@@ -5,6 +5,19 @@ está decidido ni empezado. Lo más reciente, arriba.
 
 ## Anotado el 2026-10-10
 
+### 18. Rehacer la interfaz: árbol de la casa
+
+- **Idea del usuario (2026-10-11):** a la interfaz hay que darle una vuelta,
+  porque cuesta encontrar dónde están las cosas. Propuso la jerarquía de Unity
+  a la izquierda. Decidió: fácil antes que flexible, cada pared cuelga de una
+  sola estancia, los muebles son de una estancia, y rehacerlo ya.
+- Lo usará un comercial con el cliente; estaría bien que el cliente pudiera solo.
+- **Hecho el 2026-10-11, paso 1:** árbol a la izquierda, Propiedades siempre a
+  la derecha, sin pestañas.
+- **Falta:** paso 2, nombres de estancia editables (Salón, Dormitorio); paso 3,
+  ordenar el panel derecho en apartados plegables. Hablado y sin decidir: que
+  los focos y lo que cuelga de una pared salgan como líneas del árbol.
+
 ### 17. Más geometría: primitivas (tableros)
 
 - **Idea del usuario (2026-10-11):** colocar más geometría, por ejemplo el

@@ -8,7 +8,7 @@ import {
   interiorColor,
   resolveFinish,
 } from '../model/finishes'
-import { Side, formatMeters } from '../model/house'
+import { PlacedModule, Side } from '../model/house'
 import { useHouse } from '../store'
 import MirrorsSection from './MirrorsSection'
 import VinylsSection from './VinylsSection'
@@ -66,96 +66,75 @@ export function FinishPicker({ value, onChange }: { value: Finish; onChange: (fi
   )
 }
 
-export default function FinishesPanel() {
-  const modules = useHouse((s) => s.modules)
-  const selectedId = useHouse((s) => s.selectedId)
-  const selectedSide = useHouse((s) => s.selectedSide)
+/** Lo que es de la estancia entera: su suelo y el color de todas sus paredes. */
+export function RoomFinishes({ room }: { room: PlacedModule }) {
   const setFloor = useHouse((s) => s.setFloor)
   const turnFloor = useHouse((s) => s.turnFloor)
   const setWallColor = useHouse((s) => s.setWallColor)
-
-  const selected = modules.find((m) => m.id === selectedId)
-  const current = selected && floorFinish(selected.floor)
+  const current = floorFinish(room.floor)
 
   return (
     <>
-      {selected && current ? (
-        <>
-          <section>
-            <h2>Estancia seleccionada</h2>
-            <p>
-              {formatMeters(selected.width)} × {formatMeters(selected.depth)} m
-            </p>
-          </section>
-
-          <section>
-            <h2>Suelo</h2>
-            <div className="swatches">
-              {FLOORS.map((f) => (
-                <button
-                  key={f.id}
-                  className={f.id === current.id ? 'swatch active' : 'swatch'}
-                  onClick={() => setFloor(selected.id, f.id)}
-                >
-                  <span
-                    className="swatch-sample"
-                    style={{
-                      backgroundColor: f.color,
-                      backgroundImage: f.texture && `url(${f.texture})`,
-                    }}
-                  />
-                  {f.name}
-                </button>
-              ))}
-            </div>
-            {current.texture && (
-              <div className="actions">
-                <button onClick={() => turnFloor(selected.id)}>Girar el suelo 90°</button>
-              </div>
-            )}
-          </section>
-
-          {selectedSide ? (
-            <>
-            <section>
-              <h2>Color de la pared {SIDE_NAMES[selectedSide]}</h2>
-              <ColorPicker
-                value={interiorColor(selected, selectedSide)}
-                onChange={(color) => setWallColor(selected.id, color, selectedSide)}
+      <section>
+        <h2>Suelo</h2>
+        <div className="swatches">
+          {FLOORS.map((f) => (
+            <button
+              key={f.id}
+              className={f.id === current.id ? 'swatch active' : 'swatch'}
+              onClick={() => setFloor(room.id, f.id)}
+            >
+              <span
+                className="swatch-sample"
+                style={{
+                  backgroundColor: f.color,
+                  backgroundImage: f.texture && `url(${f.texture})`,
+                }}
               />
-              {selected.sideColors?.[selectedSide] && (
-                <div className="actions spaced">
-                  <button onClick={() => setWallColor(selected.id, null, selectedSide)}>
-                    Volver al color de la estancia
-                  </button>
-                </div>
-              )}
-              <p className="muted spaced">
-                Haz clic en el centro de la estancia para pintar todas sus paredes a la vez.
-              </p>
-            </section>
-            <VinylsSection key={`${selected.id}:${selectedSide}`} room={selected} side={selectedSide} />
-            <MirrorsSection key={`espejos:${selected.id}:${selectedSide}`} room={selected} side={selectedSide} />
-            </>
-          ) : (
-            <section>
-              <h2>Color de todas sus paredes</h2>
-              <ColorPicker
-                value={selected.wallColor ?? DEFAULT_WALL_COLOR}
-                onChange={(color) => setWallColor(selected.id, color)}
-              />
-              <p className="muted spaced">
-                Haz clic junto a una pared, por dentro de la estancia, para pintar solo esa.
-              </p>
-            </section>
-          )}
-        </>
-      ) : (
-        <section>
-          <h2>Estancia</h2>
-          <p className="muted">Haz clic en una estancia para elegir su suelo y el color de sus paredes.</p>
-        </section>
-      )}
+              {f.name}
+            </button>
+          ))}
+        </div>
+        {current.texture && (
+          <div className="actions">
+            <button onClick={() => turnFloor(room.id)}>Girar el suelo 90°</button>
+          </div>
+        )}
+      </section>
+      <section>
+        <h2>Color de todas sus paredes</h2>
+        <ColorPicker
+          value={room.wallColor ?? DEFAULT_WALL_COLOR}
+          onChange={(color) => setWallColor(room.id, color)}
+        />
+        <p className="muted spaced">Para pintar solo una, elige esa pared.</p>
+      </section>
+    </>
+  )
+}
+
+/** Lo que lleva la cara de una pared que da a una estancia: color, vinilos y espejos. */
+export function FaceFinishes({ room, side }: { room: PlacedModule; side: Side }) {
+  const setWallColor = useHouse((s) => s.setWallColor)
+
+  return (
+    <>
+      <section>
+        <h2>Color de la pared {SIDE_NAMES[side]}</h2>
+        <ColorPicker
+          value={interiorColor(room, side)}
+          onChange={(color) => setWallColor(room.id, color, side)}
+        />
+        {room.sideColors?.[side] && (
+          <div className="actions spaced">
+            <button onClick={() => setWallColor(room.id, null, side)}>
+              Volver al color de la estancia
+            </button>
+          </div>
+        )}
+      </section>
+      <VinylsSection key={`${room.id}:${side}`} room={room} side={side} />
+      <MirrorsSection key={`espejos:${room.id}:${side}`} room={room} side={side} />
     </>
   )
 }

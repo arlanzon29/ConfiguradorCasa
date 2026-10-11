@@ -1,0 +1,161 @@
+import { useMemo, useState } from 'react'
+import { furnitureType } from '../model/furniture'
+import { PlacedModule, Side, contains, formatMeters } from '../model/house'
+import { deriveWalls, wallOf } from '../model/walls'
+import { usePhotos } from '../photos'
+import { furnitureInside, useHouse } from '../store'
+
+// Panel izquierdo: la casa como un árbol. Casa → módulos → estancias → sus
+// paredes y sus muebles. Elegir una línea es lo mismo que pinchar la cosa en el
+// plano; sus datos salen en el panel derecho. El árbol solo enseña y elige: el
+// orden y de quién cuelga cada cosa los manda la casa.
+
+const SIDE_NAMES: Record<Side, string> = { n: 'norte', s: 'sur', e: 'este', w: 'oeste' }
+
+/** Nombre de una estancia: de momento, su número en la casa. */
+export const roomName = (modules: PlacedModule[], id: string) =>
+  `Estancia ${modules.findIndex((m) => m.id === id) + 1}`
+
+interface RowProps {
+  level: number
+  label: string
+  detail?: string
+  active?: boolean
+  /** Con hijos: true abierta, false cerrada. Sin hijos, nada. */
+  open?: boolean
+  onToggle?: () => void
+  onPick: () => void
+}
+
+function Row({ level, label, detail, active, open, onToggle, onPick }: RowProps) {
+  return (
+    <div className={active ? 'tree-row active' : 'tree-row'} style={{ paddingLeft: level * 14 }}>
+      {open === undefined ? (
+        <span className="tree-twist" />
+      ) : (
+        <button
+          className="tree-twist"
+          aria-label={open ? 'Plegar' : 'Desplegar'}
+          onClick={onToggle}
+        >
+          {open ? '▾' : '▸'}
+        </button>
+      )}
+      <button className="tree-label" onClick={onPick}>
+        {label}
+        {detail && <span className="muted"> · {detail}</span>}
+      </button>
+    </div>
+  )
+}
+
+export default function HouseTree() {
+  const mode = useHouse((s) => s.mode)
+  const shells = useHouse((s) => s.shells)
+  const modules = useHouse((s) => s.modules)
+  const joints = useHouse((s) => s.joints)
+  const openings = useHouse((s) => s.openings)
+  const furniture = useHouse((s) => s.furniture)
+  const selectedShellId = useHouse((s) => s.selectedShellId)
+  const selectedId = useHouse((s) => s.selectedId)
+  const selectedWall = useHouse((s) => s.selectedWall)
+  const selectedOpeningId = useHouse((s) => s.selectedOpeningId)
+  const selectedFurnitureId = useHouse((s) => s.selectedFurnitureId)
+  const pick = useHouse((s) => s.pick)
+  const photoCount = usePhotos((s) => s.photos.length)
+  // Estancias abiertas o cerradas a mano; las demás se abren solas si tienen lo elegido.
+  const [opened, setOpened] = useState<Record<string, boolean>>({})
+
+  const walls = useMemo(() => deriveWalls(modules, joints), [modules, joints])
+  // Un hueco elegido marca su pared.
+  const opening = openings.find((o) => o.id === selectedOpeningId)
+  const wallKey = selectedWall ?? (opening && wallOf(opening, modules, walls)?.key)
+
+  // Cada mueble es de la primera estancia que contiene su centro.
+  const roomOf = (f: (typeof furniture)[number]) => modules.find((m) => furnitureInside(m, f))
+  const loose = furniture.filter((f) => !roomOf(f))
+  const furnitureRow = (f: (typeof furniture)[number], level: number) => (
+    <Row
+      key={f.id}
+      level={level}
+      label={furnitureType(f.typeId)?.name ?? 'Mueble'}
+      active={f.id === selectedFurnitureId}
+      onPick={() => pick('options', { selectedFurnitureId: f.id })}
+    />
+  )
+
+  const roomRows = (room: PlacedModule, level: number) => {
+    const own = walls.filter((w) => w.moduleId === room.id)
+    const items = furniture.filter((f) => roomOf(f) === room)
+    const holds =
+      room.id === selectedId ||
+      own.some((w) => w.key === wallKey) ||
+      items.some((f) => f.id === selectedFurnitureId)
+    const open = opened[room.id] ?? holds
+    return (
+      <div key={room.id}>
+        <Row
+          level={level}
+          label={roomName(modules, room.id)}
+          detail={`${formatMeters(room.width)} × ${formatMeters(room.depth)} m`}
+          active={room.id === selectedId && mode === 'modules'}
+          open={open}
+          onToggle={() => setOpened({ ...opened, [room.id]: !open })}
+          onPick={() => pick('modules', { selectedId: room.id })}
+        />
+        {open &&
+          own.map((w) => {
+            // Un lado partido en varios tramos los numera.
+            const same = own.filter((o) => o.side === w.side)
+            const number = same.length > 1 ? ` ${same.indexOf(w) + 1}` : ''
+            return (
+              <Row
+                key={w.key}
+                level={level + 1}
+                label={`Pared ${SIDE_NAMES[w.side]}${number}`}
+                detail={w.otherId ? `con la ${roomName(modules, w.otherId)}` : undefined}
+                active={w.key === wallKey}
+                onPick={() => pick('walls', { selectedWall: w.key })}
+              />
+            )
+          })}
+        {open && items.map((f) => furnitureRow(f, level + 1))}
+      </div>
+    )
+  }
+
+  const housed = (room: PlacedModule) => shells.some((sh) => contains(sh, room))
+
+  return (
+    <nav className="tree" aria-label="La casa">
+      <Row
+        level={0}
+        label="Casa"
+        active={mode === 'shells' && !selectedShellId}
+        onPick={() => pick('shells')}
+      />
+      {shells.map((sh, i) => (
+        <div key={sh.id}>
+          <Row
+            level={1}
+            label={`Módulo ${i + 1}`}
+            detail={`${formatMeters(sh.width)} × ${formatMeters(sh.depth)} m`}
+            active={sh.id === selectedShellId}
+            onPick={() => pick('shells', { selectedShellId: sh.id })}
+          />
+          {modules.filter((m) => contains(sh, m)).map((m) => roomRows(m, 2))}
+        </div>
+      ))}
+      {/* Planos antiguos sin módulos, y muebles que no están en ninguna estancia. */}
+      {modules.filter((m) => !housed(m)).map((m) => roomRows(m, 1))}
+      {loose.map((f) => furnitureRow(f, 1))}
+      <Row
+        level={0}
+        label="Fotos"
+        detail={String(photoCount)}
+        active={mode === 'photos'}
+        onPick={() => pick('photos')}
+      />
+    </nav>
+  )
+}

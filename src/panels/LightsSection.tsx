@@ -12,7 +12,7 @@ import { Fields } from './Field'
 import { Slide } from './VinylsSection'
 
 /** Focos del techo de una estancia: el botón para poner uno y los datos del elegido. */
-function LightsSection({ room }: { room: PlacedModule }) {
+export function LightsSection({ room }: { room: PlacedModule }) {
   const addLight = useHouse((s) => s.addLight)
   const patchLight = useHouse((s) => s.patchLight)
   const removeLight = useHouse((s) => s.removeLight)
@@ -105,20 +105,6 @@ function LightsSection({ room }: { room: PlacedModule }) {
           </div>
         </>
       )}
-    </section>
-  )
-}
-
-export default function LightsPanel() {
-  const modules = useHouse((s) => s.modules)
-  const selectedId = useHouse((s) => s.selectedId)
-  const selected = modules.find((m) => m.id === selectedId)
-
-  if (selected) return <LightsSection key={selected.id} room={selected} />
-  return (
-    <section>
-      <h2>Luces</h2>
-      <p className="muted">Haz clic en una estancia para poner focos en su techo.</p>
     </section>
   )
 }

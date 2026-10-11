@@ -11,7 +11,7 @@ import { Slide } from './VinylsSection'
 const SIDE_NAMES: Record<Side, string> = { n: 'norte', s: 'sur', e: 'este', w: 'oeste' }
 
 /** Tableros de una pared: el botón para colocar uno y los datos del elegido. */
-function BoardsSection({ room, side }: { room: PlacedModule; side: Side }) {
+export function BoardsSection({ room, side }: { room: PlacedModule; side: Side }) {
   const modules = useHouse((s) => s.modules)
   const joints = useHouse((s) => s.joints)
   const addBoard = useHouse((s) => s.addBoard)
@@ -123,24 +123,6 @@ function BoardsSection({ room, side }: { room: PlacedModule; side: Side }) {
           </div>
         </>
       )}
-    </section>
-  )
-}
-
-export default function PiecesPanel() {
-  const modules = useHouse((s) => s.modules)
-  const selectedId = useHouse((s) => s.selectedId)
-  const selectedSide = useHouse((s) => s.selectedSide)
-  const selected = modules.find((m) => m.id === selectedId)
-
-  if (selected && selectedSide)
-    return <BoardsSection key={`${selected.id}:${selectedSide}`} room={selected} side={selectedSide} />
-  return (
-    <section>
-      <h2>Piezas de pared</h2>
-      <p className="muted">
-        Haz clic junto a una pared, por dentro de la estancia, para colocar tableros en ella.
-      </p>
     </section>
   )
 }
