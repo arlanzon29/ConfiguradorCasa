@@ -318,9 +318,11 @@ que la textura "Madera de pino" cubre 2 × 2 m (supuesto, sin confirmar).
   aparte en la vista 3D normal (por defecto, y cambiando alto y color de una
   pared); sin probar a la vista el corte en una puerta, una pared compartida, el
   giro ni la foto en calidad.
-- Espejos: son una prueba. El **filtro de ruido emborrona lo reflejado**: trata
-  el espejo como una superficie lisa y suaviza la imagen que hay dentro (sin
-  filtro el reflejo sale nítido, con su grano). Sin decidir qué hacer. Medidas
+- Espejos: son una prueba. El **filtro de ruido no toca lo reflejado** (decisión
+  del usuario): dentro del espejo la foto filtrada conserva el grano del
+  trazado, que con pocas muestras contrasta con el resto, ya liso. `denoise.ts`
+  reconoce el espejo por su material (metal pulido: `metalness` > 0,9 y
+  `roughness` < 0,1) y lo deja sin profundidad en la guía, como el cielo. Medidas
   inventadas (2 cm de grueso; 0,5 × 1,5 m a 0,3 m del suelo al colgarlo). Sin
   marco. Al encoger la estancia no se reencajan, como los vinilos. En el plano
   son una raya azul, sin arrastre. Probado en el servidor aparte: añadirlo desde
@@ -435,6 +437,13 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-11** · El **filtro de ruido deja el espejo sin filtrar** (lo decidió
+  el usuario al ver que emborronaba el reflejo). En `denoise.ts`, la guía de
+  geometría escribe profundidad 0 en los materiales de metal pulido (uniforme
+  `mirror`), y el filtro deja esos puntos como salieron del trazado. Probado en
+  el servidor aparte a 50 muestras: el reflejo queda nítido y con grano, el
+  resto de la foto filtrado como antes.
 
 - **2026-10-11** · **Prueba de espejos** (tema 6 de pendientes; el usuario pidió
   probar con una caja alargada y fina colocada en una pared, como un acabado, y

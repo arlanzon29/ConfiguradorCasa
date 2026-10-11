@@ -253,8 +253,10 @@ el imán a paredes y el objetivo de la cámara.
   reflectante debe ser otra cosa**: por eso son dos piezas, cuerpo y superficie.
   Resultado: en la foto el reflejo sale real y nítido (el usuario lo ve bien);
   en la vista normal, panel claro. **El filtro de ruido emborrona lo reflejado.**
-- Queda por hablar: qué hacer con el filtro dentro del espejo (dejarlo sin
-  filtrar, con su grano, o filtrarlo bien, que es bastante más trabajo); el
+- **Decidido por el usuario (2026-10-11):** el filtro deja el espejo sin
+  filtrar, con su grano. Hecho. Filtrarlo bien (guías de la escena reflejada)
+  queda como posible mejora.
+- Queda por hablar: el
   marco y su acabado; si la superficie reflectante pasa a ser un acabado que se
   pueda poner a otras piezas; medidas libres o de catálogo.
 

@@ -254,7 +254,7 @@ export class PhotoDenoiser {
     if (!material) {
       material = new ShaderMaterial({
         side: source.side,
-        uniforms: { map: { value: null }, cut: { value: 0 } },
+        uniforms: { map: { value: null }, cut: { value: 0 }, mirror: { value: 0 } },
         vertexShader: /* glsl */ `
           varying vec3 vNormal;
           varying float vDepth;
@@ -270,13 +270,15 @@ export class PhotoDenoiser {
         fragmentShader: /* glsl */ `
           uniform sampler2D map;
           uniform float cut;
+          uniform float mirror;
           varying vec3 vNormal;
           varying float vDepth;
           varying vec2 vUv;
           void main() {
             if (cut > 0.0 && texture2D(map, vUv).a < cut) discard;
             vec3 n = normalize(vNormal);
-            gl_FragColor = vec4(gl_FrontFacing ? n : -n, vDepth);
+            // Sin profundidad el filtro deja el punto como salió del trazado, igual que el cielo.
+            gl_FragColor = vec4(gl_FrontFacing ? n : -n, mirror > 0.0 ? 0.0 : vDepth);
           }
         `,
       })
@@ -284,6 +286,9 @@ export class PhotoDenoiser {
     }
     material.uniforms.map.value = source.map
     material.uniforms.cut.value = source.map ? source.alphaTest : 0
+    // Un espejo (metal pulido) no se filtra: lo que refleja no es una superficie
+    // lisa, y suavizarlo como tal lo emborronaba.
+    material.uniforms.mirror.value = source.metalness > 0.9 && source.roughness < 0.1 ? 1 : 0
     return material
   }
 
