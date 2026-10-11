@@ -1,6 +1,12 @@
 import { useMemo, useState } from 'react'
-import { furnitureType } from '../model/furniture'
-import { PlacedModule, Side, formatMeters } from '../model/house'
+import { PlacedModule, formatMeters } from '../model/house'
+import {
+  furnitureName,
+  lightName,
+  roomName,
+  shellName,
+  wallName,
+} from '../model/names'
 import { deriveWalls, wallOf } from '../model/walls'
 import { usePhotos } from '../photos'
 import { useHouse } from '../store'
@@ -9,12 +15,6 @@ import { useHouse } from '../store'
 // estancia una carpeta con sus paredes, otra con su mobiliario y otra con sus luces. Elegir una línea es lo mismo que pinchar la cosa en el
 // plano; sus datos salen en el panel derecho. El árbol solo enseña y elige: el
 // orden y de quién cuelga cada cosa los manda la casa.
-
-const SIDE_NAMES: Record<Side, string> = { n: 'norte', s: 'sur', e: 'este', w: 'oeste' }
-
-/** Nombre de una estancia: de momento, su número en la casa. */
-export const roomName = (modules: PlacedModule[], id: string) =>
-  `Estancia ${modules.findIndex((m) => m.id === id) + 1}`
 
 interface RowProps {
   level: number
@@ -78,7 +78,7 @@ export default function HouseTree() {
     <Row
       key={f.id}
       level={level}
-      label={furnitureType(f.typeId)?.name ?? 'Mueble'}
+      label={furnitureName(f)}
       active={f.id === selectedFurnitureId}
       onPick={() => pick('options', { selectedFurnitureId: f.id })}
     />
@@ -125,14 +125,14 @@ export default function HouseTree() {
         {open &&
           folder('Paredes', own.length, holdsWall, () =>
             own.map((w) => {
-            // Un lado partido en varios tramos los numera.
+            // Un lado partido en varios tramos los numera, si no tienen nombre propio.
             const same = own.filter((o) => o.side === w.side)
-            const number = same.length > 1 ? ` ${same.indexOf(w) + 1}` : ''
+            const number = same.length > 1 && !w.name ? ` ${same.indexOf(w) + 1}` : ''
             return (
               <Row
                 key={w.key}
                 level={level + 2}
-                label={`Pared ${SIDE_NAMES[w.side]}${number}`}
+                label={`${wallName(w)}${number}`}
                 detail={w.otherId ? `con la ${roomName(modules, w.otherId)}` : undefined}
                 active={w.key === wallKey}
                 onPick={() => pick('walls', { selectedWall: w.key })}
@@ -146,11 +146,11 @@ export default function HouseTree() {
           )}
         {open &&
           folder('Luces', lights.length, holdsLight, () =>
-            lights.map((l, i) => (
+            lights.map((l) => (
               <Row
                 key={l.id}
                 level={level + 2}
-                label={`Foco ${i + 1}`}
+                label={lightName(room, l)}
                 active={l.id === selectedLightId}
                 onPick={() => pick('modules', { selectedId: room.id, selectedLightId: l.id })}
               />
@@ -170,11 +170,11 @@ export default function HouseTree() {
         active={mode === 'shells' && !selectedShellId}
         onPick={() => pick('shells')}
       />
-      {shells.map((sh, i) => (
+      {shells.map((sh) => (
         <div key={sh.id}>
           <Row
             level={1}
-            label={`Módulo ${i + 1}`}
+            label={shellName(shells, sh)}
             detail={`${formatMeters(sh.width)} × ${formatMeters(sh.depth)} m`}
             active={sh.id === selectedShellId}
             onPick={() => pick('shells', { selectedShellId: sh.id })}

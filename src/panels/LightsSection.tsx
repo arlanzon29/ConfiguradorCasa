@@ -7,107 +7,107 @@ import {
   MIN_LIGHT_POWER,
   RoomLight,
 } from '../model/lights'
+import { defaultLightName } from '../model/names'
 import { useHouse } from '../store'
-import { Fields } from './Field'
+import { Fields, NameField } from './Field'
 import { Slide } from './VinylsSection'
 
-/** Focos del techo de una estancia: el botón para poner uno y los datos del elegido. */
-export function LightsSection({ room }: { room: PlacedModule }) {
+/** En las propiedades de una estancia: el botón para ponerle un foco. Los que tiene están en el árbol. */
+export function AddLight({ room }: { room: PlacedModule }) {
   const addLight = useHouse((s) => s.addLight)
-  const patchLight = useHouse((s) => s.patchLight)
-  const removeLight = useHouse((s) => s.removeLight)
-  // El foco elegido está en el estado, para que el árbol y el plano lo marquen.
-  const chosenId = useHouse((s) => s.selectedLightId)
   const pick = useHouse((s) => s.pick)
-  const setChosenId = (id: string) => pick('modules', { selectedId: room.id, selectedLightId: id })
   const [notice, setNotice] = useState('')
 
-  const list = room.lights ?? []
-  const chosen = list.find((l) => l.id === chosenId)
-  const patch = (change: Partial<Omit<RoomLight, 'id'>>) =>
-    chosen ? patchLight(room.id, chosen.id, change) : ''
-
   return (
-    // Mismos estilos que el apartado de vinilos.
-    <section className="vinyls">
-      <h2>Luces de la estancia</h2>
+    <section>
+      <h2>Añadir luz</h2>
       <div className="actions">
         <button
           onClick={() => {
             const id = addLight(room.id)
             setNotice(id ? '' : 'No cabe en esta estancia.')
-            if (id) setChosenId(id)
+            // El foco nuevo queda elegido, con sus propiedades a la vista.
+            if (id) pick('modules', { selectedId: room.id, selectedLightId: id })
           }}
         >
-          Añadir foco de techo
+          Foco de techo
         </button>
       </div>
       {notice && <p className="notice">{notice}</p>}
-      {list.length === 0 && (
-        <p className="muted">
+      {!room.lights?.length && (
+        <p className="muted spaced">
           Sin focos, la foto en calidad usa una luz provisional en el centro del techo.
         </p>
       )}
+    </section>
+  )
+}
 
-      {list.length > 0 && (
-        <div className="vinyl-list">
-          {list.map((l, i) => (
-            <button
-              key={l.id}
-              className={l.id === chosenId ? 'active' : ''}
-              onClick={() => setChosenId(l.id)}
-            >
-              {i + 1}
-            </button>
-          ))}
-        </div>
-      )}
+/** Propiedades de un foco de techo. */
+export function LightProperties({ room, light }: { room: PlacedModule; light: RoomLight }) {
+  const patchLight = useHouse((s) => s.patchLight)
+  const removeLight = useHouse((s) => s.removeLight)
+  const rename = useHouse((s) => s.rename)
+  const pick = useHouse((s) => s.pick)
+  const patch = (change: Partial<Omit<RoomLight, 'id'>>) => patchLight(room.id, light.id, change)
 
-      {chosen && (
-        <>
-          <Fields title="Distancia desde">
-            <Slide
-              label="La izquierda (m)"
-              value={chosen.x}
-              min={LIGHT_MARGIN}
-              max={room.width - LIGHT_MARGIN}
-              onApply={(x) => patch({ x })}
-            />
-            <Slide
-              label="Arriba (m)"
-              value={chosen.y}
-              min={LIGHT_MARGIN}
-              max={room.depth - LIGHT_MARGIN}
-              onApply={(y) => patch({ y })}
-            />
-          </Fields>
-          <Fields title="Luz">
-            <Slide
-              label="Potencia (%)"
-              value={chosen.power}
-              min={MIN_LIGHT_POWER}
-              max={MAX_LIGHT_POWER}
-              step={10}
-              onApply={(power) => patch({ power })}
-            />
-          </Fields>
-          <h3>Tono</h3>
-          <div className="actions">
-            {LIGHT_TONES.map((t) => (
-              <button
-                key={t.id}
-                className={t.id === chosen.tone ? 'active' : ''}
-                onClick={() => patch({ tone: t.id })}
-              >
-                {t.name}
-              </button>
-            ))}
-          </div>
-          <div className="actions spaced">
-            <button onClick={() => removeLight(room.id, chosen.id)}>Eliminar</button>
-          </div>
-        </>
-      )}
+  return (
+    // Mismos estilos que el apartado de vinilos.
+    <section className="vinyls">
+      <NameField
+        value={light.name}
+        fallback={defaultLightName(room, light.id)}
+        onApply={(name) => rename('light', light.id, name)}
+      />
+      <p>Foco de techo</p>
+      <Fields title="Distancia desde">
+        <Slide
+          label="La izquierda (m)"
+          value={light.x}
+          min={LIGHT_MARGIN}
+          max={room.width - LIGHT_MARGIN}
+          onApply={(x) => patch({ x })}
+        />
+        <Slide
+          label="Arriba (m)"
+          value={light.y}
+          min={LIGHT_MARGIN}
+          max={room.depth - LIGHT_MARGIN}
+          onApply={(y) => patch({ y })}
+        />
+      </Fields>
+      <Fields title="Luz">
+        <Slide
+          label="Potencia (%)"
+          value={light.power}
+          min={MIN_LIGHT_POWER}
+          max={MAX_LIGHT_POWER}
+          step={10}
+          onApply={(power) => patch({ power })}
+        />
+      </Fields>
+      <h3>Tono</h3>
+      <div className="actions">
+        {LIGHT_TONES.map((t) => (
+          <button
+            key={t.id}
+            className={t.id === light.tone ? 'active' : ''}
+            onClick={() => patch({ tone: t.id })}
+          >
+            {t.name}
+          </button>
+        ))}
+      </div>
+      <div className="actions spaced">
+        <button
+          onClick={() => {
+            removeLight(room.id, light.id)
+            pick('modules', { selectedId: room.id })
+          }}
+        >
+          Eliminar
+        </button>
+      </div>
     </section>
   )
 }

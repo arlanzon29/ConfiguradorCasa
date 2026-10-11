@@ -12,7 +12,6 @@ import {
   Shell,
   Side,
   WALL_HEIGHT,
-  contains,
   formatMeters,
   roundSize,
   validShellSize,
@@ -23,11 +22,18 @@ import { CORNER_GAP, MIN_OPENING, OPPOSITE, Opening, swingDoor } from '../model/
 import { Wall, deriveWalls, openingSpan, wallOf } from '../model/walls'
 import { Mode, furnitureBox, useHouse } from '../store'
 import { DEFAULT_JOINERY_FINISH } from '../model/finishes'
-import { Field, Fields } from './Field'
+import {
+  defaultFurnitureName,
+  defaultOpeningName,
+  defaultRoomName,
+  defaultShellName,
+  defaultWallName,
+  roomName,
+} from '../model/names'
+import { Field, Fields, NameField } from './Field'
 import { BoardsSection } from './BoardsSection'
 import { ColorPicker, FaceFinishes, FinishPicker, RoomFinishes } from './FinishesPanel'
-import { roomName } from './HouseTree'
-import { LightsSection } from './LightsSection'
+import { AddLight, LightProperties } from './LightsSection'
 import ModulesPanel from './ModulesPanel'
 import OptionsPanel from './OptionsPanel'
 import PhotosPanel from './PhotosPanel'
@@ -48,6 +54,8 @@ function ShellProperties({ shell }: { shell: Shell }) {
   const rotateShell = useHouse((s) => s.rotateShell)
   const removeShell = useHouse((s) => s.removeShell)
   const [notice, setNotice] = useState('')
+  const shells = useHouse((s) => s.shells)
+  const rename = useHouse((s) => s.rename)
 
   const move = (x: number, y: number) => {
     if (x < 0 || y < 0) return 'No puede ser negativa.'
@@ -64,6 +72,11 @@ function ShellProperties({ shell }: { shell: Shell }) {
 
   return (
     <>
+      <NameField
+        value={shell.name}
+        fallback={defaultShellName(shells, shell.id)}
+        onApply={(name) => rename('shell', shell.id, name)}
+      />
       <p>Módulo · {formatMeters(shell.width * shell.depth)} m²</p>
       <Fields title="Distancia al borde de la parcela">
         <Field label="Izquierda (m)" value={shell.x} onApply={(x) => move(x, shell.y)} />
@@ -88,9 +101,11 @@ function RoomProperties({ room }: { room: PlacedModule }) {
   const resizeModule = useHouse((s) => s.resizeModule)
   const rotateModule = useHouse((s) => s.rotateModule)
   const removeModule = useHouse((s) => s.removeModule)
+  const modules = useHouse((s) => s.modules)
+  const rename = useHouse((s) => s.rename)
 
   // La posición se mide desde la esquina de su módulo; sin módulos, desde la de la parcela.
-  const shell = shells.find((s) => contains(s, room))
+  const shell = shells.find((s) => s.id === room.shellId)
   const ox = shell?.x ?? 0
   const oy = shell?.y ?? 0
   const outer = shell ? 'su módulo' : 'la parcela'
@@ -113,6 +128,11 @@ function RoomProperties({ room }: { room: PlacedModule }) {
 
   return (
     <>
+      <NameField
+        value={room.name}
+        fallback={defaultRoomName(modules, room.id)}
+        onApply={(name) => rename('room', room.id, name)}
+      />
       <p>Estancia · {formatMeters(room.width * room.depth)} m²</p>
       <Fields title={shell ? 'Distancia al borde del módulo' : 'Distancia al borde de la parcela'}>
         <Field
@@ -142,9 +162,15 @@ function WallProperties({ wall }: { wall: Wall }) {
   const setWallThickness = useHouse((s) => s.setWallThickness)
   const setWallOpen = useHouse((s) => s.setWallOpen)
   const setWallSkirting = useHouse((s) => s.setWallSkirting)
+  const rename = useHouse((s) => s.rename)
 
   return (
     <>
+      <NameField
+        value={wall.name}
+        fallback={defaultWallName(wall)}
+        onApply={(name) => rename('wall', wall.key, name)}
+      />
       <p>
         {wall.shared
           ? 'Pared compartida entre dos estancias'
@@ -225,6 +251,11 @@ function OpeningProperties({ opening, walls }: { opening: Opening; walls: Wall[]
 
   return (
     <>
+      <NameField
+        value={opening.name}
+        fallback={defaultOpeningName(opening)}
+        onApply={(name) => useHouse.getState().rename('opening', opening.id, name)}
+      />
       <p>{opening.kind === 'door' ? 'Puerta' : 'Ventana'}</p>
       {wall && span && (
         <Fields title="Distancia al extremo de la pared">
@@ -346,6 +377,11 @@ function FurnitureProperties({ item }: { item: FurnitureItem }) {
 
   return (
     <>
+      <NameField
+        value={item.name}
+        fallback={defaultFurnitureName(item)}
+        onApply={(name) => useHouse.getState().rename('furniture', item.id, name)}
+      />
       <p>
         {type.name} · {formatMeters(type.width)} × {formatMeters(type.depth)} m ·{' '}
         {formatMeters(type.height)} m de alto · giro {item.rotation}°
@@ -455,6 +491,8 @@ export default function PropertiesPanel({ hidden, onToggle }: Props) {
   const selectedWall = useHouse((s) => s.selectedWall)
   const opening = useHouse((s) => s.openings.find((o) => o.id === s.selectedOpeningId))
   const item = useHouse((s) => s.furniture.find((f) => f.id === s.selectedFurnitureId))
+  const selectedLightId = useHouse((s) => s.selectedLightId)
+  const light = room?.lights?.find((l) => l.id === selectedLightId)
 
   const walls = useMemo(
     () => (mode === 'walls' ? deriveWalls(modules, joints) : []),
@@ -462,8 +500,9 @@ export default function PropertiesPanel({ hidden, onToggle }: Props) {
   )
   const wall = walls.find((w) => w.key === selectedWall)
 
-  // Arriba los datos de lo elegido; debajo, lo que se le puede añadir. La clave
-  // hace que al cambiar de objeto las casillas empiecen de cero.
+  // Solo lo de lo elegido: arriba su nombre y sus datos; debajo, si es algo que
+  // contiene otras cosas, lo que se le puede añadir. La clave hace que al cambiar
+  // de objeto las casillas empiecen de cero.
   let body: ReactNode = <p className="muted">{HINTS[mode]}</p>
   if (mode === 'photos') body = <PhotosPanel />
   else if (mode === 'shells')
@@ -477,6 +516,8 @@ export default function PropertiesPanel({ hidden, onToggle }: Props) {
     ) : (
       <ShellsPanel />
     )
+  else if (mode === 'modules' && room && light)
+    body = <LightProperties key={light.id} room={room} light={light} />
   else if (mode === 'modules' && room)
     body = (
       <>
@@ -484,7 +525,7 @@ export default function PropertiesPanel({ hidden, onToggle }: Props) {
           <RoomProperties key={room.id} room={room} />
         </section>
         <RoomFinishes room={room} />
-        <LightsSection key={room.id} room={room} />
+        <AddLight key={room.id} room={room} />
         <OptionsPanel />
       </>
     )

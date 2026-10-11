@@ -56,6 +56,47 @@ export function Field({ label, value, full, onApply }: FieldProps) {
   )
 }
 
+interface NameFieldProps {
+  /** El nombre puesto por el usuario, si lo hay. */
+  value?: string
+  /** El nombre por defecto: se enseña si no hay otro, y dejarlo vacío vuelve a él. */
+  fallback: string
+  onApply: (name: string) => void
+}
+
+/** La casilla "Nombre" que encabeza las propiedades de cualquier cosa. */
+export function NameField({ value, fallback, onApply }: NameFieldProps) {
+  const shown = value ?? fallback
+  const [text, setText] = useState(shown)
+  useEffect(() => setText(shown), [shown])
+
+  const commit = () => {
+    const typed = text.trim()
+    if (!typed || typed === fallback) {
+      if (value !== undefined) onApply('')
+      return setText(fallback)
+    }
+    if (typed !== value) onApply(typed)
+  }
+
+  return (
+    <div className="size-form fields">
+      <label className="full">
+        Nombre
+        <input
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onBlur={commit}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') commit()
+            if (e.key === 'Escape') setText(shown)
+          }}
+        />
+      </label>
+    </div>
+  )
+}
+
 export const Fields = ({ title, children }: { title: string; children: ReactNode }) => (
   <>
     <h3>{title}</h3>

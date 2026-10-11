@@ -14,9 +14,12 @@ está decidido ni empezado. Lo más reciente, arriba.
 - Lo usará un comercial con el cliente; estaría bien que el cliente pudiera solo.
 - **Hecho el 2026-10-11, paso 1:** árbol a la izquierda, Propiedades siempre a
   la derecha, sin pestañas.
-- **Falta:** paso 2, nombres de estancia editables (Salón, Dormitorio); paso 3,
-  ordenar el panel derecho en apartados plegables. Hablado y sin decidir: que
-  los focos y lo que cuelga de una pared salgan como líneas del árbol.
+- **Hecho después, el mismo día:** carpetas Paredes, Mobiliario y Luces en cada
+  estancia; padre explícito y `.json` anidado como el árbol; Propiedades solo
+  de lo elegido; nombre editable en todo; foco por defecto en cada estancia.
+- **Falta:** ordenar el panel derecho de la pared en apartados plegables.
+  Hablado y sin decidir: que lo que cuelga de una pared (huecos, vinilos,
+  espejos, tableros) salga como líneas del árbol.
 
 ### 17. Más geometría: primitivas (tableros)
 

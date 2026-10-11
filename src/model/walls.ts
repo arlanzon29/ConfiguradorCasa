@@ -11,6 +11,7 @@ import { CORNER_GAP, OPPOSITE, Opening, wallLine } from './openings'
 export const DEFAULT_JOINT_THICKNESS = 0.1
 
 export interface JointSettings {
+  name?: string
   thickness?: number
   open?: boolean
   /** El mismo rodapié en las dos caras. */
@@ -26,6 +27,8 @@ export const pairKey = (a: string, b: string) => [a, b].sort().join('|')
 
 export interface Wall {
   key: string
+  /** Nombre puesto por el usuario, si lo tiene. */
+  name?: string
   shared: boolean
   /** Estancia y lado de los que sale el tramo; en una compartida, la del norte u oeste. */
   moduleId: string
@@ -70,6 +73,7 @@ export function deriveWalls(modules: PlacedModule[], joints: Joints): Wall[] {
         walls.push({
           ...base,
           key: `ext:${m.id}:${side}:${exteriors++}`,
+          name: m.wallNames?.[side],
           shared: false,
           from,
           to,
@@ -87,6 +91,7 @@ export function deriveWalls(modules: PlacedModule[], joints: Joints): Wall[] {
           walls.push({
             ...base,
             key: `joint:${pair}`,
+            name: joints[pair]?.name,
             shared: true,
             otherId: t.other.id,
             from: t.from,

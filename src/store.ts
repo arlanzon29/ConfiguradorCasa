@@ -183,6 +183,12 @@ interface HouseState {
   /** Sustituye el plano entero por el de un archivo. */
   loadPlan: (plan: Plan) => void
 
+  /** Pone nombre a una cosa de la casa; vacío, vuelve al nombre por defecto. De una pared, `id` es su clave. */
+  rename: (
+    kind: 'shell' | 'room' | 'wall' | 'opening' | 'furniture' | 'light',
+    id: string,
+    name: string,
+  ) => void
   setFloor: (id: string, floor: string) => void
   turnFloor: (id: string) => void
   /** Color de las paredes de una estancia por dentro. */
@@ -500,6 +506,34 @@ export const useHouse = create<HouseState>()(
 
         setMode: (mode) => set({ mode, tool: null, ...NO_SELECTION }),
         pick: (mode, selection) => set({ mode, tool: null, ...NO_SELECTION, ...selection }),
+        rename: (kind, id, text) => {
+          const name = text.trim() || undefined
+          const named = <T extends { id: string }>(list: T[]) =>
+            list.map((x) => (x.id === id ? { ...x, name } : x))
+          const s = get()
+          if (kind === 'shell') set({ shells: named(s.shells) })
+          else if (kind === 'room') set({ modules: named(s.modules) })
+          else if (kind === 'opening') set({ openings: named(s.openings) })
+          else if (kind === 'furniture') set({ furniture: named(s.furniture) })
+          else if (kind === 'light')
+            set({ modules: s.modules.map((m) => (m.lights ? { ...m, lights: named(m.lights) } : m)) })
+          else {
+            // El nombre de una pared va donde su grosor: en su pareja o en el lado de su estancia.
+            const wall = deriveWalls(s.modules, s.joints).find((w) => w.key === id)
+            if (!wall) return
+            if (wall.shared) {
+              const pair = pairKey(wall.moduleId, wall.otherId!)
+              set({ joints: { ...s.joints, [pair]: { ...s.joints[pair], name } } })
+            } else
+              set({
+                modules: s.modules.map((m) =>
+                  m.id === wall.moduleId
+                    ? { ...m, wallNames: { ...m.wallNames, [wall.side]: name } }
+                    : m,
+                ),
+              })
+          }
+        },
         setCameraPose: (cameraPose) => {
           stopCameraFlight()
           set({ cameraPose })
@@ -653,6 +687,7 @@ export const useHouse = create<HouseState>()(
                   width: m.depth,
                   depth: m.width,
                   walls: turnSides(m.walls),
+                  wallNames: turnSides(m.wallNames),
                   open: turnSides(m.open),
                   skirting: turnSides(m.skirting),
                   sideColors: turnSides(m.sideColors),
@@ -721,7 +756,22 @@ export const useHouse = create<HouseState>()(
           const id = crypto.randomUUID()
           setModules([
             ...modules,
-            { id, typeId, ...placed.spot, width: placed.width, depth: placed.depth },
+            {
+              id,
+              typeId,
+              ...placed.spot,
+              width: placed.width,
+              depth: placed.depth,
+              // Toda estancia nace con un foco en el centro del techo.
+              lights: [
+                {
+                  id: crypto.randomUUID(),
+                  x: roundSize(placed.width / 2),
+                  y: roundSize(placed.depth / 2),
+                  ...DEFAULT_LIGHT,
+                },
+              ],
+            },
           ])
           set({ ...NO_SELECTION, selectedId: id, mode: 'modules' })
           return true
@@ -796,6 +846,7 @@ export const useHouse = create<HouseState>()(
             ...current,
             ...clampToPlot({ ...current, width: current.depth, depth: current.width }),
             walls: turn(current.walls),
+            wallNames: turn(current.wallNames),
             open: turn(current.open),
             skirting: turn(current.skirting),
             sideColors: turn(current.sideColors),

@@ -117,8 +117,11 @@ Otros elementos:
   (`power`, en % de la normal, de 10 a 300) y **tono** (`tone`: cálida, neutra
   o fría). Se mueve y gira con la estancia (`turnLights`). **Solo alumbra en la
   foto en calidad** (un panel de luz de 12 cm mirando abajo); en la vista
-  normal se ve la pieza, un disco a la altura del techo. Una estancia **sin
-  focos** conserva en la foto el panel provisional de 0,6 m.
+  normal se ve la pieza, un disco a la altura del techo. **Toda estancia nueva
+  nace con un foco** en el centro del techo (lo pidió el usuario), al 100 %,
+  que alumbra lo mismo que el panel provisional de antes. Una estancia **sin
+  focos** (las de planos anteriores, o si se le quitan) conserva en la foto
+  ese panel provisional de 0,6 m.
 - **Rodapié** (`Skirting`): alto y color **por pared**, guardados donde el grosor:
   por lado de estancia en las exteriores (`PlacedModule.skirting`) y por pareja en
   las compartidas (`joints`). Por defecto 7 cm y blanco; alto 0 = sin rodapié. La
@@ -185,7 +188,17 @@ Huecos y muebles se ajustan a 5 cm, más fino que la rejilla.
 **No hay pestañas** (desde el 2026-10-11). A la izquierda, el **árbol de la casa**
 (`HouseTree.tsx`); a la derecha, **Propiedades** (`PropertiesPanel.tsx`), que
 está siempre. La regla: se elige una cosa, en el árbol o pinchándola en el
-plano, y a la derecha salen arriba sus datos y debajo lo que se le puede añadir.
+plano, y a la derecha salen **solo las propiedades de eso** (lo dijo el
+usuario): arriba su **nombre**, luego sus datos y, si contiene otras cosas, lo
+que se le puede añadir.
+
+**Todo tiene nombre** (lo pidió el usuario): la primera casilla de cualquier
+cosa es "Nombre" (`NameField` en `Field.tsx`) y se puede cambiar. Se guarda en
+`name` de cada objeto; el de una pared, donde su grosor (`wallNames` por lado
+de estancia, o `name` en `joints`). Sin nombre propio vale el de por defecto
+(`model/names.ts`: "Módulo 1", "Estancia 2", "Pared norte", "Foco 1", el del
+catálogo en un mueble, "Puerta" o "Ventana"); dejar la casilla vacía vuelve a
+él. La acción es `rename` en `store.ts`.
 
 **El árbol** solo enseña y elige; no se reordena ni se mueve nada de rama.
 
@@ -206,9 +219,9 @@ Casa
 ```
 
 - Dentro de cada estancia, **tres carpetas** (las pidió el usuario): "Paredes",
-  "Mobiliario" y "Luces", con su cuenta. Elegir un foco elige su estancia con
-  ese foco marcado (`selectedLightId` en `store.ts`): sus datos salen en el
-  apartado de luces de Propiedades y su círculo se resalta en el plano. Solo pliegan y despliegan; cerradas de
+  "Mobiliario" y "Luces", con su cuenta. Al elegir un foco (`selectedLightId` en
+  `store.ts`), Propiedades enseña solo el foco (`LightProperties`) y su
+  círculo se resalta en el plano. Solo pliegan y despliegan; cerradas de
   entrada, se abren solas si tienen lo elegido.
 - **Cada pared cuelga de una sola estancia** (decisión del usuario): la que da
   `deriveWalls` en `Wall.moduleId`; en una compartida, la del norte u oeste. Un
@@ -228,7 +241,8 @@ Casa
 |---|---|---|
 | Casa | — | Añadir módulo horizontal o vertical. Se ve toda la parcela |
 | Módulo | distancia al borde izquierdo y superior de la parcela; ancho y fondo; girar, eliminar | Añadir estancia (catálogo y medida personalizada) y el resumen |
-| Estancia | distancia al borde de su módulo; ancho y fondo; girar, eliminar | Suelo, color de todas sus paredes, **luces** (focos de techo) y el catálogo de **mobiliario** con el icono de imán |
+| Estancia | distancia al borde de su módulo; ancho y fondo; girar, eliminar | Suelo, color de todas sus paredes, "Añadir luz" (foco de techo) y el catálogo de **mobiliario** con el icono de imán |
+| Foco | distancia a la izquierda y arriba, potencia (%), tono, eliminar | — |
 | Pared | grosor (cm); rodapié (alto y color); quitar/poner | Añadir hueco (puerta, corredera, ventana); en una compartida, de qué estancia es **la cara** que se viste; color de esa cara, sus vinilos, espejos y tableros |
 | Puerta o ventana | distancia a cada extremo de su pared; ancho y alto; altura (ventanas); en abatibles, hacia dónde abre, canto y cerrar/abrir en 3D; acabado de la carpintería y "Aplicar a todas" | — |
 | Mueble | distancia de cada borde a las cuatro paredes de su estancia; pegar a la pared, girar, eliminar | El catálogo de mobiliario |
@@ -407,8 +421,8 @@ que la textura "Madera de pino" cubre 2 × 2 m (supuesto, sin confirmar).
   aparte en la vista 3D normal (por defecto, y cambiando alto y color de una
   pared); sin probar a la vista el corte en una puerta, una pared compartida, el
   giro ni la foto en calidad.
-- Luces: valores inventados (foco de 12 cm; al 100 % alumbra un tercio del
-  panel provisional, `LIGHT_INTENSITY` en `View3D.tsx`; se separa 20 cm del
+- Luces: valores inventados (foco de 12 cm; al 100 % alumbra como el panel
+  provisional, `LIGHT_INTENSITY` en `View3D.tsx`; se separa 20 cm del
   borde de la estancia, sin descontar el grosor de las paredes). No hay
   encendido y apagado, ni luz en la vista normal, ni arrastre en el plano. Al encoger la estancia no se reencajan. El foco es pequeño y
   da más grano que el panel: a 50 muestras se nota sin filtro. Probado en el
@@ -417,13 +431,14 @@ que la textura "Madera de pino" cubre 2 × 2 m (supuesto, sin confirmar).
   foto a 50 muestras con y sin filtro. Sin probar: las casillas y barras,
   "Eliminar", el giro de estancia o módulo, estancias con y sin focos en la
   misma foto, ni guardar y cargar un plano con luces.
-- Interfaz de árbol: es el paso 1 de tres (faltan los nombres de estancia y
-  ordenar el panel derecho, que en una pared es muy largo). Tras añadir una
+- Interfaz de árbol: falta ordenar el panel derecho, que en una pared es muy
+  largo. Vinilos, espejos y tableros no tienen nombre ni salen en el árbol: se
+  eligen dentro del panel de su pared. Tras añadir una
   estancia hay que volver a elegir el módulo para añadir otra. Vinilos, espejos
   y tableros son del lado entero de su estancia: si el lado tiene varios tramos
   de pared, todos enseñan la misma lista. El marcador de la cámara tapa los
-  clics de lo que tiene debajo. Las estancias se llaman por su número, que
-  cambia si se borra una anterior. Probado en el servidor aparte (5184) con un
+  clics de lo que tiene debajo. Los nombres por defecto llevan número, que
+  cambia si se borra una cosa anterior. Probado en el servidor aparte (5184) con un
   módulo y dos estancias: el árbol, añadir estancias desde el módulo, elegir
   una pared exterior y la compartida pinchando en el plano, colocar una puerta
   y un sofá. Sin probar: arrastrar estancia, módulo, hueco y mueble con el
@@ -560,6 +575,19 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-11** · Tres cosas pedidas por el usuario. **Propiedades enseña
+  solo lo elegido**: al elegir un foco sale solo el foco (`LightProperties`);
+  en la estancia queda "Añadir luz" (`AddLight`). **Todo tiene nombre**: casilla
+  "Nombre" la primera en módulo, estancia, pared, hueco, mueble y foco
+  (`NameField`, `rename`, `model/names.ts`, campo `name` y `wallNames`), y el
+  árbol los usa. **Cada estancia nueva nace con un foco** en el centro
+  (`addModule`); para que se vea como antes, el 100 % de un foco pasa a
+  alumbrar lo que el panel provisional (`LIGHT_INTENSITY` 250 → 750). Probado
+  en el servidor aparte llamando a las acciones: estancia nueva con su foco,
+  renombrar módulo, estancia, foco, una pared exterior y una compartida, y el
+  panel de un foco elegido. Sin probar: escribir en la casilla Nombre con el
+  teclado, y una foto con la potencia nueva.
 
 - **2026-10-11** · Carpeta **"Luces"** en cada estancia del árbol, con una
   línea por foco (lo pidió el usuario). El foco elegido pasa de ser cosa del

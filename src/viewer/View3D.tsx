@@ -37,8 +37,9 @@ const SLAB = 0.2
 // Techo y panel de luz provisionales de la foto en calidad: grosor y lado, en metros.
 const CEILING = 0.1
 const CEILING_LIGHT = 0.6
-// Lo que alumbra un foco al 100 %: un tercio del panel provisional. Inventado.
-const LIGHT_INTENSITY = 250
+// Lo que alumbra un foco al 100 %: lo mismo que el panel provisional, para que
+// la estancia con su foco de nacimiento se vea como antes. Inventado.
+const LIGHT_INTENSITY = 750
 // Lo que sobresale el rodapié de la pared, en metros.
 const SKIRTING_DEPTH = 0.012
 // La fachada aún no es configurable (dependerá del aislante y del revestimiento).

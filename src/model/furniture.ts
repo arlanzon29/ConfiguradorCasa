@@ -44,6 +44,8 @@ export type Rotation = 0 | 90 | 180 | 270
 
 export interface FurnitureItem {
   id: string
+  /** Nombre que le ha puesto el usuario; si falta, uno por defecto (names.ts). */
+  name?: string
   typeId: string
   /** Centro de la pieza en el plano. */
   x: number

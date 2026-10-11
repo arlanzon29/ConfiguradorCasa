@@ -25,6 +25,8 @@ export const OPENING_CATALOG: OpeningType[] = [
 
 export interface Opening {
   id: string
+  /** Nombre que le ha puesto el usuario; si falta, uno por defecto (names.ts). */
+  name?: string
   kind: OpeningKind
   moduleId: string
   side: Side

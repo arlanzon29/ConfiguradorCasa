@@ -53,6 +53,8 @@ export const skirtingOf = (s?: Skirting) => ({
 
 export interface PlacedModule {
   id: string
+  /** Nombre que le ha puesto el usuario; si falta, uno por defecto (names.ts). */
+  name?: string
   typeId: string
   x: number
   y: number
@@ -78,6 +80,8 @@ export interface PlacedModule {
   lights?: RoomLight[]
   // Los tres siguientes solo afectan a los tramos exteriores de cada lado; las
   // paredes compartidas con otra estancia tienen sus propios ajustes (walls.ts).
+  /** Nombre puesto a la pared exterior de un lado. */
+  wallNames?: Partial<Record<Side, string>>
   /** Rodapié por lado, en la cara de dentro. */
   skirting?: Partial<Record<Side, Skirting>>
   /** Grosor de pared por lado; los que falten usan DEFAULT_WALL_THICKNESS. */
@@ -123,6 +127,8 @@ export const MAX_SHELLS = 2
 
 export interface Shell {
   id: string
+  /** Nombre que le ha puesto el usuario; si falta, uno por defecto (names.ts). */
+  name?: string
   x: number
   y: number
   width: number
