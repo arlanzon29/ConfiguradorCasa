@@ -5,8 +5,8 @@ import { deriveWalls, wallOf } from '../model/walls'
 import { usePhotos } from '../photos'
 import { furnitureInside, useHouse } from '../store'
 
-// Panel izquierdo: la casa como un árbol. Casa → módulos → estancias → sus
-// paredes y sus muebles. Elegir una línea es lo mismo que pinchar la cosa en el
+// Panel izquierdo: la casa como un árbol. Casa → módulos → estancias, y en cada
+// estancia una carpeta con sus paredes y otra con su mobiliario. Elegir una línea es lo mismo que pinchar la cosa en el
 // plano; sus datos salen en el panel derecho. El árbol solo enseña y elige: el
 // orden y de quién cuelga cada cosa los manda la casa.
 
@@ -63,7 +63,7 @@ export default function HouseTree() {
   const selectedFurnitureId = useHouse((s) => s.selectedFurnitureId)
   const pick = useHouse((s) => s.pick)
   const photoCount = usePhotos((s) => s.photos.length)
-  // Estancias abiertas o cerradas a mano; las demás se abren solas si tienen lo elegido.
+  // Estancias y carpetas abiertas o cerradas a mano; las demás se abren solas si tienen lo elegido.
   const [opened, setOpened] = useState<Record<string, boolean>>({})
 
   const walls = useMemo(() => deriveWalls(modules, joints), [modules, joints])
@@ -87,11 +87,28 @@ export default function HouseTree() {
   const roomRows = (room: PlacedModule, level: number) => {
     const own = walls.filter((w) => w.moduleId === room.id)
     const items = furniture.filter((f) => roomOf(f) === room)
-    const holds =
-      room.id === selectedId ||
-      own.some((w) => w.key === wallKey) ||
-      items.some((f) => f.id === selectedFurnitureId)
-    const open = opened[room.id] ?? holds
+    const holdsWall = own.some((w) => w.key === wallKey)
+    const holdsItem = items.some((f) => f.id === selectedFurnitureId)
+    const open = opened[room.id] ?? (room.id === selectedId || holdsWall || holdsItem)
+    // Una carpeta: su línea, que solo pliega y despliega, y si está abierta lo que tiene.
+    const folder = (name: string, count: number, holds: boolean, rows: () => React.ReactNode) => {
+      const key = `${room.id}:${name}`
+      const shown = opened[key] ?? holds
+      const toggle = () => setOpened({ ...opened, [key]: !shown })
+      return (
+        <>
+          <Row
+            level={level + 1}
+            label={name}
+            detail={String(count)}
+            open={shown}
+            onToggle={toggle}
+            onPick={toggle}
+          />
+          {shown && rows()}
+        </>
+      )
+    }
     return (
       <div key={room.id}>
         <Row
@@ -104,22 +121,27 @@ export default function HouseTree() {
           onPick={() => pick('modules', { selectedId: room.id })}
         />
         {open &&
-          own.map((w) => {
+          folder('Paredes', own.length, holdsWall, () =>
+            own.map((w) => {
             // Un lado partido en varios tramos los numera.
             const same = own.filter((o) => o.side === w.side)
             const number = same.length > 1 ? ` ${same.indexOf(w) + 1}` : ''
             return (
               <Row
                 key={w.key}
-                level={level + 1}
+                level={level + 2}
                 label={`Pared ${SIDE_NAMES[w.side]}${number}`}
                 detail={w.otherId ? `con la ${roomName(modules, w.otherId)}` : undefined}
                 active={w.key === wallKey}
                 onPick={() => pick('walls', { selectedWall: w.key })}
               />
             )
-          })}
-        {open && items.map((f) => furnitureRow(f, level + 1))}
+            }),
+          )}
+        {open &&
+          folder('Mobiliario', items.length, holdsItem, () =>
+            items.map((f) => furnitureRow(f, level + 2)),
+          )}
       </div>
     )
   }

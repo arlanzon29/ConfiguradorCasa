@@ -184,13 +184,18 @@ plano, y a la derecha salen arriba sus datos y debajo lo que se le puede añadir
 Casa
 ├─ Módulo 1 · 13 × 4,2 m
 │  ├─ Estancia 1 · 3 × 3 m        (se pliega; se abre sola si tiene lo elegido)
-│  │  ├─ Pared norte
-│  │  ├─ Pared este · con la Estancia 2
-│  │  └─ Sofá
+│  │  ├─ Paredes · 4              (carpeta)
+│  │  │  ├─ Pared norte
+│  │  │  └─ Pared este · con la Estancia 2
+│  │  └─ Mobiliario · 1           (carpeta)
+│  │     └─ Sofá
 │  └─ Estancia 2 · 6 × 3 m
 └─ Fotos · 3
 ```
 
+- Dentro de cada estancia, **dos carpetas** (las pidió el usuario): "Paredes"
+  y "Mobiliario", con su cuenta. Solo pliegan y despliegan; cerradas de
+  entrada, se abren solas si tienen lo elegido.
 - **Cada pared cuelga de una sola estancia** (decisión del usuario): la que da
   `deriveWalls` en `Wall.moduleId`; en una compartida, la del norte u oeste. Un
   lado partido en varios tramos los numera ("Pared norte 1", "Pared norte 2").
@@ -528,6 +533,10 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-11** · En el árbol, cada estancia lleva una **carpeta "Paredes" y
+  otra "Mobiliario"** (lo pidió el usuario), en `HouseTree.tsx`. Probado en el
+  servidor aparte: al elegir un sofá en el plano se abre su carpeta.
 
 - **2026-10-11** · **Interfaz rehecha: árbol de la casa e inspector**, paso 1
   (el usuario: cuesta encontrar dónde están las cosas; propuso la jerarquía de
