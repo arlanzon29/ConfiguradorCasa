@@ -92,6 +92,16 @@ Otros elementos:
   sobre su cara de delante (`mirrorParts` y `MirrorPiece` en `View3D.tsx`). El
   reflejo de verdad solo sale en la foto en calidad; en la vista normal la
   superficie es un panel claro. De momento es una **prueba**.
+- **Tablero** (`Board` en `boards.ts`): la primera **primitiva**, una caja
+  anclada a la cara de una pared que da a una estancia. Se guarda y se coloca
+  como el espejo (`PlacedModule.boards`, por lado, con `x`, `y`, ancho y alto) y
+  además tiene **fondo** (`depth`, lo que sale de la pared, hasta el fondo de la
+  estancia) y **acabado** (`finish`, color o material). La **postura** no se
+  guarda: se deduce de cuál de las tres medidas es el grueso, la menor
+  (`boardPose`): contra la pared, de canto (de pie, saliendo de la pared) o
+  balda (tumbado). Cambiar de postura intercambia el grueso con la medida que
+  ocupaba ese sitio (`posedBoard`). No se impide que pise nada. En 3D es una
+  caja (`boardParts` y `BoardBox` en `View3D.tsx`).
 - **Rodapié** (`Skirting`): alto y color **por pared**, guardados donde el grosor:
   por lado de estancia en las exteriores (`PlacedModule.skirting`) y por pareja en
   las compartidas (`joints`). Por defecto 7 cm y blanco; alto 0 = sin rodapié. La
@@ -117,6 +127,7 @@ src/
     finishes.ts     catálogo de suelos, colores de pared
     vinyls.ts       vinilos: catálogo y dónde cae cada uno en su pared
     mirrors.ts      espejos: la pieza y sus medidas por defecto
+    boards.ts       tableros: la pieza, sus posturas y sus límites
     furniture.ts    catálogo de mobiliario por familias
     planFile.ts     formato del archivo de plano (guardar/cargar)
   editor/
@@ -161,6 +172,7 @@ y qué muestra el panel). `Mode` en `store.ts`:
 | `modules` | Estancias | Añadir, mover, estirar (8 tiradores), girar, eliminar estancias |
 | `walls` | Paredes | Seleccionar pared: grosor, rodapié (alto y color) y quitar/poner. Colocar, deslizar, centrar y redimensionar puertas y ventanas; distancia al extremo de la pared y altura de la ventana |
 | `finishes` | Acabados | Clic en el centro de una estancia: suelo y color de todas sus paredes. Clic junto a un lado: color de esa pared y sus vinilos (pegar del catálogo, y casillas con barra deslizante para la distancia a la izquierda y al suelo, ancho, alto y giro; "Mantener la proporción" y "Eliminar"), y debajo sus espejos ("Añadir espejo" y las mismas casillas, sin giro) |
+| `pieces` | Piezas | Clic junto a un lado de una estancia: los tableros de esa pared (`PiecesPanel.tsx`). "Añadir tablero", postura (Contra la pared, De canto, Balda), casillas con barra para la distancia a la izquierda y al suelo, ancho, alto y fondo, el acabado y "Eliminar". En el plano, cada tablero es un rectángulo marrón con su ancho y su fondo |
 | `options` | Opciones | Mobiliario por familias (Salón, Comedor, Dormitorio): colocar, mover, girar, pegar a pared. Icono de imán para activar o no el imantado a paredes |
 | `photos` | Fotos | Fotos en calidad guardadas: miniaturas, Anterior/Siguiente (la cámara va a donde se sacó cada una, con su objetivo), pinchar para verla grande, descargar, repetir (la saca otra vez desde el mismo sitio y sustituye a la anterior) y eliminar. En el plano, un icono numerado por foto donde se sacó; pincharlo lleva la cámara allí |
 
@@ -219,6 +231,10 @@ el modo Módulos), Guardar plano y Cargar plano (archivo `.json`).
 Teclas: `R` gira lo seleccionado, `Supr` lo borra, `Esc` cancela la herramienta.
 
 ## Decisiones de diseño que hay que respetar
+
+- **Esto no es un programa de modelado 3D** (lo dijo el usuario el 2026-10-11,
+  al empezar con los tableros). Se añaden primitivas poco a poco y con las
+  opciones justas; antes de dar más libertad a una pieza, hablarlo con él.
 
 - **Las paredes son de la casa, no de cada estancia.** No volver a paredes dobles
   entre estancias. Selección por `Wall.key` (`ext:<id>:<lado>:<n>` o `joint:<a>|<b>`).
@@ -318,6 +334,15 @@ que la textura "Madera de pino" cubre 2 × 2 m (supuesto, sin confirmar).
   aparte en la vista 3D normal (por defecto, y cambiando alto y color de una
   pared); sin probar a la vista el corte en una puerta, una pared compartida, el
   giro ni la foto en calidad.
+- Tableros: medidas inventadas (1 × 1 m y 2 cm de grueso al colocarlo, apoyado
+  en el suelo; mínimo 5 mm en cualquier medida). No chocan con muebles, huecos
+  ni otras piezas, y al encoger la estancia no se reencajan. El fondo máximo es
+  el de la estancia sin descontar paredes. No hay panel derecho en Piezas ni
+  arrastre en el plano. Los espejos siguen en Acabados. Probado en el servidor
+  aparte: añadir uno, las tres posturas en el plano y en la vista 3D con
+  "Madera de pino". Sin probar: las casillas y barras, el color liso,
+  "Eliminar", el giro de estancia o módulo, la foto en calidad, ni guardar y
+  cargar un plano con tableros.
 - Espejos: son una prueba. El **filtro de ruido no toca lo reflejado** (decisión
   del usuario): dentro del espejo la foto filtrada conserva el grano del
   trazado, que con pocas muestras contrasta con el resto, ya liso. `denoise.ts`
@@ -437,6 +462,17 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-11** · **Tableros** y pestaña **Piezas** (el usuario quiere colocar
+  más geometría, como un cabecero; pidió empezar por primitivas, un tablero
+  anclado a la pared, en pestaña aparte y con lo mínimo, y después poder
+  ponerlo también de canto y como balda con un selector). Nuevo
+  `model/boards.ts`, campo `boards` en `PlacedModule` (gira con la estancia y
+  el módulo), `addBoard`, `patchBoard` (con postura) y `removeBoard` en
+  `store.ts`, modo `pieces` y `PiecesPanel.tsx`, `boardParts` y `BoardBox` en
+  `View3D.tsx`, y un rectángulo por tablero en el plano. El archivo de plano no
+  cambia de versión. A mitad, el usuario avisó de que no quiere un programa de
+  modelado 3D: anotado en las decisiones de diseño.
 
 - **2026-10-11** · El **filtro de ruido deja el espejo sin filtrar** (lo decidió
   el usuario al ver que emborronaba el reflejo). En `denoise.ts`, la guía de

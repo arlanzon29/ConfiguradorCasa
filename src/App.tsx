@@ -5,6 +5,7 @@ import ModulesPanel from './panels/ModulesPanel'
 import OptionsPanel from './panels/OptionsPanel'
 import PhotoViewer from './panels/PhotoViewer'
 import PhotosPanel from './panels/PhotosPanel'
+import PiecesPanel from './panels/PiecesPanel'
 import PlanFileButtons from './panels/PlanFileButtons'
 import PropertiesPanel, { PROPERTY_HINTS } from './panels/PropertiesPanel'
 import ShellsPanel from './panels/ShellsPanel'
@@ -24,6 +25,7 @@ const MODES: { id: Mode; name: string }[] = [
   { id: 'modules', name: 'Estancias' },
   { id: 'walls', name: 'Paredes' },
   { id: 'finishes', name: 'Acabados' },
+  { id: 'pieces', name: 'Piezas' },
   { id: 'options', name: 'Opciones' },
   { id: 'photos', name: 'Fotos' },
 ]
@@ -164,6 +166,7 @@ export default function App() {
           {mode === 'modules' && <ModulesPanel />}
           {mode === 'walls' && <WallsPanel />}
           {mode === 'finishes' && <FinishesPanel />}
+          {mode === 'pieces' && <PiecesPanel />}
           {mode === 'options' && <OptionsPanel />}
           {mode === 'photos' && <PhotosPanel />}
         </aside>

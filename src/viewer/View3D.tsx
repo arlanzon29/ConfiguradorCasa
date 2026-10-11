@@ -14,11 +14,13 @@ import {
 import {
   DEFAULT_JOINERY_FINISH,
   DEFAULT_WALL_COLOR,
+  Finish,
   floorFinish,
   interiorColor,
   resolveFinish,
 } from '../model/finishes'
 import { PLOT, PlacedModule, SIDES, Side, WALL_HEIGHT } from '../model/house'
+import { BOARD_FALLBACK_COLOR } from '../model/boards'
 import { MIRROR_THICKNESS } from '../model/mirrors'
 import { VINYLS, VinylSheet, vinylPlacement, vinylSheets, vinylType } from '../model/vinyls'
 import { OPPOSITE, Opening } from '../model/openings'
@@ -570,6 +572,52 @@ function MirrorPiece({ part, photo }: { part: MirrorPart; photo: boolean }) {
   )
 }
 
+interface BoardPart {
+  key: string
+  position: [number, number, number]
+  size: [number, number, number]
+  finish: Finish
+}
+
+/** Tableros de todas las estancias, cada uno como una caja pegada a su cara de pared. */
+function boardParts(modules: PlacedModule[], joints: Joints) {
+  const walls = deriveWalls(modules, joints)
+  const parts: BoardPart[] = []
+  for (const room of modules) {
+    for (const side of SIDES) {
+      for (const v of room.boards?.[side] ?? []) {
+        const place = vinylPlacement(room, side, v, walls, v.depth / 2)
+        if (!place) continue
+        const y = SLAB + v.y + v.height / 2
+        parts.push({
+          key: v.id,
+          position: place.horizontal ? [place.along, y, place.across] : [place.across, y, place.along],
+          size: place.horizontal ? [v.width, v.height, v.depth] : [v.depth, v.height, v.width],
+          finish: v.finish,
+        })
+      }
+    }
+  }
+  return parts
+}
+
+/** Un tablero, con su color liso o la textura de su material. */
+function BoardBox({ part }: { part: BoardPart }) {
+  const finish = resolveFinish(part.finish, BOARD_FALLBACK_COLOR)
+  const plain = (
+    <mesh position={part.position} castShadow receiveShadow>
+      <boxGeometry args={part.size} />
+      <meshStandardMaterial color={finish.color} roughness={0.55} />
+    </mesh>
+  )
+  if (!finish.texture) return plain
+  return (
+    <Suspense fallback={plain}>
+      <TexturedBox position={part.position} size={part.size} url={finish.texture} scale={finish.size ?? [1, 1]} />
+    </Suspense>
+  )
+}
+
 // Píxeles por metro de la lámina de vinilos de la foto, y su lado máximo en píxeles.
 const SHEET_DENSITY = 500
 const SHEET_MAX = 2048
@@ -707,6 +755,7 @@ export default function View3D() {
   )
   const vinyls = useMemo(() => vinylParts(modules, joints), [modules, joints])
   const mirrors = useMemo(() => mirrorParts(modules, joints), [modules, joints])
+  const boards = useMemo(() => boardParts(modules, joints), [modules, joints])
   const walls = useMemo(() => deriveWalls(modules, joints), [modules, joints])
   const vinylSheetList = useMemo(
     () => vinylSheets(modules, walls, openings),
@@ -967,6 +1016,9 @@ export default function View3D() {
         {mirrors.map((part) => (
           <MirrorPiece key={part.key} part={part} photo={photo} />
         ))}
+        {boards.map((part) => (
+          <BoardBox key={part.key} part={part} />
+        ))}
         {skirtings.map((part, i) => (
           <mesh key={i} position={part.position} receiveShadow>
             <boxGeometry args={part.size} />
@@ -980,7 +1032,7 @@ export default function View3D() {
         <PhotoTracer
           // Al repetir se empieza de cero aunque ya hubiera una foto terminada a la vista.
           key={retakeId ?? 'libre'}
-          revision={[modules, parts, skirtings, joinery, furniture, vinyls, mirrors]}
+          revision={[modules, parts, skirtings, joinery, furniture, vinyls, mirrors, boards]}
           goal={photoSamples}
           filter={filter}
           onProgress={onProgress}

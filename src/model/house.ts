@@ -2,6 +2,7 @@
 // (en el código, "module" por razones históricas) y guarda posición y tamaño
 // reales, no celdas de rejilla: la rejilla es solo una ayuda del editor.
 
+import type { Board } from './boards'
 import type { Mirror } from './mirrors'
 import type { Vinyl } from './vinyls'
 
@@ -68,6 +69,8 @@ export interface PlacedModule {
   vinyls?: Partial<Record<Side, Vinyl[]>>
   /** Espejos colgados de la pared de cada lado, por dentro (mirrors.ts). */
   mirrors?: Partial<Record<Side, Mirror[]>>
+  /** Tableros anclados a la pared de cada lado, por dentro (boards.ts). */
+  boards?: Partial<Record<Side, Board[]>>
   // Los tres siguientes solo afectan a los tramos exteriores de cada lado; las
   // paredes compartidas con otra estancia tienen sus propios ajustes (walls.ts).
   /** Rodapié por lado, en la cara de dentro. */

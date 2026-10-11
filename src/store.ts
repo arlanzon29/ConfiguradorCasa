@@ -35,6 +35,7 @@ import {
   wallLine,
 } from './model/openings'
 import { Plan } from './model/planFile'
+import { Board, BoardPose, DEFAULT_BOARD, boardProblem, boardReach, posedBoard } from './model/boards'
 import { DEFAULT_MIRROR, Mirror } from './model/mirrors'
 import { Vinyl, vinylProblem, vinylType, wallFace } from './model/vinyls'
 import { JointSettings, Joints, Wall, deriveWalls, fitOpening, pairKey, refitOpenings, wallOf } from './model/walls'
@@ -88,7 +89,7 @@ export const LENSES = [
  * Modo del editor: decide qué se selecciona en el plano y qué muestran el panel
  * izquierdo (lo que se añade) y el derecho (los datos de lo seleccionado).
  */
-export type Mode = 'shells' | 'modules' | 'walls' | 'finishes' | 'options' | 'photos'
+export type Mode = 'shells' | 'modules' | 'walls' | 'finishes' | 'pieces' | 'options' | 'photos'
 
 interface HouseState {
   /** Estancias: los rectángulos del plano. Las paredes se deducen de sus bordes (walls.ts). */
@@ -182,6 +183,20 @@ interface HouseState {
   /** Cambia posición o medidas de un espejo. Devuelve un mensaje de error, o ''. */
   patchMirror: (roomId: string, side: Side, id: string, patch: Partial<Omit<Mirror, 'id'>>) => string
   removeMirror: (roomId: string, side: Side, id: string) => void
+  /** Coloca un tablero en la pared de ese lado, centrado. Devuelve su id, o null si no cabe. */
+  addBoard: (roomId: string, side: Side) => string | null
+  /**
+   * Cambia posición, medidas o acabado de un tablero y, con `pose`, lo pone en
+   * esa postura. Devuelve un mensaje de error, o ''.
+   */
+  patchBoard: (
+    roomId: string,
+    side: Side,
+    id: string,
+    patch: Partial<Omit<Board, 'id'>>,
+    pose?: BoardPose,
+  ) => string
+  removeBoard: (roomId: string, side: Side, id: string) => void
 
   setWallThickness: (key: string, thickness: number) => void
   setWallOpen: (key: string, open: boolean) => void
@@ -350,6 +365,16 @@ export const useHouse = create<HouseState>()(
           modules: s.modules.map((m) =>
             m.id === roomId
               ? { ...m, mirrors: { ...m.mirrors, [side]: change(m.mirrors?.[side] ?? []) } }
+              : m,
+          ),
+        }))
+
+      /** Cambia la lista de tableros de un lado de una estancia. */
+      const setBoards = (roomId: string, side: Side, change: (list: Board[]) => Board[]) =>
+        set((s) => ({
+          modules: s.modules.map((m) =>
+            m.id === roomId
+              ? { ...m, boards: { ...m.boards, [side]: change(m.boards?.[side] ?? []) } }
               : m,
           ),
         }))
@@ -557,6 +582,7 @@ export const useHouse = create<HouseState>()(
                   sideColors: turnSides(m.sideColors),
                   vinyls: turnSides(m.vinyls),
                   mirrors: turnSides(m.mirrors),
+                  boards: turnSides(m.boards),
                   floorTurned: !m.floorTurned,
                 },
           )
@@ -692,6 +718,7 @@ export const useHouse = create<HouseState>()(
             sideColors: turn(current.sideColors),
             vinyls: turn(current.vinyls),
             mirrors: turn(current.mirrors),
+            boards: turn(current.boards),
           }
           const others = modules.filter((m) => m.id !== id)
           if (!fits(rotated, others, get().shells)) return
@@ -905,6 +932,42 @@ export const useHouse = create<HouseState>()(
         },
         removeMirror: (roomId, side, id) =>
           setMirrors(roomId, side, (list) => list.filter((v) => v.id !== id)),
+        addBoard: (roomId, side) => {
+          const { modules, joints } = get()
+          const room = modules.find((m) => m.id === roomId)
+          if (!room) return null
+          const { length } = wallFace(room, side, deriveWalls(modules, joints))
+          const width = roundSize(Math.min(DEFAULT_BOARD.width, length))
+          const board: Board = {
+            id: crypto.randomUUID(),
+            x: roundSize(Math.max(0, (length - width) / 2)),
+            y: DEFAULT_BOARD.y,
+            width,
+            height: DEFAULT_BOARD.height,
+            depth: DEFAULT_BOARD.depth,
+            finish: DEFAULT_BOARD.finish,
+          }
+          if (boardProblem(board, length, boardReach(room, side))) return null
+          setBoards(roomId, side, (list) => [...list, board])
+          return board.id
+        },
+        patchBoard: (roomId, side, id, patch, pose) => {
+          const { modules, joints } = get()
+          const room = modules.find((m) => m.id === roomId)
+          const current = room?.boards?.[side]?.find((v) => v.id === id)
+          if (!room || !current) return 'Ese tablero ya no existe.'
+          const { length } = wallFace(room, side, deriveWalls(modules, joints))
+          const reach = boardReach(room, side)
+          const next = pose
+            ? posedBoard({ ...current, ...patch }, pose, length, reach)
+            : { ...current, ...patch }
+          const problem = boardProblem(next, length, reach)
+          if (problem) return problem
+          setBoards(roomId, side, (list) => list.map((v) => (v.id === id ? next : v)))
+          return ''
+        },
+        removeBoard: (roomId, side, id) =>
+          setBoards(roomId, side, (list) => list.filter((v) => v.id !== id)),
 
         setWallThickness: (key, thickness) => patchWall(key, thickness),
         setWallOpen: (key, open) => patchWall(key, undefined, open),

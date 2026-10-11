@@ -527,7 +527,7 @@ export default function Editor2D() {
           transform={`translate(${m.x} ${m.y})`}
           onPointerDown={(e) => {
             // Las estancias se mueven en su modo; en acabados solo se seleccionan.
-            if (mode !== 'modules' && mode !== 'finishes') return
+            if (mode !== 'modules' && mode !== 'finishes' && mode !== 'pieces') return
             e.stopPropagation()
             const p = toMeters(e)
             if (mode !== 'modules') {
@@ -576,6 +576,21 @@ export default function Editor2D() {
                   <line key={v.id} className="mirror-mark" x1={a - m.x} x2={b - m.x} y1={across - m.y} y2={across - m.y} />
                 ) : (
                   <line key={v.id} className="mirror-mark" y1={a - m.y} y2={b - m.y} x1={across - m.x} x2={across - m.x} />
+                )
+              }),
+            )}
+          {/* Tableros: una raya tan gruesa como su fondo, desde la cara de la pared. */}
+          {mode === 'pieces' &&
+            (['n', 's', 'e', 'w'] as const).flatMap((side) =>
+              (m.boards?.[side] ?? []).map((v) => {
+                const place = vinylPlacement(m, side, v, walls, v.depth / 2)
+                if (!place) return null
+                const [a, b] = [place.along - v.width / 2, place.along + v.width / 2]
+                const across = place.across
+                return place.horizontal ? (
+                  <line key={v.id} className="board-mark" strokeWidth={v.depth} x1={a - m.x} x2={b - m.x} y1={across - m.y} y2={across - m.y} />
+                ) : (
+                  <line key={v.id} className="board-mark" strokeWidth={v.depth} y1={a - m.y} y2={b - m.y} x1={across - m.x} x2={across - m.x} />
                 )
               }),
             )}

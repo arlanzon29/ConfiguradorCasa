@@ -724,6 +724,11 @@ button:disabled {
   pointer-events: none;
 }
 
+.board-mark {
+  stroke: #b45309;
+  pointer-events: none;
+}
+
 .vinyls h3 {
   font-size: 13px;
   font-weight: 600;
@@ -777,12 +782,14 @@ button:disabled {
   height: 22px;
 }
 
+.vinyls .actions button.active,
 .vinyl-list button.active {
   border-color: var(--accent);
   box-shadow: inset 0 0 0 1px var(--accent);
 }
 
-.mode-finishes .module {
+.mode-finishes .module,
+.mode-pieces .module {
   cursor: pointer;
 }
 

@@ -5,6 +5,20 @@ está decidido ni empezado. Lo más reciente, arriba.
 
 ## Anotado el 2026-10-10
 
+### 17. Más geometría: primitivas (tableros)
+
+- **Idea del usuario (2026-10-11):** colocar más geometría, por ejemplo el
+  cabecero de la cama. Empezar por primitivas, la primera un tablero anclado a
+  una pared, en una pestaña propia ("Piezas") y poco a poco.
+- **Aviso del usuario:** no quiere convertir el programa en uno de modelado 3D.
+- **Hecho el 2026-10-11:** tablero con posición, ancho, alto, fondo, acabado y
+  tres posturas (contra la pared, de canto, balda). El usuario lo probó y dijo
+  "vamos bien".
+- Hablado y sin decidir: que el cliente elija piezas hechas (cabecero, balda,
+  friso) con dos o tres opciones cada una en vez de cajas libres; un botón "de
+  pared a pared"; mudar los espejos a Piezas; tableros sueltos en la estancia;
+  moverlos arrastrando en el plano.
+
 ### 16. Puertas y ventanas
 
 - **Idea del usuario:** tenemos que hacer algo con las puertas y las ventanas (lo
