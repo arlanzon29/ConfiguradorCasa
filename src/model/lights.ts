@@ -38,6 +38,14 @@ export const MIN_LIGHT_POWER = 10
 export const MAX_LIGHT_POWER = 300
 export const DEFAULT_LIGHT = { power: 100, tone: 'neutral' as LightTone }
 
+/** El foco con el que nace una estancia: en el centro de su techo. */
+export const firstLight = (room: Pick<PlacedModule, 'width' | 'depth'>): RoomLight => ({
+  id: crypto.randomUUID(),
+  x: Math.round(room.width * 50) / 100,
+  y: Math.round(room.depth * 50) / 100,
+  ...DEFAULT_LIGHT,
+})
+
 /** Mensaje de error si la luz no cabe en el techo de la estancia, o ''. */
 export function lightProblem(l: Omit<RoomLight, 'id'>, room: PlacedModule) {
   if (l.power < MIN_LIGHT_POWER || l.power > MAX_LIGHT_POWER)

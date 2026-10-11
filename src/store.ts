@@ -35,7 +35,14 @@ import {
   wallLine,
 } from './model/openings'
 import { Plan } from './model/planFile'
-import { DEFAULT_LIGHT, LIGHT_MARGIN, RoomLight, lightProblem, turnLights } from './model/lights'
+import {
+  DEFAULT_LIGHT,
+  LIGHT_MARGIN,
+  RoomLight,
+  firstLight,
+  lightProblem,
+  turnLights,
+} from './model/lights'
 import { Board, BoardPose, DEFAULT_BOARD, boardProblem, boardReach, posedBoard } from './model/boards'
 import { DEFAULT_MIRROR, Mirror } from './model/mirrors'
 import { Vinyl, vinylProblem, vinylType, wallFace } from './model/vinyls'
@@ -315,7 +322,11 @@ function housed(f: FurnitureItem, modules: PlacedModule[]): FurnitureItem {
 const withParents = <T extends { modules: PlacedModule[]; shells: Shell[]; furniture: FurnitureItem[] }>(
   plan: T,
 ) => {
-  const modules = withShells(plan.modules, plan.shells)
+  // Las estancias de antes de los focos (sin lista de luces) reciben el suyo; la
+  // que se quedó sin ninguno porque se los quitaron (lista vacía) sigue a oscuras.
+  const modules = withShells(plan.modules, plan.shells).map((m) =>
+    m.lights ? m : { ...m, lights: [firstLight(m)] },
+  )
   return { modules, furniture: plan.furniture.map((f) => housed(f, modules)) }
 }
 
@@ -763,14 +774,7 @@ export const useHouse = create<HouseState>()(
               width: placed.width,
               depth: placed.depth,
               // Toda estancia nace con un foco en el centro del techo.
-              lights: [
-                {
-                  id: crypto.randomUUID(),
-                  x: roundSize(placed.width / 2),
-                  y: roundSize(placed.depth / 2),
-                  ...DEFAULT_LIGHT,
-                },
-              ],
+              lights: [firstLight(placed)],
             },
           ])
           set({ ...NO_SELECTION, selectedId: id, mode: 'modules' })

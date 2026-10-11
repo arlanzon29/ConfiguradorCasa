@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react'
+import { FAMILIES, FURNITURE } from '../model/furniture'
 import { PlacedModule, formatMeters } from '../model/house'
+import { OPENING_CATALOG } from '../model/openings'
 import {
   furnitureName,
   lightName,
@@ -13,8 +15,9 @@ import { useHouse } from '../store'
 
 // Panel izquierdo: la casa como un árbol. Casa → módulos → estancias, y en cada
 // estancia una carpeta con sus paredes, otra con su mobiliario y otra con sus luces. Elegir una línea es lo mismo que pinchar la cosa en el
-// plano; sus datos salen en el panel derecho. El árbol solo enseña y elige: el
-// orden y de quién cuelga cada cosa los manda la casa.
+// plano; sus datos salen en el panel derecho. El "+" de una línea le añade algo:
+// un foco a las luces, un mueble al mobiliario, un hueco a una pared. El orden y
+// de quién cuelga cada cosa los manda la casa: aquí no se mueve nada de rama.
 
 interface RowProps {
   level: number
@@ -25,9 +28,12 @@ interface RowProps {
   open?: boolean
   onToggle?: () => void
   onPick: () => void
+  /** Con él, la línea lleva un "+" para añadirle algo. */
+  onAdd?: () => void
+  addTitle?: string
 }
 
-function Row({ level, label, detail, active, open, onToggle, onPick }: RowProps) {
+function Row({ level, label, detail, active, open, onToggle, onPick, onAdd, addTitle }: RowProps) {
   return (
     <div className={active ? 'tree-row active' : 'tree-row'} style={{ paddingLeft: level * 14 }}>
       {open === undefined ? (
@@ -45,6 +51,11 @@ function Row({ level, label, detail, active, open, onToggle, onPick }: RowProps)
         {label}
         {detail && <span className="muted"> · {detail}</span>}
       </button>
+      {onAdd && (
+        <button className="tree-add" title={addTitle} aria-label={addTitle} onClick={onAdd}>
+          +
+        </button>
+      )}
     </div>
   )
 }
@@ -63,6 +74,16 @@ export default function HouseTree() {
   const selectedFurnitureId = useHouse((s) => s.selectedFurnitureId)
   const selectedLightId = useHouse((s) => s.selectedLightId)
   const pick = useHouse((s) => s.pick)
+  const addLight = useHouse((s) => s.addLight)
+  const addFurniture = useHouse((s) => s.addFurniture)
+  const addOpening = useHouse((s) => s.addOpening)
+  // La línea cuyo "+" tiene abierta la lista de lo que se le puede añadir, y el aviso si no cabe.
+  const [menu, setMenu] = useState<string | null>(null)
+  const [notice, setNotice] = useState('')
+  const toggleMenu = (key: string) => {
+    setNotice('')
+    setMenu(menu === key ? null : key)
+  }
   const photoCount = usePhotos((s) => s.photos.length)
   // Estancias y carpetas abiertas o cerradas a mano; las demás se abren solas si tienen lo elegido.
   const [opened, setOpened] = useState<Record<string, boolean>>({})
@@ -93,7 +114,13 @@ export default function HouseTree() {
     const holdsLight = lights.some((l) => l.id === selectedLightId)
     const open = opened[room.id] ?? (room.id === selectedId || holdsWall || holdsItem)
     // Una carpeta: su línea, que solo pliega y despliega, y si está abierta lo que tiene.
-    const folder = (name: string, count: number, holds: boolean, rows: () => React.ReactNode) => {
+    const folder = (
+      name: string,
+      count: number,
+      holds: boolean,
+      rows: () => React.ReactNode,
+      add?: { title: string; run: () => void; menu?: React.ReactNode },
+    ) => {
       const key = `${room.id}:${name}`
       const shown = opened[key] ?? holds
       const toggle = () => setOpened({ ...opened, [key]: !shown })
@@ -106,7 +133,10 @@ export default function HouseTree() {
             open={shown}
             onToggle={toggle}
             onPick={toggle}
+            onAdd={add?.run}
+            addTitle={add?.title}
           />
+          {add?.menu}
           {shown && rows()}
         </>
       )
@@ -129,20 +159,68 @@ export default function HouseTree() {
             const same = own.filter((o) => o.side === w.side)
             const number = same.length > 1 && !w.name ? ` ${same.indexOf(w) + 1}` : ''
             return (
+              <div key={w.key}>
               <Row
-                key={w.key}
                 level={level + 2}
                 label={`${wallName(w)}${number}`}
                 detail={w.otherId ? `con la ${roomName(modules, w.otherId)}` : undefined}
                 active={w.key === wallKey}
                 onPick={() => pick('walls', { selectedWall: w.key })}
+                onAdd={() => toggleMenu(w.key)}
+                addTitle="Añadir una puerta o una ventana a esta pared"
               />
+              {menu === w.key && (
+                <div className="tree-menu" style={{ marginLeft: (level + 3) * 14 }}>
+                  {OPENING_CATALOG.map((t) => (
+                    <button
+                      key={t.id}
+                      onClick={() => {
+                        // Sale centrado en la pared; luego se desliza por ella.
+                        if (addOpening(t.id, w.key, (w.from + w.to) / 2)) setMenu(null)
+                        else setNotice('No cabe en esta pared.')
+                      }}
+                    >
+                      {t.name}
+                    </button>
+                  ))}
+                  {notice && <p className="notice">{notice}</p>}
+                </div>
+              )}
+              </div>
             )
             }),
           )}
         {open &&
-          folder('Mobiliario', items.length, holdsItem, () =>
-            items.map((f) => furnitureRow(f, level + 2)),
+          folder(
+            'Mobiliario',
+            items.length,
+            holdsItem,
+            () => items.map((f) => furnitureRow(f, level + 2)),
+            {
+              title: 'Añadir un mueble a esta estancia',
+              run: () => toggleMenu(`${room.id}:muebles`),
+              menu: menu === `${room.id}:muebles` && (
+                <div className="tree-menu" style={{ marginLeft: (level + 2) * 14 }}>
+                  {FAMILIES.map((family) => (
+                    <div key={family.id}>
+                      <span className="muted">{family.name}</span>
+                      {FURNITURE.filter((t) => t.family === family.id).map((t) => (
+                        <button
+                          key={t.id}
+                          onClick={() => {
+                            // Sale en el centro de la estancia; luego se arrastra.
+                            addFurniture(t.id, room.x + room.width / 2, room.y + room.depth / 2)
+                            setMenu(null)
+                          }}
+                        >
+                          {t.name}
+                        </button>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              ),
+            },
           )}
         {open &&
           folder('Luces', lights.length, holdsLight, () =>
@@ -155,6 +233,13 @@ export default function HouseTree() {
                 onPick={() => pick('modules', { selectedId: room.id, selectedLightId: l.id })}
               />
             )),
+            {
+              title: 'Añadir un foco de techo a esta estancia',
+              run: () => {
+                const id = addLight(room.id)
+                if (id) pick('modules', { selectedId: room.id, selectedLightId: id })
+              },
+            },
           )}
       </div>
     )

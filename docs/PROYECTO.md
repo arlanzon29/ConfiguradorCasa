@@ -120,9 +120,12 @@ Otros elementos:
   foto en calidad** (un panel de luz de 12 cm mirando abajo); en la vista
   normal se ve la pieza, un disco a la altura del techo. **Toda estancia nueva
   nace con un foco** en el centro del techo (lo pidió el usuario), al 100 %,
-  que alumbra lo mismo que el panel provisional de antes. Una estancia **sin
-  focos** (las de planos anteriores, o si se le quitan) conserva en la foto
-  ese panel provisional de 0,6 m.
+  que alumbra lo mismo que el panel provisional que hubo antes. **Ya no hay
+  luces provisionales** (el usuario pidió quitarlas, y dejar el sol): una
+  estancia sin focos solo recibe en la foto la luz del sol y del cielo por sus
+  ventanas. Las estancias de planos anteriores a los focos reciben el suyo al
+  abrirse (`firstLight` en `withParents`); la que tiene la lista vacía porque
+  se los quitaron se queda sin ninguno.
 - **Rodapié** (`Skirting`): alto y color **por pared**, guardados donde el grosor:
   por lado de estancia en las exteriores (`PlacedModule.skirting`) y por pareja en
   las compartidas (`joints`). Por defecto 7 cm y blanco; alto 0 = sin rodapié. La
@@ -554,9 +557,9 @@ medida variable, exterior…).
   es una prueba. Botón "Foto en calidad" sobre la vista 3D: trazado
   de rayos en la GPU con `three-gpu-pathtracer` 0.0.23 sobre la misma escena
   (`viewer/PhotoTracer.tsx`), 200 muestras, se reinicia al mover la cámara, y
-  "Guardar foto" la manda a la pestaña Fotos. Mientras dura la foto se añaden un techo y un
-  panel de luz de 0,6 m por estancia (provisionales, en `View3D.tsx`) y un cielo
-  en degradado. Resultado de la prueba en `docs/pruebas/`. Lo aprendido:
+  "Guardar foto" la manda a la pestaña Fotos. Mientras dura la foto se añade un techo
+  (provisional, en `View3D.tsx`) y un cielo en degradado; el panel de luz de
+  0,6 m por estancia que hubo al principio se quitó al llegar los focos. Resultado de la prueba en `docs/pruebas/`. Lo aprendido:
   - Empezó con la 0.0.23 (la última que admitía three 0.169). Desde el 2026-10-10
     va con la **0.0.27**, que exige three ≥ 0.185 y three-mesh-bvh ≥ 0.9.15.
   - Con la 0.0.23 **no admitía mallas con varios materiales** (descolocaba los de
@@ -576,6 +579,17 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-11** · **"+" en el árbol** (el usuario no encontraba cómo crear una
+  luz): en la carpeta Luces añade un foco; en Mobiliario abre la lista de
+  muebles por familias y el elegido sale en el centro de la estancia; en cada
+  pared abre puerta, corredera y ventana y el hueco sale centrado en ella
+  (`tree-add` y `tree-menu` en `HouseTree.tsx`). La carpeta Paredes no lleva
+  "+": las paredes no se añaden, salen de las estancias. Y **fuera las luces
+  provisionales** del techo en la foto (lo pidió el usuario; el sol y el cielo
+  se quedan): las estancias de antes reciben un foco al abrir el plano.
+  Probado en el servidor aparte: el "+" de Luces y la lista de Mobiliario. Sin
+  probar: añadir un mueble y un hueco desde el árbol, y una foto sin panel.
 
 - **2026-10-11** · Botón **"Centrar en la estancia"** en el foco y en el mueble
   (el usuario lo pidió para lo que se sitúa con izquierda y arriba), y **color

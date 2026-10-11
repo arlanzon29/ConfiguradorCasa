@@ -34,11 +34,10 @@ import PhotoTracer from './PhotoTracer'
 
 // Grosor de la losa, en metros.
 const SLAB = 0.2
-// Techo y panel de luz provisionales de la foto en calidad: grosor y lado, en metros.
+// Grosor, en metros, del techo provisional de la foto en calidad.
 const CEILING = 0.1
-const CEILING_LIGHT = 0.6
-// Lo que alumbra un foco al 100 %: lo mismo que el panel provisional, para que
-// la estancia con su foco de nacimiento se vea como antes. Inventado.
+// Lo que alumbra un foco al 100 %: lo mismo que el panel de luz provisional que
+// hubo antes de los focos, para que la estancia con el suyo se vea igual. Inventado.
 const LIGHT_INTENSITY = 750
 // Lo que sobresale el rodapié de la pared, en metros.
 const SKIRTING_DEPTH = 0.012
@@ -771,7 +770,8 @@ export default function View3D() {
   )
 
   // Foto en calidad: trazado de rayos sobre esta misma escena, con un
-  // techo y una luz de techo por estancia que solo existen mientras dura la foto.
+  // techo que solo existe mientras dura la foto. La luz la dan los focos de cada
+  // estancia, el sol y el cielo.
   const cameraFov = useHouse((s) => s.cameraFov)
   const setCameraFov = useHouse((s) => s.setCameraFov)
   const photoSamples = useHouse((s) => s.photoSamples)
@@ -970,22 +970,10 @@ export default function View3D() {
               />
             </mesh>
             {photo && (
-              <>
-                <mesh position-y={SLAB + WALL_HEIGHT + CEILING / 2}>
-                  <boxGeometry args={[m.width, CEILING, m.depth]} />
-                  <meshStandardMaterial color="#ffffff" />
-                </mesh>
-                {/* Sin focos puestos sigue el panel de luz provisional, pegado al techo. */}
-                {!m.lights?.length && (
-                  <rectAreaLight
-                    position-y={SLAB + WALL_HEIGHT - 0.02}
-                    rotation-x={-Math.PI / 2}
-                    width={CEILING_LIGHT}
-                    height={CEILING_LIGHT}
-                    intensity={30}
-                  />
-                )}
-              </>
+              <mesh position-y={SLAB + WALL_HEIGHT + CEILING / 2}>
+                <boxGeometry args={[m.width, CEILING, m.depth]} />
+                <meshStandardMaterial color="#ffffff" />
+              </mesh>
             )}
             {/* Focos del techo: la pieza se ve siempre; alumbran solo en la foto. */}
             {(m.lights ?? []).map((l) => (

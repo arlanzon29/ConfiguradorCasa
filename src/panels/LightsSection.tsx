@@ -37,7 +37,7 @@ export function AddLight({ room }: { room: PlacedModule }) {
       {notice && <p className="notice">{notice}</p>}
       {!room.lights?.length && (
         <p className="muted spaced">
-          Sin focos, la foto en calidad usa una luz provisional en el centro del techo.
+          Sin focos, en la foto en calidad solo entra la luz de las ventanas.
         </p>
       )}
     </section>
