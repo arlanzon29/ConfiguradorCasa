@@ -77,7 +77,10 @@ Otros elementos:
   (distinción del usuario: un espejo sí es geometría): no tiene grosor. Se guarda
   en su estancia por lado (`PlacedModule.vinyls`), varios por pared, con `x`
   (desde la esquina izquierda de la cara, mirándola desde dentro), `y` (desde el
-  suelo), ancho y alto. Las imágenes salen de un catálogo (`VINYLS`); el cliente
+  suelo), ancho, alto y giro (`rotation`, grados en sentido horario alrededor de
+  su centro). **Colocarlo bien es cosa del usuario** (lo dijo él): no se impide
+  que pise un hueco u otro vinilo, y así vale también para un efecto sobre una
+  ventana. Las imágenes salen de un catálogo (`VINYLS`); el cliente
   no sube las suyas, de momento. Solo se ve en 3D y en la foto.
 - **Rodapié** (`Skirting`): alto y color **por pared**, guardados donde el grosor:
   por lado de estancia en las exteriores (`PlacedModule.skirting`) y por pareja en
@@ -145,7 +148,7 @@ y qué muestra el panel). `Mode` en `store.ts`:
 | `shells` | Módulos | Añadir (horizontal/vertical), mover, redimensionar, girar, eliminar módulos de fábrica. Se ve toda la parcela |
 | `modules` | Estancias | Añadir, mover, estirar (8 tiradores), girar, eliminar estancias |
 | `walls` | Paredes | Seleccionar pared: grosor, rodapié (alto y color) y quitar/poner. Colocar, deslizar, centrar y redimensionar puertas y ventanas; distancia al extremo de la pared y altura de la ventana |
-| `finishes` | Acabados | Clic en el centro de una estancia: suelo y color de todas sus paredes. Clic junto a un lado: color de esa pared y sus vinilos (pegar del catálogo, y casillas de distancia a la izquierda y al suelo, ancho y alto; "Proporción original" y "Eliminar") |
+| `finishes` | Acabados | Clic en el centro de una estancia: suelo y color de todas sus paredes. Clic junto a un lado: color de esa pared y sus vinilos (pegar del catálogo, y casillas con barra deslizante para la distancia a la izquierda y al suelo, ancho, alto y giro; "Mantener la proporción" y "Eliminar") |
 | `options` | Opciones | Mobiliario por familias (Salón, Comedor, Dormitorio): colocar, mover, girar, pegar a pared. Icono de imán para activar o no el imantado a paredes |
 | `photos` | Fotos | Fotos en calidad guardadas: miniaturas, Anterior/Siguiente (la cámara va a donde se sacó cada una, con su objetivo), pinchar para verla grande, descargar, repetir (la saca otra vez desde el mismo sitio y sustituye a la anterior) y eliminar. En el plano, un icono numerado por foto donde se sacó; pincharlo lleva la cámara allí |
 
@@ -286,8 +289,9 @@ que la textura "Madera de pino" cubre 2 × 2 m (supuesto, sin confirmar).
   pared); sin probar a la vista el corte en una puerta, una pared compartida, el
   giro ni la foto en calidad.
 - Vinilos: los seis del catálogo son dibujos de prueba hechos aquí, a falta de
-  los de EuroCasa. Un hueco no los recorta (uno puesto sobre una puerta o una
-  ventana se ve flotando en ella) y pueden pisarse entre sí. Al encoger la
+  los de EuroCasa. Un hueco no los recorta y pueden pisarse entre sí: es a
+  propósito. Los límites de posición y medida son los del vinilo sin girar, así
+  que girado puede asomar por el borde de la pared. Al encoger la
   estancia no se reencajan: el que deja de caber sigue ahí, salido de su pared.
   En una pared con tramos de distinto grosor, los límites son los de la cara más
   metida. En el plano son solo una raya morada, sin arrastre: se colocan con las
@@ -379,6 +383,12 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-11** · Vinilos: **giro** y **barras deslizantes** (lo pidió el
+  usuario). Campo `rotation` en `Vinyl`; en `VinylsSection.tsx`, `Slide` (casilla
+  más barra) para posición, medidas y giro, y la casilla "Mantener la proporción"
+  en lugar del botón "Proporción original". Probado en el servidor aparte: girar
+  30° y cambiar el ancho con la barra, con el alto siguiéndolo.
 
 - **2026-10-11** · **Vinilos** en las paredes (tema 5 de pendientes; el usuario
   pidió probar con uno infantil, definido por x, y, ancho y alto, en Acabados y

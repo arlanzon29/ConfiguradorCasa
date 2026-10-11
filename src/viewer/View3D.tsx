@@ -451,6 +451,8 @@ interface VinylPart {
   url: string
   position: [number, number, number]
   turn: number
+  /** Giro sobre la pared, en radianes y sentido horario. */
+  spin: number
   size: [number, number]
 }
 
@@ -470,6 +472,7 @@ function vinylParts(modules: PlacedModule[], joints: Joints) {
           url: type.image,
           position: place.horizontal ? [place.along, y, place.across] : [place.across, y, place.along],
           turn: VINYL_TURN[side],
+          spin: ((v.rotation ?? 0) * Math.PI) / 180,
           size: [v.width, v.height],
         })
       }
@@ -492,7 +495,7 @@ function VinylPlane({ part, photo }: { part: VinylPart; photo: boolean }) {
   useEffect(() => () => texture.dispose(), [texture])
 
   return (
-    <mesh position={part.position} rotation-y={part.turn} receiveShadow>
+    <mesh position={part.position} rotation={[0, part.turn, -part.spin]} receiveShadow>
       <planeGeometry args={part.size} />
       {/* En la foto, recortado y no translúcido: el trazador oscurece la pared tras un plano translúcido. */}
       <meshStandardMaterial

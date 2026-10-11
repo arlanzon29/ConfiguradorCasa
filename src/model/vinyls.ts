@@ -17,6 +17,8 @@ export interface Vinyl {
   y: number
   width: number
   height: number
+  /** Giro en grados alrededor de su centro, en sentido horario visto desde dentro. */
+  rotation?: number
 }
 
 export interface VinylType {

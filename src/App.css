@@ -719,6 +719,20 @@ button:disabled {
   margin: 14px 0 6px;
 }
 
+.vinyls .slide {
+  width: 100%;
+  align-self: end;
+  margin-bottom: 8px;
+}
+
+.vinyls .check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  margin-top: 8px;
+}
+
 .vinyl-catalog,
 .vinyl-list {
   display: grid;

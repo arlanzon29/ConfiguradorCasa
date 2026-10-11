@@ -236,8 +236,10 @@ el imán a paredes y el objetivo de la cámara.
   fondo transparente con x, y, ancho y alto; va en Acabados; las imágenes son de
   catálogo (el cliente no sube las suyas, de momento); varias piezas sueltas por
   pared. Y la distinción: el vinilo es superficie, un espejo es geometría.
-  **Sigue pendiente:** los dibujos reales, que un hueco lo recorte, moverlo
-  arrastrando, y el mural de pared entera.
+  Después, giro y barras deslizantes. El usuario no quiere que un hueco lo
+  recorte: colocarlo bien es cosa de quien lo pone, y así sirve para un efecto
+  en una ventana. **Sigue pendiente:** los dibujos reales, moverlo arrastrando,
+  y el mural de pared entera.
 
 ### 4. Techo: ponerlo, quitarlo y elegir su color
 
