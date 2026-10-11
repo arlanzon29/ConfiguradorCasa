@@ -16,7 +16,10 @@ export function LightsSection({ room }: { room: PlacedModule }) {
   const addLight = useHouse((s) => s.addLight)
   const patchLight = useHouse((s) => s.patchLight)
   const removeLight = useHouse((s) => s.removeLight)
-  const [chosenId, setChosenId] = useState<string | null>(null)
+  // El foco elegido está en el estado, para que el árbol y el plano lo marquen.
+  const chosenId = useHouse((s) => s.selectedLightId)
+  const pick = useHouse((s) => s.pick)
+  const setChosenId = (id: string) => pick('modules', { selectedId: room.id, selectedLightId: id })
   const [notice, setNotice] = useState('')
 
   const list = room.lights ?? []

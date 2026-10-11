@@ -6,7 +6,7 @@ import { usePhotos } from '../photos'
 import { useHouse } from '../store'
 
 // Panel izquierdo: la casa como un árbol. Casa → módulos → estancias, y en cada
-// estancia una carpeta con sus paredes y otra con su mobiliario. Elegir una línea es lo mismo que pinchar la cosa en el
+// estancia una carpeta con sus paredes, otra con su mobiliario y otra con sus luces. Elegir una línea es lo mismo que pinchar la cosa en el
 // plano; sus datos salen en el panel derecho. El árbol solo enseña y elige: el
 // orden y de quién cuelga cada cosa los manda la casa.
 
@@ -61,6 +61,7 @@ export default function HouseTree() {
   const selectedWall = useHouse((s) => s.selectedWall)
   const selectedOpeningId = useHouse((s) => s.selectedOpeningId)
   const selectedFurnitureId = useHouse((s) => s.selectedFurnitureId)
+  const selectedLightId = useHouse((s) => s.selectedLightId)
   const pick = useHouse((s) => s.pick)
   const photoCount = usePhotos((s) => s.photos.length)
   // Estancias y carpetas abiertas o cerradas a mano; las demás se abren solas si tienen lo elegido.
@@ -88,6 +89,8 @@ export default function HouseTree() {
     const items = furniture.filter((f) => roomOf(f) === room)
     const holdsWall = own.some((w) => w.key === wallKey)
     const holdsItem = items.some((f) => f.id === selectedFurnitureId)
+    const lights = room.lights ?? []
+    const holdsLight = lights.some((l) => l.id === selectedLightId)
     const open = opened[room.id] ?? (room.id === selectedId || holdsWall || holdsItem)
     // Una carpeta: su línea, que solo pliega y despliega, y si está abierta lo que tiene.
     const folder = (name: string, count: number, holds: boolean, rows: () => React.ReactNode) => {
@@ -114,7 +117,7 @@ export default function HouseTree() {
           level={level}
           label={roomName(modules, room.id)}
           detail={`${formatMeters(room.width)} × ${formatMeters(room.depth)} m`}
-          active={room.id === selectedId && mode === 'modules'}
+          active={room.id === selectedId && mode === 'modules' && !holdsLight}
           open={open}
           onToggle={() => setOpened({ ...opened, [room.id]: !open })}
           onPick={() => pick('modules', { selectedId: room.id })}
@@ -140,6 +143,18 @@ export default function HouseTree() {
         {open &&
           folder('Mobiliario', items.length, holdsItem, () =>
             items.map((f) => furnitureRow(f, level + 2)),
+          )}
+        {open &&
+          folder('Luces', lights.length, holdsLight, () =>
+            lights.map((l, i) => (
+              <Row
+                key={l.id}
+                level={level + 2}
+                label={`Foco ${i + 1}`}
+                active={l.id === selectedLightId}
+                onPick={() => pick('modules', { selectedId: room.id, selectedLightId: l.id })}
+              />
+            )),
           )}
       </div>
     )

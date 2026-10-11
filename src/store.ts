@@ -100,6 +100,7 @@ type Selection = Pick<
   | 'selectedWall'
   | 'selectedOpeningId'
   | 'selectedSide'
+  | 'selectedLightId'
   | 'selectedFurnitureId'
   | 'selectedShellId'
 >
@@ -158,6 +159,8 @@ interface HouseState {
   selectWall: (key: string | null) => void
   selectOpening: (id: string | null) => void
   selectedFurnitureId: string | null
+  /** Foco elegido, dentro de la estancia seleccionada. */
+  selectedLightId: string | null
   selectFurniture: (id: string | null) => void
 
   /**
@@ -395,6 +398,7 @@ const NO_SELECTION: Selection = {
   selectedWall: null,
   selectedOpeningId: null,
   selectedSide: null,
+  selectedLightId: null,
   selectedFurnitureId: null,
   selectedShellId: null,
 }

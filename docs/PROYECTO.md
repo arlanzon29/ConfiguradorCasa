@@ -196,14 +196,19 @@ Casa
 │  │  ├─ Paredes · 4              (carpeta)
 │  │  │  ├─ Pared norte
 │  │  │  └─ Pared este · con la Estancia 2
-│  │  └─ Mobiliario · 1           (carpeta)
-│  │     └─ Sofá
+│  │  ├─ Mobiliario · 1           (carpeta)
+│  │  │  └─ Sofá
+│  │  └─ Luces · 2                (carpeta)
+│  │     ├─ Foco 1
+│  │     └─ Foco 2
 │  └─ Estancia 2 · 6 × 3 m
 └─ Fotos · 3
 ```
 
-- Dentro de cada estancia, **dos carpetas** (las pidió el usuario): "Paredes"
-  y "Mobiliario", con su cuenta. Solo pliegan y despliegan; cerradas de
+- Dentro de cada estancia, **tres carpetas** (las pidió el usuario): "Paredes",
+  "Mobiliario" y "Luces", con su cuenta. Elegir un foco elige su estancia con
+  ese foco marcado (`selectedLightId` en `store.ts`): sus datos salen en el
+  apartado de luces de Propiedades y su círculo se resalta en el plano. Solo pliegan y despliegan; cerradas de
   entrada, se abren solas si tienen lo elegido.
 - **Cada pared cuelga de una sola estancia** (decisión del usuario): la que da
   `deriveWalls` en `Wall.moduleId`; en una compartida, la del norte u oeste. Un
@@ -213,8 +218,8 @@ Casa
   todas (se queda en el borde de la suya) ni colocar uno nuevo fuera de una
   estancia. Solo sale suelto bajo "Casa" el de un plano antiguo que ya estaba
   fuera.
-- Lo que cuelga de una pared (huecos, vinilos, espejos, tableros) y los focos no
-  salen en el árbol: están en Propiedades de su pared o de su estancia.
+- Lo que cuelga de una pared (huecos, vinilos, espejos, tableros) no sale en el
+  árbol: está en Propiedades de su pared.
 - Estancias de planos antiguos sin módulos cuelgan directamente de "Casa".
 
 **Qué sale en Propiedades** según lo elegido:
@@ -555,6 +560,11 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-11** · Carpeta **"Luces"** en cada estancia del árbol, con una
+  línea por foco (lo pidió el usuario). El foco elegido pasa de ser cosa del
+  panel a estar en el estado (`selectedLightId`), para que árbol, panel y plano
+  marquen el mismo.
 
 - **2026-10-11** · **Los datos siguen al árbol** (lo propuso el usuario al ver
   que el árbol enseñaba la casa más ordenada de lo que estaba guardada; eligió

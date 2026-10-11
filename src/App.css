@@ -782,6 +782,11 @@ button:disabled {
   pointer-events: none;
 }
 
+.light-mark.selected {
+  stroke: var(--accent);
+  stroke-width: 0.06;
+}
+
 .vinyls h3 {
   font-size: 13px;
   font-weight: 600;

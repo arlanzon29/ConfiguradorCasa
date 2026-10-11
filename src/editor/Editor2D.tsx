@@ -238,6 +238,7 @@ export default function Editor2D() {
   const moveShell = useHouse((s) => s.moveShell)
   const furniture = useHouse((s) => s.furniture)
   const selectedFurnitureId = useHouse((s) => s.selectedFurnitureId)
+  const selectedLightId = useHouse((s) => s.selectedLightId)
   const pick = useHouse((s) => s.pick)
   const addFurniture = useHouse((s) => s.addFurniture)
   const moveFurniture = useHouse((s) => s.moveFurniture)
@@ -557,7 +558,13 @@ export default function Editor2D() {
           {/* Luces: un círculo por foco, donde cae en el techo. */}
           {mode === 'modules' &&
             (m.lights ?? []).map((l) => (
-              <circle key={l.id} className="light-mark" cx={l.x} cy={l.y} r={0.1} />
+              <circle
+                key={l.id}
+                className={l.id === selectedLightId ? 'light-mark selected' : 'light-mark'}
+                cx={l.x}
+                cy={l.y}
+                r={0.1}
+              />
             ))}
         </g>
       ))}
