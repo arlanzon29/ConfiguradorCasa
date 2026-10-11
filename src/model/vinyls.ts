@@ -93,7 +93,7 @@ export function vinylProblem(v: Pick<Vinyl, 'x' | 'y' | 'width' | 'height'>, len
 export function vinylPlacement(
   room: PlacedModule,
   side: Side,
-  v: Vinyl,
+  v: Pick<Vinyl, 'x' | 'width'>,
   walls: Wall[],
   gap = GAP,
 ) {

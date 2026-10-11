@@ -10,6 +10,7 @@ import {
 } from '../model/finishes'
 import { Side, formatMeters } from '../model/house'
 import { useHouse } from '../store'
+import MirrorsSection from './MirrorsSection'
 import VinylsSection from './VinylsSection'
 
 const SIDE_NAMES: Record<Side, string> = { n: 'norte', s: 'sur', e: 'este', w: 'oeste' }
@@ -134,6 +135,7 @@ export default function FinishesPanel() {
               </p>
             </section>
             <VinylsSection key={`${selected.id}:${selectedSide}`} room={selected} side={selectedSide} />
+            <MirrorsSection key={`espejos:${selected.id}:${selectedSide}`} room={selected} side={selectedSide} />
             </>
           ) : (
             <section>

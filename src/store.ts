@@ -35,6 +35,7 @@ import {
   wallLine,
 } from './model/openings'
 import { Plan } from './model/planFile'
+import { DEFAULT_MIRROR, Mirror } from './model/mirrors'
 import { Vinyl, vinylProblem, vinylType, wallFace } from './model/vinyls'
 import { JointSettings, Joints, Wall, deriveWalls, fitOpening, pairKey, refitOpenings, wallOf } from './model/walls'
 
@@ -176,6 +177,11 @@ interface HouseState {
   /** Cambia posición o medidas de un vinilo. Devuelve un mensaje de error, o ''. */
   patchVinyl: (roomId: string, side: Side, id: string, patch: Partial<Omit<Vinyl, 'id'>>) => string
   removeVinyl: (roomId: string, side: Side, id: string) => void
+  /** Cuelga un espejo en la pared de ese lado, centrado. Devuelve su id, o null si no cabe. */
+  addMirror: (roomId: string, side: Side) => string | null
+  /** Cambia posición o medidas de un espejo. Devuelve un mensaje de error, o ''. */
+  patchMirror: (roomId: string, side: Side, id: string, patch: Partial<Omit<Mirror, 'id'>>) => string
+  removeMirror: (roomId: string, side: Side, id: string) => void
 
   setWallThickness: (key: string, thickness: number) => void
   setWallOpen: (key: string, open: boolean) => void
@@ -334,6 +340,16 @@ export const useHouse = create<HouseState>()(
           modules: s.modules.map((m) =>
             m.id === roomId
               ? { ...m, vinyls: { ...m.vinyls, [side]: change(m.vinyls?.[side] ?? []) } }
+              : m,
+          ),
+        }))
+
+      /** Cambia la lista de espejos de un lado de una estancia. */
+      const setMirrors = (roomId: string, side: Side, change: (list: Mirror[]) => Mirror[]) =>
+        set((s) => ({
+          modules: s.modules.map((m) =>
+            m.id === roomId
+              ? { ...m, mirrors: { ...m.mirrors, [side]: change(m.mirrors?.[side] ?? []) } }
               : m,
           ),
         }))
@@ -540,6 +556,7 @@ export const useHouse = create<HouseState>()(
                   skirting: turnSides(m.skirting),
                   sideColors: turnSides(m.sideColors),
                   vinyls: turnSides(m.vinyls),
+                  mirrors: turnSides(m.mirrors),
                   floorTurned: !m.floorTurned,
                 },
           )
@@ -674,6 +691,7 @@ export const useHouse = create<HouseState>()(
             skirting: turn(current.skirting),
             sideColors: turn(current.sideColors),
             vinyls: turn(current.vinyls),
+            mirrors: turn(current.mirrors),
           }
           const others = modules.filter((m) => m.id !== id)
           if (!fits(rotated, others, get().shells)) return
@@ -857,6 +875,36 @@ export const useHouse = create<HouseState>()(
         },
         removeVinyl: (roomId, side, id) =>
           setVinyls(roomId, side, (list) => list.filter((v) => v.id !== id)),
+        addMirror: (roomId, side) => {
+          const { modules, joints } = get()
+          const room = modules.find((m) => m.id === roomId)
+          if (!room) return null
+          const { length } = wallFace(room, side, deriveWalls(modules, joints))
+          const width = roundSize(Math.min(DEFAULT_MIRROR.width, length))
+          const mirror: Mirror = {
+            id: crypto.randomUUID(),
+            x: roundSize(Math.max(0, (length - width) / 2)),
+            y: DEFAULT_MIRROR.y,
+            width,
+            height: DEFAULT_MIRROR.height,
+          }
+          if (vinylProblem(mirror, length)) return null
+          setMirrors(roomId, side, (list) => [...list, mirror])
+          return mirror.id
+        },
+        patchMirror: (roomId, side, id, patch) => {
+          const { modules, joints } = get()
+          const room = modules.find((m) => m.id === roomId)
+          const current = room?.mirrors?.[side]?.find((v) => v.id === id)
+          if (!room || !current) return 'Ese espejo ya no existe.'
+          const next = { ...current, ...patch }
+          const problem = vinylProblem(next, wallFace(room, side, deriveWalls(modules, joints)).length)
+          if (problem) return problem
+          setMirrors(roomId, side, (list) => list.map((v) => (v.id === id ? next : v)))
+          return ''
+        },
+        removeMirror: (roomId, side, id) =>
+          setMirrors(roomId, side, (list) => list.filter((v) => v.id !== id)),
 
         setWallThickness: (key, thickness) => patchWall(key, thickness),
         setWallOpen: (key, open) => patchWall(key, undefined, open),

@@ -16,7 +16,7 @@ interface SlideProps {
 }
 
 /** Una medida con su casilla para escribirla y, al lado, una barra para moverla. */
-function Slide({ label, value, min, max, step = 0.01, onApply }: SlideProps) {
+export function Slide({ label, value, min, max, step = 0.01, onApply }: SlideProps) {
   return (
     <>
       <Field label={label} value={value} onApply={onApply} />

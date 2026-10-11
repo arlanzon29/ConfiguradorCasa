@@ -564,6 +564,21 @@ export default function Editor2D() {
                 )
               }),
             )}
+          {/* Espejos: otra raya, a ras de la pared. */}
+          {mode === 'finishes' &&
+            (['n', 's', 'e', 'w'] as const).flatMap((side) =>
+              (m.mirrors?.[side] ?? []).map((v) => {
+                const place = vinylPlacement(m, side, v, walls)
+                if (!place) return null
+                const [a, b] = [place.along - v.width / 2, place.along + v.width / 2]
+                const across = place.across + (side === 'n' || side === 'w' ? 0.02 : -0.02)
+                return place.horizontal ? (
+                  <line key={v.id} className="mirror-mark" x1={a - m.x} x2={b - m.x} y1={across - m.y} y2={across - m.y} />
+                ) : (
+                  <line key={v.id} className="mirror-mark" y1={a - m.y} y2={b - m.y} x1={across - m.x} x2={across - m.x} />
+                )
+              }),
+            )}
         </g>
       ))}
 

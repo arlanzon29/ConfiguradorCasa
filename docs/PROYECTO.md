@@ -82,6 +82,16 @@ Otros elementos:
   que pise un hueco u otro vinilo, y así vale también para un efecto sobre una
   ventana. Las imágenes salen de un catálogo (`VINYLS`); el cliente
   no sube las suyas, de momento. Solo se ve en 3D y en la foto.
+- **Espejo** (`Mirror` en `mirrors.ts`): una pieza fina colgada de la cara de
+  una pared que da a una estancia. Es **geometría** (2 cm de grueso), no como el
+  vinilo, pero se guarda y se coloca igual: en su estancia por lado
+  (`PlacedModule.mirrors`), con `x`, `y`, ancho y alto, sin giro, y sin impedir
+  que pise un hueco, un vinilo u otro espejo. En 3D son **dos piezas**
+  (distinción del usuario): el **cuerpo**, una caja oscura a la que más adelante
+  se le podrá añadir un marco, y la **superficie reflectante**, un plano aparte
+  sobre su cara de delante (`mirrorParts` y `MirrorPiece` en `View3D.tsx`). El
+  reflejo de verdad solo sale en la foto en calidad; en la vista normal la
+  superficie es un panel claro. De momento es una **prueba**.
 - **Rodapié** (`Skirting`): alto y color **por pared**, guardados donde el grosor:
   por lado de estancia en las exteriores (`PlacedModule.skirting`) y por pareja en
   las compartidas (`joints`). Por defecto 7 cm y blanco; alto 0 = sin rodapié. La
@@ -106,6 +116,7 @@ src/
     openings.ts     tipos y catálogo de puertas/ventanas
     finishes.ts     catálogo de suelos, colores de pared
     vinyls.ts       vinilos: catálogo y dónde cae cada uno en su pared
+    mirrors.ts      espejos: la pieza y sus medidas por defecto
     furniture.ts    catálogo de mobiliario por familias
     planFile.ts     formato del archivo de plano (guardar/cargar)
   editor/
@@ -149,7 +160,7 @@ y qué muestra el panel). `Mode` en `store.ts`:
 | `shells` | Módulos | Añadir (horizontal/vertical), mover, redimensionar, girar, eliminar módulos de fábrica. Se ve toda la parcela |
 | `modules` | Estancias | Añadir, mover, estirar (8 tiradores), girar, eliminar estancias |
 | `walls` | Paredes | Seleccionar pared: grosor, rodapié (alto y color) y quitar/poner. Colocar, deslizar, centrar y redimensionar puertas y ventanas; distancia al extremo de la pared y altura de la ventana |
-| `finishes` | Acabados | Clic en el centro de una estancia: suelo y color de todas sus paredes. Clic junto a un lado: color de esa pared y sus vinilos (pegar del catálogo, y casillas con barra deslizante para la distancia a la izquierda y al suelo, ancho, alto y giro; "Mantener la proporción" y "Eliminar") |
+| `finishes` | Acabados | Clic en el centro de una estancia: suelo y color de todas sus paredes. Clic junto a un lado: color de esa pared y sus vinilos (pegar del catálogo, y casillas con barra deslizante para la distancia a la izquierda y al suelo, ancho, alto y giro; "Mantener la proporción" y "Eliminar"), y debajo sus espejos ("Añadir espejo" y las mismas casillas, sin giro) |
 | `options` | Opciones | Mobiliario por familias (Salón, Comedor, Dormitorio): colocar, mover, girar, pegar a pared. Icono de imán para activar o no el imantado a paredes |
 | `photos` | Fotos | Fotos en calidad guardadas: miniaturas, Anterior/Siguiente (la cámara va a donde se sacó cada una, con su objetivo), pinchar para verla grande, descargar, repetir (la saca otra vez desde el mismo sitio y sustituye a la anterior) y eliminar. En el plano, un icono numerado por foto donde se sacó; pincharlo lleva la cámara allí |
 
@@ -307,6 +318,15 @@ que la textura "Madera de pino" cubre 2 × 2 m (supuesto, sin confirmar).
   aparte en la vista 3D normal (por defecto, y cambiando alto y color de una
   pared); sin probar a la vista el corte en una puerta, una pared compartida, el
   giro ni la foto en calidad.
+- Espejos: son una prueba. El **filtro de ruido emborrona lo reflejado**: trata
+  el espejo como una superficie lisa y suaviza la imagen que hay dentro (sin
+  filtro el reflejo sale nítido, con su grano). Sin decidir qué hacer. Medidas
+  inventadas (2 cm de grueso; 0,5 × 1,5 m a 0,3 m del suelo al colgarlo). Sin
+  marco. Al encoger la estancia no se reencajan, como los vinilos. En el plano
+  son una raya azul, sin arrastre. Probado en el servidor aparte: añadirlo desde
+  el panel, la vista normal y una foto a 50 muestras con y sin filtro, en una
+  pared compartida. Sin probar: las casillas, eliminar, el giro de estancia o
+  módulo, dos espejos enfrentados, ni guardar y cargar un plano con espejos.
 - Vinilos en la foto: la lámina toma el color de pared de su estancia; si un
   tramo de esa cara tuviera otro grosor, la lámina va a la profundidad del
   centro de su recuadro. Su imagen pasa por la textura de 1024 px del trazador:
@@ -415,6 +435,19 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-11** · **Prueba de espejos** (tema 6 de pendientes; el usuario pidió
+  probar con una caja alargada y fina colocada en una pared, como un acabado, y
+  precisó que la superficie reflectante debe ser otra cosa que la geometría,
+  por si luego lleva marco). Nuevo `model/mirrors.ts`, campo `mirrors` en
+  `PlacedModule` (gira con la estancia y el módulo), `addMirror`, `patchMirror`
+  y `removeMirror` en `store.ts`, `MirrorsSection.tsx` bajo los vinilos en
+  Acabados (`Slide` se exporta de `VinylsSection.tsx`), `mirrorParts` y
+  `MirrorPiece` en `View3D.tsx` (cuerpo y superficie como dos mallas) y una raya
+  por espejo en el plano. `vinylPlacement` acepta ya cualquier pieza con `x` y
+  `width`. El archivo de plano no cambia de versión. Resultado: con la librería
+  actual el trazador **refleja bien** sin más trabajo (el usuario lo ve bien);
+  el **filtro de ruido emborrona el reflejo**.
 
 - **2026-10-11** · El usuario prueba el **filtro de ruido** de la foto y lo da por
   bueno (tema 1 de pendientes): hecho.

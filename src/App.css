@@ -718,6 +718,12 @@ button:disabled {
   pointer-events: none;
 }
 
+.mirror-mark {
+  stroke: #0891b2;
+  stroke-width: 0.06;
+  pointer-events: none;
+}
+
 .vinyls h3 {
   font-size: 13px;
   font-weight: 600;

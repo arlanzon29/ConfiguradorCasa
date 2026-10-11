@@ -19,6 +19,7 @@ import {
   resolveFinish,
 } from '../model/finishes'
 import { PLOT, PlacedModule, SIDES, Side, WALL_HEIGHT } from '../model/house'
+import { MIRROR_THICKNESS } from '../model/mirrors'
 import { VINYLS, VinylSheet, vinylPlacement, vinylSheets, vinylType } from '../model/vinyls'
 import { OPPOSITE, Opening } from '../model/openings'
 import { Joints, Wall, deriveWalls, openingsOf, wallAcross } from '../model/walls'
@@ -503,6 +504,72 @@ function VinylPlane({ part }: { part: VinylPart }) {
   )
 }
 
+interface MirrorPart {
+  key: string
+  /** El cuerpo: la caja fina que cuelga de la pared. */
+  body: { position: [number, number, number]; size: [number, number, number] }
+  /** La superficie que refleja: un plano aparte, sobre la cara de delante del cuerpo. */
+  surface: { position: [number, number, number]; turn: number; size: [number, number] }
+}
+
+// Lo que la superficie reflectante se separa del cuerpo, para que no parpadee con su cara.
+const MIRROR_GAP = 0.001
+const MIRROR_BODY_COLOR = '#3a3d40'
+
+/**
+ * Espejos de todas las estancias. Cada uno son dos piezas: el cuerpo, que es
+ * geometría, y la superficie reflectante, que va aparte como un acabado suyo.
+ */
+function mirrorParts(modules: PlacedModule[], joints: Joints) {
+  const walls = deriveWalls(modules, joints)
+  const parts: MirrorPart[] = []
+  for (const room of modules) {
+    for (const side of SIDES) {
+      for (const v of room.mirrors?.[side] ?? []) {
+        const body = vinylPlacement(room, side, v, walls, MIRROR_THICKNESS / 2)
+        const front = vinylPlacement(room, side, v, walls, MIRROR_THICKNESS + MIRROR_GAP)
+        if (!body || !front) continue
+        const y = SLAB + v.y + v.height / 2
+        parts.push({
+          key: v.id,
+          body: body.horizontal
+            ? { position: [body.along, y, body.across], size: [v.width, v.height, MIRROR_THICKNESS] }
+            : { position: [body.across, y, body.along], size: [MIRROR_THICKNESS, v.height, v.width] },
+          surface: {
+            position: front.horizontal ? [front.along, y, front.across] : [front.across, y, front.along],
+            turn: VINYL_TURN[side],
+            size: [v.width, v.height],
+          },
+        })
+      }
+    }
+  }
+  return parts
+}
+
+/**
+ * Un espejo. En la foto en calidad la superficie refleja de verdad (metal
+ * pulido); en la vista normal no hay reflejos y queda como un panel plateado.
+ */
+function MirrorPiece({ part, photo }: { part: MirrorPart; photo: boolean }) {
+  return (
+    <>
+      <mesh position={part.body.position} castShadow receiveShadow>
+        <boxGeometry args={part.body.size} />
+        <meshStandardMaterial color={MIRROR_BODY_COLOR} roughness={0.6} />
+      </mesh>
+      <mesh position={part.surface.position} rotation-y={part.surface.turn}>
+        <planeGeometry args={part.surface.size} />
+        {photo ? (
+          <meshStandardMaterial color="#ffffff" metalness={1} roughness={0} />
+        ) : (
+          <meshStandardMaterial color="#e3eaee" roughness={0.2} />
+        )}
+      </mesh>
+    </>
+  )
+}
+
 // Píxeles por metro de la lámina de vinilos de la foto, y su lado máximo en píxeles.
 const SHEET_DENSITY = 500
 const SHEET_MAX = 2048
@@ -563,7 +630,7 @@ function VinylSheetPlane({ sheet, walls }: { sheet: VinylSheet; walls: Wall[] })
   const place = vinylPlacement(
     room,
     side,
-    { id: '', typeId: '', x: box.x0, y: box.y0, width, height },
+    { x: box.x0, width },
     walls,
     SHEET_GAP,
   )
@@ -639,6 +706,7 @@ export default function View3D() {
     [modules, joints, openings],
   )
   const vinyls = useMemo(() => vinylParts(modules, joints), [modules, joints])
+  const mirrors = useMemo(() => mirrorParts(modules, joints), [modules, joints])
   const walls = useMemo(() => deriveWalls(modules, joints), [modules, joints])
   const vinylSheetList = useMemo(
     () => vinylSheets(modules, walls, openings),
@@ -896,6 +964,9 @@ export default function View3D() {
                 <VinylPlane part={part} />
               </Suspense>
             ))}
+        {mirrors.map((part) => (
+          <MirrorPiece key={part.key} part={part} photo={photo} />
+        ))}
         {skirtings.map((part, i) => (
           <mesh key={i} position={part.position} receiveShadow>
             <boxGeometry args={part.size} />
@@ -909,7 +980,7 @@ export default function View3D() {
         <PhotoTracer
           // Al repetir se empieza de cero aunque ya hubiera una foto terminada a la vista.
           key={retakeId ?? 'libre'}
-          revision={[modules, parts, skirtings, joinery, furniture, vinyls]}
+          revision={[modules, parts, skirtings, joinery, furniture, vinyls, mirrors]}
           goal={photoSamples}
           filter={filter}
           onProgress={onProgress}

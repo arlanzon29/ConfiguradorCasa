@@ -247,6 +247,16 @@ el imán a paredes y el objetivo de la cámara.
   En la vista 3D normal un espejo de verdad obliga a dibujar la escena dos veces;
   propuesta: ahí un panel plateado, y reflejo real solo en la foto.
 - Encajan con los vinilos: mismo tipo de pieza anclada a la pared.
+- **Prueba del 2026-10-11** (pedida por el usuario: una caja alargada y fina en
+  una pared, como un acabado). Hecha en Acabados, bajo los vinilos. El usuario
+  precisa que quizá luego lleve **geometría para el marco** y que **la superficie
+  reflectante debe ser otra cosa**: por eso son dos piezas, cuerpo y superficie.
+  Resultado: en la foto el reflejo sale real y nítido (el usuario lo ve bien);
+  en la vista normal, panel claro. **El filtro de ruido emborrona lo reflejado.**
+- Queda por hablar: qué hacer con el filtro dentro del espejo (dejarlo sin
+  filtrar, con su grano, o filtrarlo bien, que es bastante más trabajo); el
+  marco y su acabado; si la superficie reflectante pasa a ser un acabado que se
+  pueda poner a otras piezas; medidas libres o de catálogo.
 
 ### 5. Vinilos en las paredes
 

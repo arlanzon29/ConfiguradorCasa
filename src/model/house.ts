@@ -2,6 +2,7 @@
 // (en el código, "module" por razones históricas) y guarda posición y tamaño
 // reales, no celdas de rejilla: la rejilla es solo una ayuda del editor.
 
+import type { Mirror } from './mirrors'
 import type { Vinyl } from './vinyls'
 
 // Paso de la rejilla: 20 cm. Un módulo de 13 × 4,20 m son 65 × 21 cuadros exactos.
@@ -65,6 +66,8 @@ export interface PlacedModule {
   sideColors?: Partial<Record<Side, string>>
   /** Vinilos pegados a la pared de cada lado, por dentro (vinyls.ts). */
   vinyls?: Partial<Record<Side, Vinyl[]>>
+  /** Espejos colgados de la pared de cada lado, por dentro (mirrors.ts). */
+  mirrors?: Partial<Record<Side, Mirror[]>>
   // Los tres siguientes solo afectan a los tramos exteriores de cada lado; las
   // paredes compartidas con otra estancia tienen sus propios ajustes (walls.ts).
   /** Rodapié por lado, en la cara de dentro. */
