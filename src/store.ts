@@ -35,6 +35,7 @@ import {
   wallLine,
 } from './model/openings'
 import { Plan } from './model/planFile'
+import type { PieceKind } from './model/names'
 import {
   DEFAULT_LIGHT,
   LIGHT_MARGIN,
@@ -108,6 +109,7 @@ type Selection = Pick<
   | 'selectedOpeningId'
   | 'selectedSide'
   | 'selectedLightId'
+  | 'selectedPiece'
   | 'selectedFurnitureId'
   | 'selectedShellId'
 >
@@ -168,6 +170,8 @@ interface HouseState {
   selectedFurnitureId: string | null
   /** Foco elegido, dentro de la estancia seleccionada. */
   selectedLightId: string | null
+  /** Vinilo, espejo o tablero elegido, en una cara de la pared seleccionada. */
+  selectedPiece: { kind: PieceKind; roomId: string; side: Side; id: string } | null
   selectFurniture: (id: string | null) => void
 
   /**
@@ -416,6 +420,7 @@ const NO_SELECTION: Selection = {
   selectedOpeningId: null,
   selectedSide: null,
   selectedLightId: null,
+  selectedPiece: null,
   selectedFurnitureId: null,
   selectedShellId: null,
 }

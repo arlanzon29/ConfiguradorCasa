@@ -28,16 +28,19 @@ import {
   defaultRoomName,
   defaultShellName,
   defaultWallName,
+  piecesOf,
   roomName,
 } from '../model/names'
 import { Field, Fields, NameField } from './Field'
 import { BoardsSection } from './BoardsSection'
 import { ColorPicker, FaceFinishes, FinishPicker, RoomFinishes } from './FinishesPanel'
 import { AddLight, LightProperties } from './LightsSection'
+import MirrorsSection from './MirrorsSection'
 import ModulesPanel from './ModulesPanel'
 import OptionsPanel from './OptionsPanel'
 import PhotosPanel from './PhotosPanel'
 import ShellsPanel from './ShellsPanel'
+import VinylsSection from './VinylsSection'
 import WallsPanel from './WallsPanel'
 
 // Panel derecho: los datos de lo que está elegido en el árbol o en el plano y,
@@ -506,6 +509,9 @@ export default function PropertiesPanel({ hidden, onToggle }: Props) {
   const item = useHouse((s) => s.furniture.find((f) => f.id === s.selectedFurnitureId))
   const selectedLightId = useHouse((s) => s.selectedLightId)
   const light = room?.lights?.find((l) => l.id === selectedLightId)
+  const piece = useHouse((s) => s.selectedPiece)
+  const pieceRoom = piece && modules.find((m) => m.id === piece.roomId)
+  const pieceThere = !!piece && !!pieceRoom && piecesOf(pieceRoom, piece.kind, piece.side).some((p) => p.id === piece.id)
 
   const walls = useMemo(
     () => (mode === 'walls' ? deriveWalls(modules, joints) : []),
@@ -548,7 +554,17 @@ export default function PropertiesPanel({ hidden, onToggle }: Props) {
         <OpeningProperties key={opening.id} opening={opening} walls={walls} />
       </section>
     )
-  else if (mode === 'walls' && wall)
+  else if (mode === 'walls' && piece && pieceRoom && pieceThere) {
+    const props = { key: piece.id, room: pieceRoom, side: piece.side, chosenId: piece.id }
+    body =
+      piece.kind === 'vinyl' ? (
+        <VinylsSection {...props} />
+      ) : piece.kind === 'mirror' ? (
+        <MirrorsSection {...props} />
+      ) : (
+        <BoardsSection {...props} />
+      )
+  } else if (mode === 'walls' && wall)
     body = (
       <>
         <section>

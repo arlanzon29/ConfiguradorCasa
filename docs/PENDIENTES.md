@@ -17,9 +17,10 @@ está decidido ni empezado. Lo más reciente, arriba.
 - **Hecho después, el mismo día:** carpetas Paredes, Mobiliario y Luces en cada
   estancia; padre explícito y `.json` anidado como el árbol; Propiedades solo
   de lo elegido; nombre editable en todo; foco por defecto en cada estancia.
-- **Falta:** ordenar el panel derecho de la pared en apartados plegables.
-  Hablado y sin decidir: que lo que cuelga de una pared (huecos, vinilos,
-  espejos, tableros) salga como líneas del árbol.
+- También el mismo día: "+" en el árbol, huecos, vinilos, espejos y tableros
+  como líneas bajo su pared, y fuera las luces provisionales.
+- **Falta:** elegir vinilos, espejos y tableros pinchando en el plano, y probar
+  todo con el ratón sobre un plano real.
 
 ### 17. Más geometría: primitivas (tableros)
 

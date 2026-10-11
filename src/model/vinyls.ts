@@ -11,6 +11,8 @@ import { Wall, openingSpan } from './walls'
 
 export interface Vinyl {
   id: string
+  /** Nombre que le ha puesto el usuario; si falta, uno por defecto (names.ts). */
+  name?: string
   /** Imagen: `id` de VINYLS. */
   typeId: string
   x: number

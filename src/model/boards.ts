@@ -9,6 +9,8 @@ import { PlacedModule, Side, WALL_HEIGHT } from './house'
 
 export interface Board {
   id: string
+  /** Nombre que le ha puesto el usuario; si falta, uno por defecto (names.ts). */
+  name?: string
   x: number
   y: number
   width: number

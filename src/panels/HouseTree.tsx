@@ -1,11 +1,15 @@
 import { useMemo, useState } from 'react'
 import { FAMILIES, FURNITURE } from '../model/furniture'
 import { PlacedModule, formatMeters } from '../model/house'
-import { OPENING_CATALOG } from '../model/openings'
+import { OPENING_CATALOG, OPPOSITE } from '../model/openings'
+import { VINYLS, vinylPlacement } from '../model/vinyls'
 import {
   furnitureName,
   lightName,
+  PieceKind,
   openingName,
+  pieceName,
+  piecesOf,
   roomName,
   shellName,
   wallName,
@@ -78,6 +82,7 @@ export default function HouseTree() {
   const addLight = useHouse((s) => s.addLight)
   const addFurniture = useHouse((s) => s.addFurniture)
   const addOpening = useHouse((s) => s.addOpening)
+  const selectedPiece = useHouse((s) => s.selectedPiece)
   // La línea cuyo "+" tiene abierta la lista de lo que se le puede añadir, y el aviso si no cabe.
   const [menu, setMenu] = useState<string | null>(null)
   const [notice, setNotice] = useState('')
@@ -108,6 +113,51 @@ export default function HouseTree() {
 
   // Puertas y ventanas de una pared, en el orden en que están a lo largo de ella.
   const holes = (w: (typeof walls)[number]) => openingsOf(w, modules, walls, openings)
+
+  // Vinilos, espejos y tableros de una pared: los de la cara que da a su estancia
+  // y, si es compartida, los de la otra. Son del lado entero de su estancia; si
+  // ese lado tiene varios tramos de pared, cada pieza va al tramo donde cae.
+  const KINDS: PieceKind[] = ['vinyl', 'mirror', 'board']
+  const pieces = (w: (typeof walls)[number]) => {
+    const faces = [
+      { id: w.moduleId, side: w.side },
+      ...(w.otherId ? [{ id: w.otherId, side: OPPOSITE[w.side] }] : []),
+    ]
+    return faces.flatMap(({ id, side }) => {
+      const room = modules.find((m) => m.id === id)
+      if (!room) return []
+      const stretches = walls.filter(
+        (x) =>
+          (x.moduleId === id && x.side === side) ||
+          (x.otherId === id && OPPOSITE[x.side] === side),
+      )
+      return KINDS.flatMap((kind) =>
+        piecesOf(room, kind, side)
+          .filter((p) => {
+            if (stretches.length < 2) return true
+            const at = vinylPlacement(room, side, p as never, walls)?.along
+            return at === undefined ? stretches[0] === w : at >= w.from && at <= w.to
+          })
+          .map((p) => ({ kind, room, side, id: p.id })),
+      )
+    })
+  }
+  /** Añade una pieza a la cara de la pared que da a su estancia y la deja elegida. */
+  const addPiece = (w: (typeof walls)[number], kind: PieceKind, typeId?: string) => {
+    const s = useHouse.getState()
+    const id =
+      kind === 'vinyl'
+        ? s.addVinyl(w.moduleId, w.side, typeId!)
+        : kind === 'mirror'
+          ? s.addMirror(w.moduleId, w.side)
+          : s.addBoard(w.moduleId, w.side)
+    if (!id) return setNotice('No cabe en esta pared.')
+    setMenu(null)
+    pick('walls', {
+      selectedWall: w.key,
+      selectedPiece: { kind, roomId: w.moduleId, side: w.side, id },
+    })
+  }
 
   const roomRows = (room: PlacedModule, level: number) => {
     const own = walls.filter((w) => w.moduleId === room.id)
@@ -165,15 +215,15 @@ export default function HouseTree() {
             return (
               <div key={w.key}>
               <Row
-                open={holes(w).length ? (opened[w.key] ?? true) : undefined}
+                open={holes(w).length + pieces(w).length ? (opened[w.key] ?? true) : undefined}
                 onToggle={() => setOpened({ ...opened, [w.key]: !(opened[w.key] ?? true) })}
                 level={level + 2}
                 label={`${wallName(w)}${number}`}
                 detail={w.otherId ? `con la ${roomName(modules, w.otherId)}` : undefined}
-                active={w.key === selectedWall}
+                active={w.key === selectedWall && !selectedPiece}
                 onPick={() => pick('walls', { selectedWall: w.key })}
                 onAdd={() => toggleMenu(w.key)}
-                addTitle="Añadir una puerta o una ventana a esta pared"
+                addTitle="Añadir a esta pared una puerta, una ventana, un espejo, un tablero o un vinilo"
               />
               {menu === w.key && (
                 <div className="tree-menu" style={{ marginLeft: (level + 3) * 14 }}>
@@ -189,6 +239,14 @@ export default function HouseTree() {
                       {t.name}
                     </button>
                   ))}
+                  <button onClick={() => addPiece(w, 'mirror')}>Espejo</button>
+                  <button onClick={() => addPiece(w, 'board')}>Tablero</button>
+                  <span className="muted">Vinilos</span>
+                  {VINYLS.map((t) => (
+                    <button key={t.id} onClick={() => addPiece(w, 'vinyl', t.id)}>
+                      {t.name}
+                    </button>
+                  ))}
                   {notice && <p className="notice">{notice}</p>}
                 </div>
               )}
@@ -201,6 +259,24 @@ export default function HouseTree() {
                     detail={`${formatMeters(o.width)} m`}
                     active={o.id === selectedOpeningId}
                     onPick={() => pick('walls', { selectedOpeningId: o.id })}
+                  />
+                ))}
+              {(opened[w.key] ?? true) &&
+                pieces(w).map((p) => (
+                  <Row
+                    key={p.id}
+                    level={level + 3}
+                    label={pieceName(p.room, p.kind, p.side, p.id)}
+                    detail={
+                      p.room.id !== w.moduleId ? `cara de la ${roomName(modules, p.room.id)}` : undefined
+                    }
+                    active={selectedPiece?.id === p.id}
+                    onPick={() =>
+                      pick('walls', {
+                        selectedWall: w.key,
+                        selectedPiece: { kind: p.kind, roomId: p.room.id, side: p.side, id: p.id },
+                      })
+                    }
                   />
                 ))}
               </div>

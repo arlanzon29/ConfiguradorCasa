@@ -4,20 +4,25 @@ import { PlacedModule, Side, WALL_HEIGHT } from '../model/house'
 import { wallFace } from '../model/vinyls'
 import { deriveWalls } from '../model/walls'
 import { useHouse } from '../store'
-import { Fields } from './Field'
+import { defaultPieceName } from '../model/names'
+import { Fields, NameField } from './Field'
 import { FinishPicker } from './FinishesPanel'
 import { Slide } from './VinylsSection'
 
-const SIDE_NAMES: Record<Side, string> = { n: 'norte', s: 'sur', e: 'este', w: 'oeste' }
-
 /** Tableros de una pared: el botón para colocar uno y los datos del elegido. */
-export function BoardsSection({ room, side }: { room: PlacedModule; side: Side }) {
+export function BoardsSection({ room, side, chosenId }: { room: PlacedModule; side: Side; chosenId?: string }) {
   const modules = useHouse((s) => s.modules)
   const joints = useHouse((s) => s.joints)
   const addBoard = useHouse((s) => s.addBoard)
   const patchBoard = useHouse((s) => s.patchBoard)
   const removeBoard = useHouse((s) => s.removeBoard)
-  const [chosenId, setChosenId] = useState<string | null>(null)
+  const pick = useHouse((s) => s.pick)
+  // La pieza elegida está en el estado: el árbol la marca y Propiedades enseña solo lo suyo.
+  const setChosenId = (id: string) =>
+    pick('walls', {
+      selectedWall: useHouse.getState().selectedWall,
+      selectedPiece: { kind: 'board', roomId: room.id, side, id },
+    })
   const [notice, setNotice] = useState('')
 
   const length = useMemo(
@@ -32,7 +37,9 @@ export function BoardsSection({ room, side }: { room: PlacedModule; side: Side }
   return (
     // Mismos estilos que el apartado de vinilos.
     <section className="vinyls">
-      <h2>Tableros de la pared {SIDE_NAMES[side]}</h2>
+      {!chosenId && (
+        <>
+      <h2>Añadir tablero</h2>
       <div className="actions">
         <button
           onClick={() => {
@@ -41,27 +48,21 @@ export function BoardsSection({ room, side }: { room: PlacedModule; side: Side }
             if (id) setChosenId(id)
           }}
         >
-          Añadir tablero
+          Tablero
         </button>
       </div>
       {notice && <p className="notice">{notice}</p>}
-
-      {list.length > 0 && (
-        <div className="vinyl-list">
-          {list.map((v, i) => (
-            <button
-              key={v.id}
-              className={v.id === chosenId ? 'active' : ''}
-              onClick={() => setChosenId(v.id)}
-            >
-              {i + 1}
-            </button>
-          ))}
-        </div>
+        </>
       )}
 
       {chosen && (
         <>
+          <NameField
+            value={chosen.name}
+            fallback={defaultPieceName(room, 'board', side, chosen.id)}
+            onApply={(name) => patch({ name: name || undefined })}
+          />
+          <p>Tablero</p>
           <h3>Postura</h3>
           <div className="actions">
             {BOARD_POSES.map((p) => (

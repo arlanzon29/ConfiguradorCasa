@@ -214,7 +214,9 @@ Casa
 │  │  │  ├─ Pared norte
 │  │  │  │  └─ Ventana · 1,2 m
 │  │  │  └─ Pared este · con la Estancia 2
-│  │  │     └─ Puerta · 0,9 m
+│  │  │     ├─ Puerta · 0,9 m
+│  │  │     ├─ Luna                  (vinilo)
+│  │  │     └─ Espejo 1 · cara de la Estancia 2
 │  │  ├─ Mobiliario · 1           (carpeta)
 │  │  │  └─ Sofá
 │  │  └─ Luces · 2                (carpeta)
@@ -239,8 +241,13 @@ Casa
   fuera.
 - **Puertas y ventanas cuelgan de su pared** en el árbol (lo pidió el usuario),
   en el orden en que están a lo largo de ella (`openingsOf`); la pared con
-  huecos se pliega. Vinilos, espejos y tableros no salen en el árbol: están
-  en Propiedades de su pared.
+  algo dentro se pliega. Debajo van sus **vinilos, espejos y tableros**
+  (`pieces` en `HouseTree.tsx`): los de la cara que da a su estancia y, en una
+  compartida, los de la otra cara, con el rótulo "cara de la Estancia N". La
+  pieza elegida está en `selectedPiece` (`store.ts`) y Propiedades enseña solo
+  la suya; en la pared quedan los apartados para añadirlas. El "+" de la
+  pared del árbol las añade a la cara de su estancia; para la otra cara de una
+  compartida hay que elegirla en Propiedades de la pared.
 - Estancias de planos antiguos sin módulos cuelgan directamente de "Casa".
 
 **Qué sale en Propiedades** según lo elegido:
@@ -251,7 +258,8 @@ Casa
 | Módulo | distancia al borde izquierdo y superior de la parcela; ancho y fondo; girar, eliminar | Añadir estancia (catálogo y medida personalizada) y el resumen |
 | Estancia | distancia al borde de su módulo; ancho y fondo; girar, eliminar | Suelo, color de todas sus paredes, "Añadir luz" (foco de techo) y el catálogo de **mobiliario** con el icono de imán |
 | Foco | distancia a la izquierda y arriba, "Centrar en la estancia", potencia (%), tono, color de emisión, eliminar | — |
-| Pared | grosor (cm); rodapié (alto y color); quitar/poner | Añadir hueco (puerta, corredera, ventana); en una compartida, de qué estancia es **la cara** que se viste; color de esa cara, sus vinilos, espejos y tableros |
+| Pared | grosor (cm); rodapié (alto y color); quitar/poner | Añadir hueco (puerta, corredera, ventana); en una compartida, de qué estancia es **la cara** que se viste; color de esa cara, y añadir vinilo, espejo o tablero |
+| Vinilo, espejo o tablero | posición, medidas y lo propio de cada uno (giro y proporción; postura, fondo y acabado), eliminar | — |
 | Puerta o ventana | distancia a cada extremo de su pared; ancho y alto; altura (ventanas); en abatibles, hacia dónde abre, canto y cerrar/abrir en 3D; acabado de la carpintería y "Aplicar a todas" | — |
 | Mueble | distancia de cada borde a las cuatro paredes de su estancia; pegar a la pared, "Centrar en la estancia" (entre las caras interiores de sus paredes), girar, eliminar | El catálogo de mobiliario |
 | Fotos | — | Las fotos guardadas: miniaturas, Anterior/Siguiente, ver, descargar, repetir, eliminar. En el plano, un icono numerado por foto |
@@ -439,9 +447,8 @@ que la textura "Madera de pino" cubre 2 × 2 m (supuesto, sin confirmar).
   foto a 50 muestras con y sin filtro. Sin probar: las casillas y barras,
   "Eliminar", el giro de estancia o módulo, estancias con y sin focos en la
   misma foto, ni guardar y cargar un plano con luces.
-- Interfaz de árbol: falta ordenar el panel derecho, que en una pared es muy
-  largo. Vinilos, espejos y tableros no tienen nombre ni salen en el árbol: se
-  eligen dentro del panel de su pared. Tras añadir una
+- Interfaz de árbol: en el plano, vinilos, espejos y tableros no se eligen
+  pinchando (solo desde el árbol) ni se resalta el elegido. Tras añadir una
   estancia hay que volver a elegir el módulo para añadir otra. Vinilos, espejos
   y tableros son del lado entero de su estancia: si el lado tiene varios tramos
   de pared, todos enseñan la misma lista. El marcador de la cámara tapa los
@@ -583,6 +590,17 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-11** · **Vinilos, espejos y tableros en el árbol**, bajo su pared
+  (lo pidió el usuario), con nombre editable como todo lo demás (`name` en
+  `Vinyl`, `Mirror` y `Board`; `pieceName` y `piecesOf` en `names.ts`).
+  `selectedPiece` en `store.ts`; `VinylsSection`, `MirrorsSection` y
+  `BoardsSection` reciben `chosenId`: sin él enseñan lo que se añade, con él
+  solo las propiedades de esa pieza, y pierden su lista numerada. El "+" de la
+  pared ofrece además espejo, tablero y los vinilos. Probado en el servidor
+  aparte con una pared compartida: un vinilo, un tablero y un espejo en la
+  otra cara salen bajo ella, y el tablero elegido enseña solo lo suyo. Sin
+  probar: añadirlos con el "+" del árbol, renombrarlos y eliminarlos.
 
 - **2026-10-11** · **Puertas y ventanas en el árbol**, bajo su pared (lo pidió
   el usuario), con su nombre y su ancho. Elegir una enseña sus propiedades.

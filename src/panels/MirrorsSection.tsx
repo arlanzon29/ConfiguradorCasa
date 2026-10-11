@@ -4,17 +4,24 @@ import { Mirror } from '../model/mirrors'
 import { MIN_VINYL, wallFace } from '../model/vinyls'
 import { deriveWalls } from '../model/walls'
 import { useHouse } from '../store'
-import { Fields } from './Field'
+import { defaultPieceName } from '../model/names'
+import { Fields, NameField } from './Field'
 import { Slide } from './VinylsSection'
 
 /** Espejos de una pared: el botón para colgar uno y las medidas del elegido. */
-export default function MirrorsSection({ room, side }: { room: PlacedModule; side: Side }) {
+export default function MirrorsSection({ room, side, chosenId }: { room: PlacedModule; side: Side; chosenId?: string }) {
   const modules = useHouse((s) => s.modules)
   const joints = useHouse((s) => s.joints)
   const addMirror = useHouse((s) => s.addMirror)
   const patchMirror = useHouse((s) => s.patchMirror)
   const removeMirror = useHouse((s) => s.removeMirror)
-  const [chosenId, setChosenId] = useState<string | null>(null)
+  const pick = useHouse((s) => s.pick)
+  // La pieza elegida está en el estado: el árbol la marca y Propiedades enseña solo lo suyo.
+  const setChosenId = (id: string) =>
+    pick('walls', {
+      selectedWall: useHouse.getState().selectedWall,
+      selectedPiece: { kind: 'mirror', roomId: room.id, side, id },
+    })
   const [notice, setNotice] = useState('')
 
   const length = useMemo(
@@ -29,7 +36,9 @@ export default function MirrorsSection({ room, side }: { room: PlacedModule; sid
   return (
     // Mismos estilos que el apartado de vinilos.
     <section className="vinyls">
-      <h2>Espejos de esta pared</h2>
+      {!chosenId && (
+        <>
+      <h2>Añadir espejo</h2>
       <div className="actions">
         <button
           onClick={() => {
@@ -38,27 +47,21 @@ export default function MirrorsSection({ room, side }: { room: PlacedModule; sid
             if (id) setChosenId(id)
           }}
         >
-          Añadir espejo
+          Espejo
         </button>
       </div>
       {notice && <p className="notice">{notice}</p>}
-
-      {list.length > 0 && (
-        <div className="vinyl-list">
-          {list.map((v, i) => (
-            <button
-              key={v.id}
-              className={v.id === chosenId ? 'active' : ''}
-              onClick={() => setChosenId(v.id)}
-            >
-              {i + 1}
-            </button>
-          ))}
-        </div>
+        </>
       )}
 
-      {chosen ? (
+      {chosen && (
         <>
+          <NameField
+            value={chosen.name}
+            fallback={defaultPieceName(room, 'mirror', side, chosen.id)}
+            onApply={(name) => patch({ name: name || undefined })}
+          />
+          <p>Espejo</p>
           <Fields title="Distancia desde">
             <Slide
               label="La izquierda (m)"
@@ -94,11 +97,11 @@ export default function MirrorsSection({ room, side }: { room: PlacedModule; sid
           <div className="actions spaced">
             <button onClick={() => removeMirror(room.id, side, chosen.id)}>Eliminar</button>
           </div>
+          <p className="muted spaced">
+            El reflejo de verdad solo sale en la foto en calidad; en la vista 3D es un panel
+            plateado.
+          </p>
         </>
-      ) : (
-        <p className="muted spaced">
-          El reflejo de verdad solo sale en la foto en calidad; en la vista 3D es un panel plateado.
-        </p>
       )}
     </section>
   )

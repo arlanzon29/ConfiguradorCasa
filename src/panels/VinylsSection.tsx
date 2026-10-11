@@ -3,7 +3,8 @@ import { PlacedModule, Side, WALL_HEIGHT, roundSize } from '../model/house'
 import { MIN_VINYL, VINYLS, Vinyl, vinylType, wallFace } from '../model/vinyls'
 import { deriveWalls } from '../model/walls'
 import { useHouse } from '../store'
-import { Field, Fields } from './Field'
+import { defaultPieceName } from '../model/names'
+import { Field, Fields, NameField } from './Field'
 
 interface SlideProps {
   label: string
@@ -35,13 +36,19 @@ export function Slide({ label, value, min, max, step = 0.01, onApply }: SlidePro
 }
 
 /** Vinilos de una pared: el catálogo para pegar uno y las medidas del elegido. */
-export default function VinylsSection({ room, side }: { room: PlacedModule; side: Side }) {
+export default function VinylsSection({ room, side, chosenId }: { room: PlacedModule; side: Side; chosenId?: string }) {
   const modules = useHouse((s) => s.modules)
   const joints = useHouse((s) => s.joints)
   const addVinyl = useHouse((s) => s.addVinyl)
   const patchVinyl = useHouse((s) => s.patchVinyl)
   const removeVinyl = useHouse((s) => s.removeVinyl)
-  const [chosenId, setChosenId] = useState<string | null>(null)
+  const pick = useHouse((s) => s.pick)
+  // La pieza elegida está en el estado: el árbol la marca y Propiedades enseña solo lo suyo.
+  const setChosenId = (id: string) =>
+    pick('walls', {
+      selectedWall: useHouse.getState().selectedWall,
+      selectedPiece: { kind: 'vinyl', roomId: room.id, side, id },
+    })
   const [notice, setNotice] = useState('')
   // Al cambiar el ancho o el alto, el otro lo sigue para no deformar la imagen.
   const [locked, setLocked] = useState(true)
@@ -58,7 +65,9 @@ export default function VinylsSection({ room, side }: { room: PlacedModule; side
 
   return (
     <section className="vinyls">
-      <h2>Vinilos de esta pared</h2>
+      {!chosenId && (
+        <>
+      <h2>Añadir vinilo</h2>
       <div className="vinyl-catalog">
         {VINYLS.map((t) => (
           <button
@@ -76,24 +85,17 @@ export default function VinylsSection({ room, side }: { room: PlacedModule; side
         ))}
       </div>
       {notice && <p className="notice">{notice}</p>}
-
-      {list.length > 0 && (
-        <div className="vinyl-list">
-          {list.map((v, i) => (
-            <button
-              key={v.id}
-              className={v.id === chosenId ? 'active' : ''}
-              onClick={() => setChosenId(v.id)}
-            >
-              <img src={vinylType(v.typeId)?.image} alt="" />
-              {i + 1}
-            </button>
-          ))}
-        </div>
+        </>
       )}
 
-      {chosen ? (
+      {chosen && (
         <>
+          <NameField
+            value={chosen.name}
+            fallback={defaultPieceName(room, 'vinyl', side, chosen.id)}
+            onApply={(name) => patch({ name: name || undefined })}
+          />
+          <p>Vinilo · {vinylType(chosen.typeId)?.name}</p>
           <Fields title="Distancia desde">
             <Slide
               label="La izquierda (m)"
@@ -150,10 +152,6 @@ export default function VinylsSection({ room, side }: { room: PlacedModule; side
             del vinilo sin girar.
           </p>
         </>
-      ) : (
-        <p className="muted spaced">
-          Pulsa un dibujo para pegarlo en esta pared. Puedes poner varios.
-        </p>
       )}
     </section>
   )

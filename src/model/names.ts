@@ -5,6 +5,7 @@ import { FurnitureItem, furnitureType } from './furniture'
 import { PlacedModule, Shell, Side } from './house'
 import { RoomLight } from './lights'
 import { Opening } from './openings'
+import { Vinyl, vinylType } from './vinyls'
 import { Wall } from './walls'
 
 const SIDE_NAMES: Record<Side, string> = { n: 'norte', s: 'sur', e: 'este', w: 'oeste' }
@@ -31,6 +32,24 @@ export const lightName = (room: PlacedModule, light: RoomLight) =>
 export const defaultFurnitureName = (item: FurnitureItem) =>
   furnitureType(item.typeId)?.name ?? 'Mueble'
 export const furnitureName = (item: FurnitureItem) => item.name ?? defaultFurnitureName(item)
+
+/** Piezas colgadas de una cara de pared. */
+export type PieceKind = 'vinyl' | 'mirror' | 'board'
+const PIECE_LISTS = { vinyl: 'vinyls', mirror: 'mirrors', board: 'boards' } as const
+
+/** Las piezas de esa clase en la cara de `side` de una estancia. */
+export const piecesOf = (room: PlacedModule, kind: PieceKind, side: Side) =>
+  (room[PIECE_LISTS[kind]]?.[side] ?? []) as { id: string; name?: string }[]
+
+export function defaultPieceName(room: PlacedModule, kind: PieceKind, side: Side, id: string) {
+  const list = piecesOf(room, kind, side)
+  const piece = list.find((p) => p.id === id)
+  if (kind === 'vinyl') return vinylType((piece as Vinyl | undefined)?.typeId ?? '')?.name ?? 'Vinilo'
+  return `${kind === 'mirror' ? 'Espejo' : 'Tablero'} ${list.findIndex((p) => p.id === id) + 1}`
+}
+export const pieceName = (room: PlacedModule, kind: PieceKind, side: Side, id: string) =>
+  piecesOf(room, kind, side).find((p) => p.id === id)?.name ??
+  defaultPieceName(room, kind, side, id)
 
 export const defaultOpeningName = (o: Opening) => (o.kind === 'door' ? 'Puerta' : 'Ventana')
 export const openingName = (o: Opening) => o.name ?? defaultOpeningName(o)
