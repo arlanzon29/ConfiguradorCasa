@@ -388,6 +388,9 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-11** · El usuario da por bueno el tema de los **vinilos** (tema 5 de
+  pendientes): hecho.
+
 - **2026-10-11** · Vinilos en la **foto en calidad**: el usuario veía un recuadro
   más claro alrededor de cada uno. El trazador no ilumina igual la pared vista a
   través de la parte transparente de un plano. Ahora, solo durante la foto, los

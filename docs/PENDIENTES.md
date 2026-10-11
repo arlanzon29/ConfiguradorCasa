@@ -232,7 +232,7 @@ el imán a paredes y el objetivo de la cámara.
 - Respuesta dada: sí, es viable. Propuesta: tratarlos como los huecos, un rectángulo
   con imagen anclado a un lado de una estancia (posición, ancho, alto y altura
   sobre el suelo), que no pise puertas ni ventanas. Se verían en 3D y en la foto.
-- **Hecho el 2026-10-11** como prueba. Decidido por el usuario: es una imagen con
+- **Hecho el 2026-10-11, y dado por bueno por el usuario.** Decidido por el usuario: es una imagen con
   fondo transparente con x, y, ancho y alto; va en Acabados; las imágenes son de
   catálogo (el cliente no sube las suyas, de momento); varias piezas sueltas por
   pared. Y la distinción: el vinilo es superficie, un espejo es geometría.
