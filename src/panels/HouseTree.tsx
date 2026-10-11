@@ -19,10 +19,27 @@ import { usePhotos } from '../photos'
 import { useHouse } from '../store'
 
 // Panel izquierdo: la casa como un árbol. Casa → módulos → estancias, y en cada
-// estancia una carpeta con sus paredes (y en cada pared sus puertas y ventanas), otra con su mobiliario y otra con sus luces. Elegir una línea es lo mismo que pinchar la cosa en el
-// plano; sus datos salen en el panel derecho. El "+" de una línea le añade algo:
-// un foco a las luces, un mueble al mobiliario, un hueco a una pared. El orden y
+// estancia una carpeta con sus paredes (y en cada pared, carpetas de puertas,
+// ventanas, vinilos, espejos y tableros), otra con su mobiliario y otra con sus luces. Elegir una línea es lo mismo que pinchar la cosa en el
+// plano; sus datos salen en el panel derecho. El "+" de una carpeta añade lo que
+// esa carpeta guarda: un foco, un mueble, una puerta, un vinilo… El orden y
 // de quién cuelga cada cosa los manda la casa: aquí no se mueve nada de rama.
+
+/** Carpetas de cada pared: qué guarda cada una y, por tanto, qué añade su "+". */
+interface WallGroup {
+  name: string
+  /** En singular, para el rótulo del "+". */
+  one: string
+  opening?: 'door' | 'window'
+  piece?: PieceKind
+}
+const WALL_GROUPS: WallGroup[] = [
+  { name: 'Puertas', one: 'una puerta', opening: 'door' },
+  { name: 'Ventanas', one: 'una ventana', opening: 'window' },
+  { name: 'Vinilos', one: 'un vinilo', piece: 'vinyl' },
+  { name: 'Espejos', one: 'un espejo', piece: 'mirror' },
+  { name: 'Tableros', one: 'un tablero', piece: 'board' },
+]
 
 interface RowProps {
   level: number
@@ -159,6 +176,88 @@ export default function HouseTree() {
     })
   }
 
+  // Una carpeta de una pared, con lo suyo dentro y un "+" que sabe qué añade:
+  // si solo hay una clase, la pone directamente; si hay varias, se elige en una lista.
+  const wallFolder = (w: (typeof walls)[number], group: WallGroup, level: number) => {
+    const key = `${w.key}:${group.name}`
+    const own = group.opening ? holes(w).filter((h) => h.opening.kind === group.opening) : []
+    const items = group.piece ? pieces(w).filter((p) => p.kind === group.piece) : []
+    const holds =
+      own.some((h) => h.opening.id === selectedOpeningId) ||
+      items.some((p) => p.id === selectedPiece?.id)
+    const shown = opened[key] ?? holds
+    const toggle = () => setOpened({ ...opened, [key]: !shown })
+    const types: { id: string; name: string }[] = group.opening
+      ? OPENING_CATALOG.filter((t) => t.kind === group.opening)
+      : group.piece === 'vinyl'
+        ? VINYLS
+        : []
+    const addOne = (typeId?: string) => {
+      if (group.piece) return addPiece(w, group.piece, typeId)
+      // Sale centrado en la pared; luego se desliza por ella.
+      if (addOpening(typeId!, w.key, (w.from + w.to) / 2)) setMenu(null)
+      else setNotice('No cabe en esta pared.')
+    }
+    return (
+      <div key={key}>
+        <Row
+          level={level}
+          label={group.name}
+          detail={String(own.length + items.length)}
+          open={shown}
+          onToggle={toggle}
+          onPick={toggle}
+          addTitle={`Añadir a esta pared: ${group.one}`}
+          onAdd={() => {
+            if (types.length > 1) return toggleMenu(key)
+            // Si no cabe, el aviso sale bajo la carpeta.
+            setNotice('')
+            setMenu(key)
+            addOne(types[0]?.id)
+          }}
+        />
+        {menu === key && (
+          <div className="tree-menu" style={{ marginLeft: (level + 1) * 14 }}>
+            {types.length > 1 &&
+              types.map((t) => (
+                <button key={t.id} onClick={() => addOne(t.id)}>
+                  {t.name}
+                </button>
+              ))}
+            {notice && <p className="notice">{notice}</p>}
+          </div>
+        )}
+        {shown &&
+          own.map(({ opening: o }) => (
+            <Row
+              key={o.id}
+              level={level + 1}
+              label={openingName(o)}
+              detail={`${formatMeters(o.width)} m`}
+              active={o.id === selectedOpeningId}
+              onPick={() => pick('walls', { selectedOpeningId: o.id })}
+            />
+          ))}
+        {shown &&
+          items.map((p) => (
+            <Row
+              key={p.id}
+              level={level + 1}
+              label={pieceName(p.room, p.kind, p.side, p.id)}
+              detail={p.room.id !== w.moduleId ? `cara de ${roomName(modules, p.room.id)}` : undefined}
+              active={selectedPiece?.id === p.id}
+              onPick={() =>
+                pick('walls', {
+                  selectedWall: w.key,
+                  selectedPiece: { kind: p.kind, roomId: p.room.id, side: p.side, id: p.id },
+                })
+              }
+            />
+          ))}
+      </div>
+    )
+  }
+
   const roomRows = (room: PlacedModule, level: number) => {
     const own = walls.filter((w) => w.moduleId === room.id)
     const items = furniture.filter((f) => roomOf(f) === room)
@@ -212,73 +311,20 @@ export default function HouseTree() {
             // Un lado partido en varios tramos los numera, si no tienen nombre propio.
             const same = own.filter((o) => o.side === w.side)
             const number = same.length > 1 && !w.name ? ` ${same.indexOf(w) + 1}` : ''
+            // Cerrada de entrada; se abre sola si tiene lo elegido.
+            const wallOpen = opened[w.key] ?? w.key === wallKey
             return (
               <div key={w.key}>
-              <Row
-                open={holes(w).length + pieces(w).length ? (opened[w.key] ?? true) : undefined}
-                onToggle={() => setOpened({ ...opened, [w.key]: !(opened[w.key] ?? true) })}
-                level={level + 2}
-                label={`${wallName(w)}${number}`}
-                detail={w.otherId ? `con la ${roomName(modules, w.otherId)}` : undefined}
-                active={w.key === selectedWall && !selectedPiece}
-                onPick={() => pick('walls', { selectedWall: w.key })}
-                onAdd={() => toggleMenu(w.key)}
-                addTitle="Añadir a esta pared una puerta, una ventana, un espejo, un tablero o un vinilo"
-              />
-              {menu === w.key && (
-                <div className="tree-menu" style={{ marginLeft: (level + 3) * 14 }}>
-                  {OPENING_CATALOG.map((t) => (
-                    <button
-                      key={t.id}
-                      onClick={() => {
-                        // Sale centrado en la pared; luego se desliza por ella.
-                        if (addOpening(t.id, w.key, (w.from + w.to) / 2)) setMenu(null)
-                        else setNotice('No cabe en esta pared.')
-                      }}
-                    >
-                      {t.name}
-                    </button>
-                  ))}
-                  <button onClick={() => addPiece(w, 'mirror')}>Espejo</button>
-                  <button onClick={() => addPiece(w, 'board')}>Tablero</button>
-                  <span className="muted">Vinilos</span>
-                  {VINYLS.map((t) => (
-                    <button key={t.id} onClick={() => addPiece(w, 'vinyl', t.id)}>
-                      {t.name}
-                    </button>
-                  ))}
-                  {notice && <p className="notice">{notice}</p>}
-                </div>
-              )}
-              {(opened[w.key] ?? true) &&
-                holes(w).map(({ opening: o }) => (
-                  <Row
-                    key={o.id}
-                    level={level + 3}
-                    label={openingName(o)}
-                    detail={`${formatMeters(o.width)} m`}
-                    active={o.id === selectedOpeningId}
-                    onPick={() => pick('walls', { selectedOpeningId: o.id })}
-                  />
-                ))}
-              {(opened[w.key] ?? true) &&
-                pieces(w).map((p) => (
-                  <Row
-                    key={p.id}
-                    level={level + 3}
-                    label={pieceName(p.room, p.kind, p.side, p.id)}
-                    detail={
-                      p.room.id !== w.moduleId ? `cara de la ${roomName(modules, p.room.id)}` : undefined
-                    }
-                    active={selectedPiece?.id === p.id}
-                    onPick={() =>
-                      pick('walls', {
-                        selectedWall: w.key,
-                        selectedPiece: { kind: p.kind, roomId: p.room.id, side: p.side, id: p.id },
-                      })
-                    }
-                  />
-                ))}
+                <Row
+                  open={wallOpen}
+                  onToggle={() => setOpened({ ...opened, [w.key]: !wallOpen })}
+                  level={level + 2}
+                  label={`${wallName(w)}${number}`}
+                  detail={w.otherId ? `con ${roomName(modules, w.otherId)}` : undefined}
+                  active={w.key === selectedWall && !selectedPiece}
+                  onPick={() => pick('walls', { selectedWall: w.key })}
+                />
+                {wallOpen && WALL_GROUPS.map((group) => wallFolder(w, group, level + 3))}
               </div>
             )
             }),

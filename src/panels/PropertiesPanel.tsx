@@ -470,7 +470,7 @@ function WallFaces({ wall }: { wall: Wall }) {
                 className={f === face ? 'active' : ''}
                 onClick={() => setOther(n === 1)}
               >
-                La que da a la {roomName(modules, f.id)}
+                La que da a {roomName(modules, f.id)}
               </button>
             ))}
           </div>

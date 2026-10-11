@@ -211,12 +211,16 @@ Casa
 ├─ Módulo 1 · 13 × 4,2 m
 │  ├─ Estancia 1 · 3 × 3 m        (se pliega; se abre sola si tiene lo elegido)
 │  │  ├─ Paredes · 4              (carpeta)
-│  │  │  ├─ Pared norte
-│  │  │  │  └─ Ventana · 1,2 m
+│  │  │  ├─ Pared norte           (se pliega; dentro, cinco carpetas)
 │  │  │  └─ Pared este · con la Estancia 2
-│  │  │     ├─ Puerta · 0,9 m
-│  │  │     ├─ Luna                  (vinilo)
-│  │  │     └─ Espejo 1 · cara de la Estancia 2
+│  │  │     ├─ Puertas · 1
+│  │  │     │  └─ Puerta · 0,9 m
+│  │  │     ├─ Ventanas · 0
+│  │  │     ├─ Vinilos · 1
+│  │  │     │  └─ Luna
+│  │  │     ├─ Espejos · 1
+│  │  │     │  └─ Espejo 1 · cara de la Estancia 2
+│  │  │     └─ Tableros · 0
 │  │  ├─ Mobiliario · 1           (carpeta)
 │  │  │  └─ Sofá
 │  │  └─ Luces · 2                (carpeta)
@@ -245,8 +249,12 @@ Casa
   (`pieces` en `HouseTree.tsx`): los de la cara que da a su estancia y, en una
   compartida, los de la otra cara, con el rótulo "cara de la Estancia N". La
   pieza elegida está en `selectedPiece` (`store.ts`) y Propiedades enseña solo
-  la suya; en la pared quedan los apartados para añadirlas. El "+" de la
-  pared del árbol las añade a la cara de su estancia; para la otra cara de una
+  la suya; en la pared quedan los apartados para añadirlas. Dentro de cada pared hay **cinco carpetas** (las pidió el usuario, para que
+  el "+" sepa qué hacer): Puertas, Ventanas, Vinilos, Espejos y Tableros
+  (`WALL_GROUPS`, `wallFolder`). El "+" de cada una añade lo suyo: directo si
+  solo hay una clase (ventana, espejo, tablero) y con una lista si hay varias
+  (puerta o corredera; los vinilos). La pared no lleva "+". El "+" pone las
+  piezas en la cara de su estancia; para la otra cara de una
   compartida hay que elegirla en Propiedades de la pared.
 - Estancias de planos antiguos sin módulos cuelgan directamente de "Casa".
 
@@ -590,6 +598,10 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-11** · **Carpetas dentro de cada pared** (lo pidió el usuario: así
+  el "+" sabe qué hacer): Puertas, Ventanas, Vinilos, Espejos y Tableros, cada
+  una con su cuenta y su "+". La pared pierde el suyo y sale plegada.
 
 - **2026-10-11** · **Vinilos, espejos y tableros en el árbol**, bajo su pared
   (lo pidió el usuario), con nombre editable como todo lo demás (`name` en
