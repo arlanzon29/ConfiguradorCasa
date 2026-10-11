@@ -3,6 +3,7 @@
 // reales, no celdas de rejilla: la rejilla es solo una ayuda del editor.
 
 import type { Board } from './boards'
+import type { RoomLight } from './lights'
 import type { Mirror } from './mirrors'
 import type { Vinyl } from './vinyls'
 
@@ -71,6 +72,8 @@ export interface PlacedModule {
   mirrors?: Partial<Record<Side, Mirror[]>>
   /** Tableros anclados a la pared de cada lado, por dentro (boards.ts). */
   boards?: Partial<Record<Side, Board[]>>
+  /** Focos del techo (lights.ts). */
+  lights?: RoomLight[]
   // Los tres siguientes solo afectan a los tramos exteriores de cada lado; las
   // paredes compartidas con otra estancia tienen sus propios ajustes (walls.ts).
   /** Rodapié por lado, en la cara de dentro. */

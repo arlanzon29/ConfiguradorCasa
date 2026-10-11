@@ -21,6 +21,7 @@ import {
 } from '../model/finishes'
 import { PLOT, PlacedModule, SIDES, Side, WALL_HEIGHT } from '../model/house'
 import { BOARD_FALLBACK_COLOR } from '../model/boards'
+import { LIGHT_SIZE, lightColor } from '../model/lights'
 import { MIRROR_THICKNESS } from '../model/mirrors'
 import { VINYLS, VinylSheet, vinylPlacement, vinylSheets, vinylType } from '../model/vinyls'
 import { OPPOSITE, Opening } from '../model/openings'
@@ -36,6 +37,8 @@ const SLAB = 0.2
 // Techo y panel de luz provisionales de la foto en calidad: grosor y lado, en metros.
 const CEILING = 0.1
 const CEILING_LIGHT = 0.6
+// Lo que alumbra un foco al 100 %: un tercio del panel provisional. Inventado.
+const LIGHT_INTENSITY = 250
 // Lo que sobresale el rodapié de la pared, en metros.
 const SKIRTING_DEPTH = 0.012
 // La fachada aún no es configurable (dependerá del aislante y del revestimiento).
@@ -971,16 +974,40 @@ export default function View3D() {
                   <boxGeometry args={[m.width, CEILING, m.depth]} />
                   <meshStandardMaterial color="#ffffff" />
                 </mesh>
-                {/* Panel de luz mirando hacia abajo, pegado al techo. */}
-                <rectAreaLight
-                  position-y={SLAB + WALL_HEIGHT - 0.02}
-                  rotation-x={-Math.PI / 2}
-                  width={CEILING_LIGHT}
-                  height={CEILING_LIGHT}
-                  intensity={30}
-                />
+                {/* Sin focos puestos sigue el panel de luz provisional, pegado al techo. */}
+                {!m.lights?.length && (
+                  <rectAreaLight
+                    position-y={SLAB + WALL_HEIGHT - 0.02}
+                    rotation-x={-Math.PI / 2}
+                    width={CEILING_LIGHT}
+                    height={CEILING_LIGHT}
+                    intensity={30}
+                  />
+                )}
               </>
             )}
+            {/* Focos del techo: la pieza se ve siempre; alumbran solo en la foto. */}
+            {(m.lights ?? []).map((l) => (
+              <group
+                key={l.id}
+                position={[l.x - m.width / 2, SLAB + WALL_HEIGHT, l.y - m.depth / 2]}
+              >
+                <mesh position-y={-0.005}>
+                  <cylinderGeometry args={[LIGHT_SIZE / 2, LIGHT_SIZE / 2, 0.01, 24]} />
+                  <meshStandardMaterial color="#ffffff" emissive={lightColor(l.tone)} />
+                </mesh>
+                {photo && (
+                  <rectAreaLight
+                    position-y={-0.015}
+                    rotation-x={-Math.PI / 2}
+                    width={LIGHT_SIZE}
+                    height={LIGHT_SIZE}
+                    color={lightColor(l.tone)}
+                    intensity={(LIGHT_INTENSITY * l.power) / 100}
+                  />
+                )}
+              </group>
+            ))}
             {m.floor && m.floor !== 'base' && (
               <Suspense fallback={null}>
                 <Floor room={m} />

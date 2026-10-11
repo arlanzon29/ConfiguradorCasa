@@ -102,6 +102,14 @@ Otros elementos:
   balda (tumbado). Cambiar de postura intercambia el grueso con la medida que
   ocupaba ese sitio (`posedBoard`). No se impide que pise nada. En 3D es una
   caja (`boardParts` y `BoardBox` en `View3D.tsx`).
+- **Luz de estancia** (`RoomLight` en `lights.ts`): un **foco de techo**. Se
+  guarda en su estancia (`PlacedModule.lights`, una lista, no por lado) con `x`
+  desde el borde oeste e `y` desde el borde norte de la estancia, **potencia**
+  (`power`, en % de la normal, de 10 a 300) y **tono** (`tone`: cálida, neutra
+  o fría). Se mueve y gira con la estancia (`turnLights`). **Solo alumbra en la
+  foto en calidad** (un panel de luz de 12 cm mirando abajo); en la vista
+  normal se ve la pieza, un disco a la altura del techo. Una estancia **sin
+  focos** conserva en la foto el panel provisional de 0,6 m.
 - **Rodapié** (`Skirting`): alto y color **por pared**, guardados donde el grosor:
   por lado de estancia en las exteriores (`PlacedModule.skirting`) y por pareja en
   las compartidas (`joints`). Por defecto 7 cm y blanco; alto 0 = sin rodapié. La
@@ -128,6 +136,7 @@ src/
     vinyls.ts       vinilos: catálogo y dónde cae cada uno en su pared
     mirrors.ts      espejos: la pieza y sus medidas por defecto
     boards.ts       tableros: la pieza, sus posturas y sus límites
+    lights.ts       luces de estancia: el foco de techo, tonos y límites
     furniture.ts    catálogo de mobiliario por familias
     planFile.ts     formato del archivo de plano (guardar/cargar)
   editor/
@@ -173,6 +182,7 @@ y qué muestra el panel). `Mode` en `store.ts`:
 | `walls` | Paredes | Seleccionar pared: grosor, rodapié (alto y color) y quitar/poner. Colocar, deslizar, centrar y redimensionar puertas y ventanas; distancia al extremo de la pared y altura de la ventana |
 | `finishes` | Acabados | Clic en el centro de una estancia: suelo y color de todas sus paredes. Clic junto a un lado: color de esa pared y sus vinilos (pegar del catálogo, y casillas con barra deslizante para la distancia a la izquierda y al suelo, ancho, alto y giro; "Mantener la proporción" y "Eliminar"), y debajo sus espejos ("Añadir espejo" y las mismas casillas, sin giro) |
 | `pieces` | Piezas | Clic junto a un lado de una estancia: los tableros de esa pared (`PiecesPanel.tsx`). "Añadir tablero", postura (Contra la pared, De canto, Balda), casillas con barra para la distancia a la izquierda y al suelo, ancho, alto y fondo, el acabado y "Eliminar". En el plano, cada tablero es un rectángulo marrón con su ancho y su fondo |
+| `lights` | Luces | Clic en una estancia: los focos de su techo (`LightsPanel.tsx`). "Añadir foco de techo" (sale en el centro, o corrido 40 cm si ya hay uno), casillas con barra para la distancia a la izquierda y arriba y la potencia (%), el tono (Cálida, Neutra, Fría) y "Eliminar". En el plano, cada foco es un círculo amarillo |
 | `options` | Opciones | Mobiliario por familias (Salón, Comedor, Dormitorio): colocar, mover, girar, pegar a pared. Icono de imán para activar o no el imantado a paredes |
 | `photos` | Fotos | Fotos en calidad guardadas: miniaturas, Anterior/Siguiente (la cámara va a donde se sacó cada una, con su objetivo), pinchar para verla grande, descargar, repetir (la saca otra vez desde el mismo sitio y sustituye a la anterior) y eliminar. En el plano, un icono numerado por foto donde se sacó; pincharlo lleva la cámara allí |
 
@@ -337,6 +347,17 @@ que la textura "Madera de pino" cubre 2 × 2 m (supuesto, sin confirmar).
   aparte en la vista 3D normal (por defecto, y cambiando alto y color de una
   pared); sin probar a la vista el corte en una puerta, una pared compartida, el
   giro ni la foto en calidad.
+- Luces: valores inventados (foco de 12 cm; al 100 % alumbra un tercio del
+  panel provisional, `LIGHT_INTENSITY` en `View3D.tsx`; se separa 20 cm del
+  borde de la estancia, sin descontar el grosor de las paredes). No hay
+  encendido y apagado, ni luz en la vista normal, ni arrastre en el plano, ni
+  panel derecho. Al encoger la estancia no se reencajan. El foco es pequeño y
+  da más grano que el panel: a 50 muestras se nota sin filtro. Probado en el
+  servidor aparte (5184) en una estancia de 3 × 3 vacía: añadir dos focos,
+  cambiar el tono, el círculo en el plano, el disco en la vista normal y una
+  foto a 50 muestras con y sin filtro. Sin probar: las casillas y barras,
+  "Eliminar", el giro de estancia o módulo, estancias con y sin focos en la
+  misma foto, ni guardar y cargar un plano con luces.
 - Tableros: medidas inventadas (1 × 1 m y 2 cm de grueso al colocarlo, apoyado
   en el suelo; mínimo 5 mm en cualquier medida). No chocan con muebles, huecos
   ni otras piezas, y al encoger la estancia no se reencajan. El fondo máximo es
@@ -466,6 +487,17 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-11** · **Luces de estancia** y pestaña **Luces** (tema 2 de
+  pendientes; el usuario pidió empezar por las luces de la estancia). Primer
+  tipo: el foco de techo, con posición, potencia y tono. Nuevo
+  `model/lights.ts`, campo `lights` en `PlacedModule` (gira con la estancia y
+  el módulo), `addLight`, `patchLight` y `removeLight` en `store.ts`, modo
+  `lights` y `LightsPanel.tsx`, el disco y su `rectAreaLight` en `View3D.tsx`,
+  y un círculo por foco en el plano. El archivo de plano no cambia de versión.
+  Decisión mía, por confirmar con el usuario: la estancia sin focos sigue con
+  el panel provisional, para que los planos y fotos de antes no salgan a
+  oscuras.
 
 - **2026-10-11** · Al **repetir una foto ya no sustituye sola**: al terminar
   sale el mismo recuadro que en una foto nueva, con "Sin filtro / Con filtro",

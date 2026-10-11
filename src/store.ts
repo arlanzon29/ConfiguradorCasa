@@ -35,6 +35,7 @@ import {
   wallLine,
 } from './model/openings'
 import { Plan } from './model/planFile'
+import { DEFAULT_LIGHT, LIGHT_MARGIN, RoomLight, lightProblem, turnLights } from './model/lights'
 import { Board, BoardPose, DEFAULT_BOARD, boardProblem, boardReach, posedBoard } from './model/boards'
 import { DEFAULT_MIRROR, Mirror } from './model/mirrors'
 import { Vinyl, vinylProblem, vinylType, wallFace } from './model/vinyls'
@@ -89,7 +90,7 @@ export const LENSES = [
  * Modo del editor: decide qué se selecciona en el plano y qué muestran el panel
  * izquierdo (lo que se añade) y el derecho (los datos de lo seleccionado).
  */
-export type Mode = 'shells' | 'modules' | 'walls' | 'finishes' | 'pieces' | 'options' | 'photos'
+export type Mode = 'shells' | 'modules' | 'walls' | 'finishes' | 'pieces' | 'lights' | 'options' | 'photos'
 
 interface HouseState {
   /** Estancias: los rectángulos del plano. Las paredes se deducen de sus bordes (walls.ts). */
@@ -197,6 +198,11 @@ interface HouseState {
     pose?: BoardPose,
   ) => string
   removeBoard: (roomId: string, side: Side, id: string) => void
+  /** Pone un foco en el techo de la estancia, hacia el centro. Devuelve su id, o null si no cabe. */
+  addLight: (roomId: string) => string | null
+  /** Cambia posición, potencia o tono de un foco. Devuelve un mensaje de error, o ''. */
+  patchLight: (roomId: string, id: string, patch: Partial<Omit<RoomLight, 'id'>>) => string
+  removeLight: (roomId: string, id: string) => void
 
   setWallThickness: (key: string, thickness: number) => void
   setWallOpen: (key: string, open: boolean) => void
@@ -376,6 +382,14 @@ export const useHouse = create<HouseState>()(
             m.id === roomId
               ? { ...m, boards: { ...m.boards, [side]: change(m.boards?.[side] ?? []) } }
               : m,
+          ),
+        }))
+
+      /** Cambia la lista de focos de una estancia. */
+      const setLights = (roomId: string, change: (list: RoomLight[]) => RoomLight[]) =>
+        set((s) => ({
+          modules: s.modules.map((m) =>
+            m.id === roomId ? { ...m, lights: change(m.lights ?? []) } : m,
           ),
         }))
 
@@ -583,6 +597,7 @@ export const useHouse = create<HouseState>()(
                   vinyls: turnSides(m.vinyls),
                   mirrors: turnSides(m.mirrors),
                   boards: turnSides(m.boards),
+                  lights: turnLights(m.lights, m.depth),
                   floorTurned: !m.floorTurned,
                 },
           )
@@ -719,6 +734,7 @@ export const useHouse = create<HouseState>()(
             vinyls: turn(current.vinyls),
             mirrors: turn(current.mirrors),
             boards: turn(current.boards),
+            lights: turnLights(current.lights, current.depth),
           }
           const others = modules.filter((m) => m.id !== id)
           if (!fits(rotated, others, get().shells)) return
@@ -968,6 +984,35 @@ export const useHouse = create<HouseState>()(
         },
         removeBoard: (roomId, side, id) =>
           setBoards(roomId, side, (list) => list.filter((v) => v.id !== id)),
+        addLight: (roomId) => {
+          const room = get().modules.find((m) => m.id === roomId)
+          if (!room) return null
+          const list = room.lights ?? []
+          const light: RoomLight = {
+            id: crypto.randomUUID(),
+            x: roundSize(room.width / 2),
+            y: roundSize(room.depth / 2),
+            ...DEFAULT_LIGHT,
+          }
+          // Para que no caiga encima de otro, se corre hacia la derecha mientras quepa.
+          const taken = () =>
+            list.some((l) => Math.abs(l.x - light.x) < 0.05 && Math.abs(l.y - light.y) < 0.05)
+          while (taken() && light.x + 0.4 <= room.width - LIGHT_MARGIN) light.x = roundSize(light.x + 0.4)
+          if (lightProblem(light, room)) return null
+          setLights(roomId, (all) => [...all, light])
+          return light.id
+        },
+        patchLight: (roomId, id, patch) => {
+          const room = get().modules.find((m) => m.id === roomId)
+          const current = room?.lights?.find((l) => l.id === id)
+          if (!room || !current) return 'Esa luz ya no existe.'
+          const next = { ...current, ...patch }
+          const problem = lightProblem(next, room)
+          if (problem) return problem
+          setLights(roomId, (list) => list.map((l) => (l.id === id ? next : l)))
+          return ''
+        },
+        removeLight: (roomId, id) => setLights(roomId, (list) => list.filter((l) => l.id !== id)),
 
         setWallThickness: (key, thickness) => patchWall(key, thickness),
         setWallOpen: (key, open) => patchWall(key, undefined, open),

@@ -527,8 +527,10 @@ export default function Editor2D() {
           transform={`translate(${m.x} ${m.y})`}
           onPointerDown={(e) => {
             // Las estancias se mueven en su modo; en acabados solo se seleccionan.
-            if (mode !== 'modules' && mode !== 'finishes' && mode !== 'pieces') return
+            if (mode !== 'modules' && mode !== 'finishes' && mode !== 'pieces' && mode !== 'lights') return
             e.stopPropagation()
+            // Las luces son del techo de la estancia, no de una pared.
+            if (mode === 'lights') return select(m.id)
             const p = toMeters(e)
             if (mode !== 'modules') {
               // Junto a una pared se elige esa pared; en el centro, la estancia entera.
@@ -594,6 +596,11 @@ export default function Editor2D() {
                 )
               }),
             )}
+          {/* Luces: un círculo por foco, donde cae en el techo. */}
+          {mode === 'lights' &&
+            (m.lights ?? []).map((l) => (
+              <circle key={l.id} className="light-mark" cx={l.x} cy={l.y} r={0.1} />
+            ))}
         </g>
       ))}
 

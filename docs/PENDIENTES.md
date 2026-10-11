@@ -99,7 +99,15 @@ El trazado de rayos deja grano en la imagen.
 - **Idea del usuario:** hay que hacer una manera de poner la iluminación.
 - Ahora la foto usa una luz provisional que no se elige: un panel de 0,6 m en el
   centro del techo de cada estancia, más el sol y el cielo.
-- Queda por hablar: qué tipos de luz, cómo se colocan y dónde se configuran.
+- Hablado el 2026-10-11: tres tipos (luz de techo, tira de luz, lámpara como
+  mueble que alumbra), la luz de fuera (dirección del sol y hora) y los
+  interruptores (tema 7). El usuario pidió **empezar por las luces de la
+  estancia**.
+- **Hecho el 2026-10-11:** foco de techo en una pestaña "Luces", con posición,
+  potencia y tono. La estancia sin focos sigue con el panel provisional
+  (decisión mía, por confirmar).
+- Queda por hablar: tiras, lámparas, sol y hora, encender y apagar, si la
+  vista normal debe alumbrar, y más tipos de luz de techo (plafón, panel).
 
 ### 14. Lo que el usuario echa en falta al comparar su foto con la real
 

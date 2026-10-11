@@ -729,6 +729,13 @@ button:disabled {
   pointer-events: none;
 }
 
+.light-mark {
+  fill: #facc15;
+  stroke: #a16207;
+  stroke-width: 0.03;
+  pointer-events: none;
+}
+
 .vinyls h3 {
   font-size: 13px;
   font-weight: 600;
@@ -789,7 +796,8 @@ button:disabled {
 }
 
 .mode-finishes .module,
-.mode-pieces .module {
+.mode-pieces .module,
+.mode-lights .module {
   cursor: pointer;
 }
 
