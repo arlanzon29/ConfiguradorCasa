@@ -601,7 +601,11 @@ Se anota aquí cada cosa que se hace, la más reciente arriba.
 
 - **2026-10-11** · **Carpetas dentro de cada pared** (lo pidió el usuario: así
   el "+" sabe qué hacer): Puertas, Ventanas, Vinilos, Espejos y Tableros, cada
-  una con su cuenta y su "+". La pared pierde el suyo y sale plegada.
+  una con su cuenta y su "+". La pared pierde el suyo y sale plegada. De paso,
+  los rótulos con nombre de estancia dicen "con Dormitorio" y no "con la
+  Dormitorio". Probado en el servidor aparte pulsando los "+" por código: una
+  ventana y un espejo añadidos y elegidos, y la lista de Puertas con sus dos
+  opciones. Sin probar: el "+" de Vinilos y de Tableros, ni nada con el ratón.
 
 - **2026-10-11** · **Vinilos, espejos y tableros en el árbol**, bajo su pared
   (lo pidió el usuario), con nombre editable como todo lo demás (`name` en

@@ -17,8 +17,9 @@ está decidido ni empezado. Lo más reciente, arriba.
 - **Hecho después, el mismo día:** carpetas Paredes, Mobiliario y Luces en cada
   estancia; padre explícito y `.json` anidado como el árbol; Propiedades solo
   de lo elegido; nombre editable en todo; foco por defecto en cada estancia.
-- También el mismo día: "+" en el árbol, huecos, vinilos, espejos y tableros
-  como líneas bajo su pared, y fuera las luces provisionales.
+- También el mismo día: "+" en el árbol; huecos, vinilos, espejos y tableros
+  como líneas bajo su pared, y luego cada clase en su carpeta dentro de la
+  pared (Puertas, Ventanas, Vinilos, Espejos, Tableros), cada una con su "+".
 - **Falta:** elegir vinilos, espejos y tableros pinchando en el plano, y probar
   todo con el ratón sobre un plano real.
 
@@ -120,11 +121,16 @@ El trazado de rayos deja grano en la imagen.
   mueble que alumbra), la luz de fuera (dirección del sol y hora) y los
   interruptores (tema 7). El usuario pidió **empezar por las luces de la
   estancia**.
-- **Hecho el 2026-10-11:** foco de techo en una pestaña "Luces", con posición,
-  potencia y tono. La estancia sin focos sigue con el panel provisional
-  (decisión mía, por confirmar).
+- **Hecho el 2026-10-11:** foco de techo con nombre, posición ("Centrar en la
+  estancia"), potencia, tono y color de emisión. Está en la carpeta "Luces" de
+  su estancia en el árbol (la pestaña Luces duró unas horas). Cada estancia
+  nueva nace con uno, y las de planos anteriores lo reciben al abrirse.
+- **Decidido por el usuario:** fuera las luces provisionales del techo; el sol
+  se queda.
 - Queda por hablar: tiras, lámparas, sol y hora, encender y apagar, si la
   vista normal debe alumbrar, y más tipos de luz de techo (plafón, panel).
+  Sin ver todavía: una foto en calidad con los focos nuevos sobre un plano
+  real, para ajustar cuánto alumbra el 100 %.
 
 ### 14. Lo que el usuario echa en falta al comparar su foto con la real
 
