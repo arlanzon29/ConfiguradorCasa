@@ -265,7 +265,8 @@ que la textura "Madera de pino" cubre 2 × 2 m (supuesto, sin confirmar).
 ## Limitaciones conocidas
 
 - Donde se tocan **dos módulos de fábrica** se dibuja una pared compartida única; en
-  la realidad hay dos (una por módulo). Sin decidir.
+  la realidad hay dos (una por módulo). El usuario confirmó el 2026-10-11 que
+  deben ser dos; sin hacer.
 - Los tramos exteriores de un mismo lado comparten grosor, estado y rodapié.
 - Rodapié: en una pared compartida es el mismo en las dos caras. No rodea los
   cantos de las puertas ni se corta detrás de los muebles. Probado en el servidor
@@ -322,8 +323,12 @@ medida variable, exterior…).
 
 - **Tabiques dentro de una estancia** (p. ej. para un armario empotrado). El usuario
   lo ve necesario; no está empezado.
-- Dudas sin contestar sobre los módulos: si 13 × 4,20 son medidas exteriores, si hay
-  tamaños estándar menores, si pueden ser más de dos, altura máxima por transporte.
+- **Módulos, contestado por el usuario (2026-10-11), sin llevar al código:**
+  13 × 4,20 son medidas **exteriores**; puede haber módulos **menores**; pueden
+  ser **más de dos** (hoy `MAX_SHELLS` = 2); puede haber módulos **sin
+  estancias**, por ejemplo un porche (hoy un módulo vacío no se ve en 3D); y en
+  la unión de dos módulos van **dos paredes**, una por módulo (hoy se dibuja una
+  compartida). Sigue sin contestar la altura máxima por transporte.
 - **Destino visual**: una foto de referencia de cocina fotorrealista. Se habló de un
   camino (techo e iluminación, materiales con relieve, marcos y rodapiés, modelos
   GLB reales, cocina como conjunto, etiquetas sobre el 3D) y de alternativas fuera
@@ -355,6 +360,11 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-11** · Repaso de los temas pendientes con el usuario. Contestó las
+  dudas de los módulos (medidas exteriores, puede haber menores y más de dos,
+  módulos sin estancias como un porche, y dos paredes en la unión): anotado en
+  "Pendiente", sin tocar código. Siguiente tema a hablar: las piezas de pared.
 
 - **2026-10-10** · La foto en calidad **pregunta si se guarda** al terminar (lo
   pidió el usuario): recuadro `.photo-ask` en `View3D.tsx` con "Guardar en Fotos"
