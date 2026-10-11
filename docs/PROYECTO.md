@@ -416,6 +416,9 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-11** · El usuario prueba el **filtro de ruido** de la foto y lo da por
+  bueno (tema 1 de pendientes): hecho.
+
 - **2026-10-11** · **Filtro de ruido y número de muestras** en la foto en calidad
   (tema 1 de pendientes; lo pidió el usuario tras ver la prueba: primero la
   foto, luego el filtro, elegir, y quedarse con una sola; y muestras a elegir

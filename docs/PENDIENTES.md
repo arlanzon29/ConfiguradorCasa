@@ -77,7 +77,7 @@ El trazado de rayos deja grano en la imagen.
 - **Hecho el 2026-10-11.** El usuario eligió el filtro guiado por la geometría,
   aplicado después de trazar, con "Sin filtro / Con filtro" y guardando solo la
   elegida; y pidió poder escoger 50, 100 o 200 muestras. Los bordes en escalera
-  están corregidos. Queda por ver, si hiciera falta: el denoiser por IA y cómo
+  están corregidos. **Probado y dado por bueno por el usuario.** Queda por ver, si hiciera falta: el denoiser por IA y cómo
   se porta el filtro con brillos, espejos y sol directo.
 
 ### 2. Iluminación
