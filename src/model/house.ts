@@ -58,6 +58,8 @@ export interface PlacedModule {
   y: number
   width: number
   depth: number
+  /** Módulo de fábrica del que cuelga; falta en los planos sin módulos. */
+  shellId?: string
   /** Acabado del suelo (id de FLOORS en finishes.ts). */
   floor?: string
   /** Suelo girado 90°, para elegir la dirección de las lamas. */

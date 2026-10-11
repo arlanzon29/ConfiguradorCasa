@@ -8,8 +8,14 @@ import type { Shot } from '../photos'
 // automático en el navegador es aparte (store.ts); esto sirve para copias de
 // seguridad y para pasar un plano a otro navegador u ordenador.
 
+// Desde la versión 2 el archivo tiene la forma del árbol de la casa: cada módulo
+// lleva dentro sus estancias (`rooms`) y cada estancia sus huecos (`openings`) y
+// sus muebles (`furniture`). Fuera quedan las estancias sin módulo, los muebles
+// sin estancia y los ajustes de las paredes compartidas, que son de dos
+// estancias. La versión 1, con cuatro listas planas, se sigue leyendo.
+
 const APP = 'eurocasa-configurador'
-const VERSION = 1
+const VERSION = 2
 
 export interface Plan {
   modules: PlacedModule[]
@@ -27,15 +33,55 @@ export interface PlanPhoto extends Shot {
   data: string
 }
 
-export const serializePlan = (
+export function serializePlan(
   { modules, shells, openings, joints, furniture }: Plan,
   photos: PlanPhoto[] = [],
-) =>
-  JSON.stringify(
-    { app: APP, version: VERSION, modules, shells, openings, joints, furniture, photos },
+) {
+  // Dentro de su padre, la referencia a él sobra: se quita al guardar y se repone al leer.
+  const room = ({ shellId: _shell, ...m }: PlacedModule) => ({
+    ...m,
+    openings: openings.filter((o) => o.moduleId === m.id).map(({ moduleId: _room, ...o }) => o),
+    furniture: furniture.filter((x) => x.roomId === m.id).map(({ roomId: _room, ...x }) => x),
+  })
+  const known = (id?: string) => shells.some((sh) => sh.id === id)
+  return JSON.stringify(
+    {
+      app: APP,
+      version: VERSION,
+      shells: shells.map((sh) => ({
+        ...sh,
+        rooms: modules.filter((m) => m.shellId === sh.id).map(room),
+      })),
+      rooms: modules.filter((m) => !known(m.shellId)).map(room),
+      furniture: furniture.filter((x) => !modules.some((m) => m.id === x.roomId)),
+      joints,
+      photos,
+    },
     null,
     2,
   )
+}
+
+/** Un archivo de la versión 2, deshecho en las listas planas con las que trabaja la aplicación. */
+function flatten(data: Record<string, unknown>) {
+  const list = (v: unknown) => (Array.isArray(v) ? v.filter(isRecord) : [])
+  const modules: unknown[] = []
+  const openings: unknown[] = []
+  const furniture: unknown[] = list(data.furniture)
+  const rooms = (from: unknown, shellId?: unknown) => {
+    for (const { openings: holes, furniture: items, ...m } of list(from)) {
+      modules.push(shellId === undefined ? m : { ...m, shellId })
+      openings.push(...list(holes).map((o) => ({ ...o, moduleId: m.id })))
+      furniture.push(...list(items).map((x) => ({ ...x, roomId: m.id })))
+    }
+  }
+  const shells = list(data.shells).map(({ rooms: inside, ...sh }) => {
+    rooms(inside, sh.id)
+    return sh
+  })
+  rooms(data.rooms)
+  return { ...data, modules, shells, openings, furniture }
+}
 
 const isRecord = (v: unknown): v is Record<string, unknown> =>
   typeof v === 'object' && v !== null && !Array.isArray(v)
@@ -74,7 +120,10 @@ export function parsePlan(text: string): Plan | null {
   } catch {
     return null
   }
-  if (!isRecord(data) || data.app !== APP || data.version !== VERSION) return null
+  if (!isRecord(data) || data.app !== APP) return null
+  if (data.version === VERSION) data = flatten(data)
+  else if (data.version !== 1) return null
+  if (!isRecord(data)) return null
   const { modules, openings, joints } = data
   if (!Array.isArray(modules) || !Array.isArray(openings) || !isRecord(joints)) return null
 

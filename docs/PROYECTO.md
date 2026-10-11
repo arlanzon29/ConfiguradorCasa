@@ -49,6 +49,15 @@ Tres niveles, de fuera a dentro:
 
 Ojo con los nombres: en la interfaz "Módulos" = `shells`; "Estancias" = `modules`.
 
+**De quién es cada cosa se guarda, no se deduce** (desde el 2026-10-11). En
+memoria las listas siguen planas (`shells`, `modules`, `openings`,
+`furniture`), pero cada cosa apunta a su padre: la estancia a su módulo
+(`PlacedModule.shellId`), el mueble a su estancia (`FurnitureItem.roomId`) y
+el hueco a la suya (`Opening.moduleId`, como siempre). Lo mantienen
+`withShells` (dentro de `setModules`) y `housed` en `store.ts`; la geometría
+solo se consulta al mover algo o al abrir un plano de antes (`withParents`).
+Las paredes siguen deducidas.
+
 Otros elementos:
 
 - **Huecos** (`Opening`, puertas y ventanas): anclados a un lado de una estancia
@@ -199,9 +208,11 @@ Casa
 - **Cada pared cuelga de una sola estancia** (decisión del usuario): la que da
   `deriveWalls` en `Wall.moduleId`; en una compartida, la del norte u oeste. Un
   lado partido en varios tramos los numera ("Pared norte 1", "Pared norte 2").
-- **Cada mueble es de una estancia** (decisión del usuario): la primera que
-  contiene su centro (`furnitureInside`); al arrastrarlo a otra cambia de rama.
-  El que queda fuera de todas sale suelto bajo "Casa".
+- **Cada mueble es de una estancia** (decisión del usuario): la que guarda en
+  `roomId`. Al arrastrarlo hasta otra cambia de rama; no se puede sacar de
+  todas (se queda en el borde de la suya) ni colocar uno nuevo fuera de una
+  estancia. Solo sale suelto bajo "Casa" el de un plano antiguo que ya estaba
+  fuera.
 - Lo que cuelga de una pared (huecos, vinilos, espejos, tableros) y los focos no
   salen en el árbol: están en Propiedades de su pared o de su estancia.
 - Estancias de planos antiguos sin módulos cuelgan directamente de "Casa".
@@ -309,8 +320,16 @@ Teclas: `R` gira lo seleccionado, `Supr` lo borra, `Esc` cancela la herramienta.
   (final de `store.ts`). Solo mismo navegador y mismo equipo. La cámara se guarda
   al soltar ratón/tecla, no por fotograma; `View3D` se suscribe a cambios externos.
 - **Planos antiguos sin módulos** (`shells: []`) siguen funcionando sin límite: la
-  restricción solo aplica si hay algún módulo. El formato de archivo tolera que
-  falten `shells` y `furniture`.
+  restricción solo aplica si hay algún módulo.
+- **El archivo de plano tiene la forma del árbol** (`planFile.ts`, versión 2; lo
+  pidió el usuario): `shells`, cada uno con sus `rooms` dentro; cada estancia
+  con sus `openings` y su `furniture` dentro (y, como ya estaban, sus luces,
+  vinilos, espejos y tableros). Fuera quedan `rooms` (estancias sin módulo),
+  `furniture` (muebles sin estancia), `joints` (cada pared compartida es de
+  dos estancias) y `photos`. Dentro de su padre no se repite la referencia a
+  él: `serializePlan` la quita y `flatten` la repone al leer. **La versión 1**
+  (listas planas) se sigue leyendo, también sin `shells` ni `furniture`. El
+  guardado automático del navegador (`localStorage`) sigue plano.
 - **Fotos** (`photos.ts`): se guardan en **IndexedDB** (base `eurocasa`, almacén
   `photos`), no en `localStorage`, que es pequeño y lo comparte el plano. Cada foto
   lleva la imagen (JPEG al 92 %, unos 300 KB; en PNG pesaban 2 MB), la pose de la
@@ -452,8 +471,11 @@ que la textura "Madera de pino" cubre 2 × 2 m (supuesto, sin confirmar).
   calidad ni el giro de estancia o módulo con puertas. El botón "Cerrar / Abrir
   la puerta en 3D" está probado con un clic simulado (cambia el dato y el rótulo)
   y la puerta cerrada se vio en 3D puesta en los datos.
-- Muebles: sin colisiones entre sí ni con huecos; no siguen a la estancia al
-  redimensionarla o girarla sola (sí al mover la estancia o girar/mover el módulo).
+- Muebles: sin colisiones entre sí ni con huecos. Siguen a su estancia al
+  moverla y al girarla (sola o con su módulo); al estirarla se quedan donde
+  estaban, y el que quedaría fuera se lleva al borde y no vuelve si se
+  ensancha otra vez. El límite al arrastrar es el rectángulo de la estancia,
+  sin descontar paredes, salvo con el imán puesto.
 - Un módulo sin estancias no se ve en 3D (suelo y paredes salen de las estancias).
 - Fachada sin configurar (color fijo): dependerá del aislante y el revestimiento.
 - "Guardar/Cargar plano" no se ha probado pulsando los botones (sí el formato,
@@ -533,6 +555,22 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-11** · **Los datos siguen al árbol** (lo propuso el usuario al ver
+  que el árbol enseñaba la casa más ordenada de lo que estaba guardada; eligió
+  la versión ligera, padre explícito). `shellId` en la estancia y `roomId` en
+  el mueble; `withShells`, `housed`, `intoRoom` y `withParents` en
+  `store.ts`, que sustituyen a las comprobaciones por geometría (`inside`,
+  `contains`) en mover, girar y borrar módulos y estancias; `merge` en el
+  guardado del navegador para completar lo de antes. De paso: los muebles
+  giran con su estancia, no se pueden sacar de ella ni colocar fuera de una.
+  Y **el `.json` pasa a la versión 2, anidado** como el árbol (lo pidió a
+  mitad); la versión 1 se sigue leyendo. Probado en el servidor aparte
+  llamando a las acciones: cambio de estancia de un mueble, sacarlo fuera,
+  girar la estancia una y cuatro veces, moverla, colocar fuera, guardar y
+  leer la versión 2 sin diferencias, y abrir `plano-anterior-sin-modulos.json`
+  (3 estancias, 5 muebles, todos con su estancia). Sin probar con el ratón ni
+  pulsando Guardar y Cargar.
 
 - **2026-10-11** · En el árbol, cada estancia lleva una **carpeta "Paredes" y
   otra "Mobiliario"** (lo pidió el usuario), en `HouseTree.tsx`. Probado en el

@@ -265,8 +265,50 @@ interface HouseState {
 }
 
 /** ¿Está el centro del mueble dentro de la estancia? */
-const inside = (m: PlacedModule, f: FurnitureItem) =>
+const inside = (m: PlacedModule, f: Pick<FurnitureItem, 'x' | 'y'>) =>
   f.x >= m.x && f.x <= m.x + m.width && f.y >= m.y && f.y <= m.y + m.depth
+
+// De quién es cada cosa se guarda, no se deduce cada vez: la estancia apunta a
+// su módulo (`shellId`) y el mueble a su estancia (`roomId`). La geometría solo
+// se consulta para ponerlo al día cuando algo se mueve o al abrir un plano de antes.
+
+/** Las estancias, cada una con su módulo: el que tenía si la sigue conteniendo, o el que la contenga. */
+const withShells = (modules: PlacedModule[], shells: Shell[]) =>
+  modules.map((m) => {
+    const shell =
+      shells.find((sh) => sh.id === m.shellId && contains(sh, m)) ??
+      shells.find((sh) => contains(sh, m))
+    return shell?.id === m.shellId ? m : { ...m, shellId: shell?.id }
+  })
+
+/** El mueble con el centro llevado dentro de la estancia, si se había salido. */
+const intoRoom = (f: FurnitureItem, room: PlacedModule): FurnitureItem => ({
+  ...f,
+  x: Math.min(Math.max(f.x, room.x), room.x + room.width),
+  y: Math.min(Math.max(f.y, room.y), room.y + room.depth),
+  roomId: room.id,
+})
+
+/**
+ * El mueble en su estancia: sigue en la suya mientras su centro esté dentro,
+ * pasa a otra si se lleva hasta ella y, si se saca de todas, vuelve al borde
+ * de la que tenía. Sin estancia propia ni ninguna debajo, queda suelto.
+ */
+function housed(f: FurnitureItem, modules: PlacedModule[]): FurnitureItem {
+  const own = modules.find((m) => m.id === f.roomId)
+  if (own && inside(own, f)) return f
+  const room = modules.find((m) => inside(m, f))
+  if (room) return { ...f, roomId: room.id }
+  return own ? intoRoom(f, own) : { ...f, roomId: undefined }
+}
+
+/** Un plano recién leído, con cada cosa apuntando a su padre. */
+const withParents = <T extends { modules: PlacedModule[]; shells: Shell[]; furniture: FurnitureItem[] }>(
+  plan: T,
+) => {
+  const modules = withShells(plan.modules, plan.shells)
+  return { modules, furniture: plan.furniture.map((f) => housed(f, modules)) }
+}
 
 // Distancia (m) a la que un mueble arrastrado se imanta a una pared.
 const MAGNET = 0.3
@@ -297,7 +339,7 @@ function interiorFace(room: PlacedModule, side: Side, along: number, walls: Wall
  */
 function magnetize(item: FurnitureItem, modules: PlacedModule[], joints: Joints): FurnitureItem {
   const type = furnitureType(item.typeId)
-  const room = modules.find((m) => inside(m, item))
+  const room = modules.find((m) => m.id === item.roomId)
   if (!type || !room) return item
   const walls = deriveWalls(modules, joints)
   const turned = item.rotation === 90 || item.rotation === 270
@@ -333,7 +375,7 @@ export function furnitureBox(item: FurnitureItem, modules: PlacedModule[], joint
   const type = furnitureType(item.typeId)
   if (!type) return null
   const turned = item.rotation === 90 || item.rotation === 270
-  const room = modules.find((m) => inside(m, item))
+  const room = modules.find((m) => m.id === item.roomId)
   const walls = room ? deriveWalls(modules, joints) : []
   const face = (side: Side, along: number, edge: number) =>
     room ? (interiorFace(room, side, along, walls) ?? wallLine(room, side).pos) : edge
@@ -357,15 +399,13 @@ const NO_SELECTION: Selection = {
   selectedShellId: null,
 }
 
-/** El mueble `f` tiene su centro dentro de la estancia `m`. */
-export const furnitureInside = (m: PlacedModule, f: FurnitureItem) => inside(m, f)
-
 export const useHouse = create<HouseState>()(
   persist(
     (set, get) => {
       /** Aplica un cambio de estancias y reencaja los huecos en las paredes resultantes. */
       const setModules = (modules: PlacedModule[], openings?: Opening[]) => {
         const s = get()
+        modules = withShells(modules, s.shells)
         set({
           modules,
           openings: refitOpenings(modules, s.joints, openings ?? s.dragOpenings ?? s.openings),
@@ -544,11 +584,11 @@ export const useHouse = create<HouseState>()(
           const dy = moved.y - current.y
           if (dx === 0 && dy === 0) return
           // El módulo se lleva consigo sus estancias y los muebles que hay en ellas.
-          const rooms = modules.filter((m) => contains(current, m))
+          const rooms = modules.filter((m) => m.shellId === id)
           set((s) => ({
             shells: shells.map((sh) => (sh.id === id ? moved : sh)),
             furniture: s.furniture.map((f) =>
-              rooms.some((m) => inside(m, f))
+              rooms.some((m) => m.id === f.roomId)
                 ? { ...f, x: roundSize(f.x + dx), y: roundSize(f.y + dy) }
                 : f,
             ),
@@ -571,7 +611,7 @@ export const useHouse = create<HouseState>()(
           if (!shellFits(resized, shells.filter((s) => s.id !== id))) {
             return 'Con esas medidas se sale de la parcela o pisa el otro módulo.'
           }
-          if (modules.some((m) => contains(current, m) && !contains(resized, m))) {
+          if (modules.some((m) => m.shellId === id && !contains(resized, m))) {
             return 'Hay estancias que no cabrían; encógelas primero.'
           }
           set({ shells: shells.map((s) => (s.id === id ? resized : s)) })
@@ -598,7 +638,7 @@ export const useHouse = create<HouseState>()(
           })
           const turnSides = <T,>(sides?: Partial<Record<Side, T>>) =>
             sides && { e: sides.n, s: sides.e, w: sides.s, n: sides.w }
-          const rooms = modules.filter((m) => contains(current, m))
+          const rooms = modules.filter((m) => m.shellId === id)
           const turnedRooms = modules.map((m) =>
             !rooms.includes(m)
               ? m
@@ -622,7 +662,7 @@ export const useHouse = create<HouseState>()(
           set({
             shells: shells.map((s) => (s.id === id ? rotated : s)),
             furniture: furniture.map((f) =>
-              rooms.some((m) => inside(m, f))
+              rooms.some((m) => m.id === f.roomId)
                 ? { ...f, ...turnPoint(f.x, f.y), rotation: ((f.rotation + 90) % 360) as Rotation }
                 : f,
             ),
@@ -641,10 +681,10 @@ export const useHouse = create<HouseState>()(
           const { shells, modules, openings } = get()
           const removed = shells.find((s) => s.id === id)
           if (!removed) return
-          const gone = modules.filter((m) => contains(removed, m))
+          const gone = modules.filter((m) => m.shellId === id)
           set((s) => ({
             shells: shells.filter((sh) => sh.id !== id),
-            furniture: s.furniture.filter((f) => !gone.some((m) => inside(m, f))),
+            furniture: s.furniture.filter((f) => !gone.some((m) => m.id === f.roomId)),
             ...NO_SELECTION,
           }))
           setModules(
@@ -698,6 +738,12 @@ export const useHouse = create<HouseState>()(
           const others = modules.filter((m) => m.id !== id)
           if (!fits(resized, others, get().shells)) return false
           setModules(modules.map((m) => (m.id === id ? resized : m)))
+          // Sus muebles se quedan donde estaban, salvo el que quedaría fuera.
+          set((s) => ({
+            furniture: s.furniture.map((f) =>
+              f.roomId === id && !inside(resized, f) ? intoRoom(f, resized) : f,
+            ),
+          }))
           return true
         },
 
@@ -720,7 +766,7 @@ export const useHouse = create<HouseState>()(
                 cy <= s.y + s.depth &&
                 s.width >= current.width - 1e-6 &&
                 s.depth >= current.depth - 1e-6,
-            ) ?? shells.find((s) => contains(s, current))
+            ) ?? shells.find((s) => s.id === current.shellId)
           const moved = { ...current, ...(shell ? clampInto(shell, target) : clampToPlot(target)) }
           const others = modules.filter((m) => m.id !== id)
           if (!fits(moved, others, shells)) return
@@ -730,7 +776,7 @@ export const useHouse = create<HouseState>()(
           const dy = moved.y - current.y
           set((s) => ({
             furniture: s.furniture.map((f) =>
-              inside(current, f) ? { ...f, x: roundSize(f.x + dx), y: roundSize(f.y + dy) } : f,
+              f.roomId === id ? { ...f, x: roundSize(f.x + dx), y: roundSize(f.y + dy) } : f,
             ),
           }))
         },
@@ -760,6 +806,19 @@ export const useHouse = create<HouseState>()(
             modules.map((m) => (m.id === id ? rotated : m)),
             openings.map((o) => (o.moduleId === id ? rotateOpening(o, rotated.width) : o)),
           )
+          // Sus muebles giran con ella: (px, py) desde su esquina pasa a (fondo - py, px).
+          set((s) => ({
+            furniture: s.furniture.map((f) =>
+              f.roomId === id
+                ? {
+                    ...f,
+                    x: roundSize(rotated.x + current.depth - (f.y - current.y)),
+                    y: roundSize(rotated.y + (f.x - current.x)),
+                    rotation: ((f.rotation + 90) % 360) as Rotation,
+                  }
+                : f,
+            ),
+          }))
         },
 
         removeModule: (id) => {
@@ -770,7 +829,7 @@ export const useHouse = create<HouseState>()(
           )
           const removed = modules.find((m) => m.id === id)
           set((s) => ({
-            furniture: removed ? s.furniture.filter((f) => !inside(removed, f)) : s.furniture,
+            furniture: removed ? s.furniture.filter((f) => f.roomId !== id) : s.furniture,
             ...NO_SELECTION,
           }))
         },
@@ -788,10 +847,9 @@ export const useHouse = create<HouseState>()(
 
         loadPlan: ({ modules, shells, openings, joints, furniture }) =>
           set({
-            modules,
+            ...withParents({ modules, shells, furniture }),
             shells,
             joints,
-            furniture,
             openings: refitOpenings(modules, joints, openings),
             tool: null,
             ...NO_SELECTION,
@@ -804,7 +862,9 @@ export const useHouse = create<HouseState>()(
         addFurniture: (typeId, x, y) => {
           if (!furnitureType(typeId)) return
           const id = crypto.randomUUID()
-          const item = clampFurniture({ id, typeId, x, y, rotation: 0 })
+          const item = housed(clampFurniture({ id, typeId, x, y, rotation: 0 }), get().modules)
+          // Un mueble va en una estancia: fuera de todas no se coloca.
+          if (!item.roomId) return
           set((s) => ({
             furniture: [...s.furniture, item],
             tool: null,
@@ -818,7 +878,7 @@ export const useHouse = create<HouseState>()(
           set((s) => ({
             furniture: s.furniture.map((f) => {
               if (f.id !== id) return f
-              const moved = clampFurniture({ ...f, x, y })
+              const moved = housed(clampFurniture({ ...f, x, y }), s.modules)
               return s.furnitureMagnet ? magnetize(moved, s.modules, s.joints) : moved
             }),
           })),
@@ -826,7 +886,9 @@ export const useHouse = create<HouseState>()(
         placeFurniture: (id, x, y) =>
           set((s) => ({
             furniture: s.furniture.map((f) =>
-              f.id === id ? clampFurniture({ ...f, x: roundSize(x), y: roundSize(y) }) : f,
+              f.id === id
+                ? housed(clampFurniture({ ...f, x: roundSize(x), y: roundSize(y) }), s.modules)
+                : f,
             ),
           })),
 
@@ -843,7 +905,7 @@ export const useHouse = create<HouseState>()(
           const { modules, joints, furniture } = get()
           const item = furniture.find((f) => f.id === id)
           const type = item && furnitureType(item.typeId)
-          const room = item && modules.find((m) => inside(m, item))
+          const room = item && modules.find((m) => m.id === item.roomId)
           if (!item || !type || !room) return false
 
           const distances: [Side, number][] = [
@@ -1125,6 +1187,11 @@ export const useHouse = create<HouseState>()(
     },
     {
       name: 'eurocasa-house',
+      // Lo guardado antes de que cada cosa apuntara a su padre se completa al leerlo.
+      merge: (saved, current) => {
+        const state = { ...current, ...(saved as Partial<HouseState>) }
+        return { ...state, ...withParents(state) }
+      },
       partialize: (s) => ({
         modules: s.modules,
         shells: s.shells,

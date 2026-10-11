@@ -49,6 +49,8 @@ export interface FurnitureItem {
   x: number
   y: number
   rotation: Rotation
+  /** Estancia de la que cuelga; solo falta si no hay ninguna donde está. */
+  roomId?: string
 }
 
 // Los muebles se colocan en pasos de 5 cm.

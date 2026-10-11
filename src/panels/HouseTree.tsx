@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
 import { furnitureType } from '../model/furniture'
-import { PlacedModule, Side, contains, formatMeters } from '../model/house'
+import { PlacedModule, Side, formatMeters } from '../model/house'
 import { deriveWalls, wallOf } from '../model/walls'
 import { usePhotos } from '../photos'
-import { furnitureInside, useHouse } from '../store'
+import { useHouse } from '../store'
 
 // Panel izquierdo: la casa como un árbol. Casa → módulos → estancias, y en cada
 // estancia una carpeta con sus paredes y otra con su mobiliario. Elegir una línea es lo mismo que pinchar la cosa en el
@@ -71,8 +71,7 @@ export default function HouseTree() {
   const opening = openings.find((o) => o.id === selectedOpeningId)
   const wallKey = selectedWall ?? (opening && wallOf(opening, modules, walls)?.key)
 
-  // Cada mueble es de la primera estancia que contiene su centro.
-  const roomOf = (f: (typeof furniture)[number]) => modules.find((m) => furnitureInside(m, f))
+  const roomOf = (f: (typeof furniture)[number]) => modules.find((m) => m.id === f.roomId)
   const loose = furniture.filter((f) => !roomOf(f))
   const furnitureRow = (f: (typeof furniture)[number], level: number) => (
     <Row
@@ -146,7 +145,7 @@ export default function HouseTree() {
     )
   }
 
-  const housed = (room: PlacedModule) => shells.some((sh) => contains(sh, room))
+  const housed = (room: PlacedModule) => shells.some((sh) => sh.id === room.shellId)
 
   return (
     <nav className="tree" aria-label="La casa">
@@ -165,7 +164,7 @@ export default function HouseTree() {
             active={sh.id === selectedShellId}
             onPick={() => pick('shells', { selectedShellId: sh.id })}
           />
-          {modules.filter((m) => contains(sh, m)).map((m) => roomRows(m, 2))}
+          {modules.filter((m) => m.shellId === sh.id).map((m) => roomRows(m, 2))}
         </div>
       ))}
       {/* Planos antiguos sin módulos, y muebles que no están en ninguna estancia. */}
