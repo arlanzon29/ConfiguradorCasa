@@ -72,6 +72,13 @@ Otros elementos:
   `id` de su material, la pared su color) pero siguen con sus selectores de antes.
 - **Acabados**: suelo por estancia (catálogo con textura) y color de pared por
   estancia o por lado (`wallColor`, `sideColors`). Solo se ven en 3D.
+- **Vinilo** (`Vinyl` en `vinyls.ts`): una imagen con fondo transparente pegada
+  a la cara de una pared que da a una estancia. Es **superficie, no geometría**
+  (distinción del usuario: un espejo sí es geometría): no tiene grosor. Se guarda
+  en su estancia por lado (`PlacedModule.vinyls`), varios por pared, con `x`
+  (desde la esquina izquierda de la cara, mirándola desde dentro), `y` (desde el
+  suelo), ancho y alto. Las imágenes salen de un catálogo (`VINYLS`); el cliente
+  no sube las suyas, de momento. Solo se ve en 3D y en la foto.
 - **Rodapié** (`Skirting`): alto y color **por pared**, guardados donde el grosor:
   por lado de estancia en las exteriores (`PlacedModule.skirting`) y por pareja en
   las compartidas (`joints`). Por defecto 7 cm y blanco; alto 0 = sin rodapié. La
@@ -95,6 +102,7 @@ src/
     walls.ts        paredes deducidas, encaje de huecos en paredes
     openings.ts     tipos y catálogo de puertas/ventanas
     finishes.ts     catálogo de suelos, colores de pared
+    vinyls.ts       vinilos: catálogo y dónde cae cada uno en su pared
     furniture.ts    catálogo de mobiliario por familias
     planFile.ts     formato del archivo de plano (guardar/cargar)
   editor/
@@ -108,6 +116,7 @@ src/
     Furniture3D.tsx muebles como composición de cajas
     PhotoTracer.tsx foto en calidad por trazado de rayos
 public/texturas/suelos/          imágenes de suelo
+public/texturas/vinilos/         dibujos de los vinilos (SVG con fondo transparente)
 planos/                          planos guardados a mano (copias de seguridad)
 fotos/                           fotos de referencia que pasa el usuario (exteriores e interiores)
 ```
@@ -136,7 +145,7 @@ y qué muestra el panel). `Mode` en `store.ts`:
 | `shells` | Módulos | Añadir (horizontal/vertical), mover, redimensionar, girar, eliminar módulos de fábrica. Se ve toda la parcela |
 | `modules` | Estancias | Añadir, mover, estirar (8 tiradores), girar, eliminar estancias |
 | `walls` | Paredes | Seleccionar pared: grosor, rodapié (alto y color) y quitar/poner. Colocar, deslizar, centrar y redimensionar puertas y ventanas; distancia al extremo de la pared y altura de la ventana |
-| `finishes` | Acabados | Clic en el centro de una estancia: suelo y color de todas sus paredes. Clic junto a un lado: color de esa pared |
+| `finishes` | Acabados | Clic en el centro de una estancia: suelo y color de todas sus paredes. Clic junto a un lado: color de esa pared y sus vinilos (pegar del catálogo, y casillas de distancia a la izquierda y al suelo, ancho y alto; "Proporción original" y "Eliminar") |
 | `options` | Opciones | Mobiliario por familias (Salón, Comedor, Dormitorio): colocar, mover, girar, pegar a pared. Icono de imán para activar o no el imantado a paredes |
 | `photos` | Fotos | Fotos en calidad guardadas: miniaturas, Anterior/Siguiente (la cámara va a donde se sacó cada una, con su objetivo), pinchar para verla grande, descargar, repetir (la saca otra vez desde el mismo sitio y sustituye a la anterior) y eliminar. En el plano, un icono numerado por foto donde se sacó; pincharlo lleva la cámara allí |
 
@@ -245,6 +254,9 @@ Teclas: `R` gira lo seleccionado, `Supr` lo borra, `Esc` cancela la herramienta.
 
 ## Cómo ampliar catálogos
 
+- **Vinilo**: imagen con fondo transparente (SVG con `width` y `height`, o PNG)
+  en `public/texturas/vinilos/` + una línea en `VINYLS` (`vinyls.ts`) con las
+  medidas en metros con las que se coloca.
 - **Suelo**: imagen repetible (~1024 px) en `public/texturas/suelos/` + una línea en
   `FLOORS` (`finishes.ts`) con `name`, `color`, `texture`, `size` en metros.
 - **Color de pared**: una línea en `WALL_COLORS`.
@@ -273,6 +285,13 @@ que la textura "Madera de pino" cubre 2 × 2 m (supuesto, sin confirmar).
   aparte en la vista 3D normal (por defecto, y cambiando alto y color de una
   pared); sin probar a la vista el corte en una puerta, una pared compartida, el
   giro ni la foto en calidad.
+- Vinilos: los seis del catálogo son dibujos de prueba hechos aquí, a falta de
+  los de EuroCasa. Un hueco no los recorta (uno puesto sobre una puerta o una
+  ventana se ve flotando en ella) y pueden pisarse entre sí. Al encoger la
+  estancia no se reencajan: el que deja de caber sigue ahí, salido de su pared.
+  En una pared con tramos de distinto grosor, los límites son los de la cara más
+  metida. En el plano son solo una raya morada, sin arrastre: se colocan con las
+  casillas. Sin probar el giro de estancia o de módulo con vinilos.
 - Acabados: el concepto único (color o material) solo está puesto en la
   carpintería. El suelo no admite todavía un color liso y las paredes no admiten
   material: sus caras van coloreadas por vértice (`WallBox`) y una textura pide
@@ -360,6 +379,21 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-11** · **Vinilos** en las paredes (tema 5 de pendientes; el usuario
+  pidió probar con uno infantil, definido por x, y, ancho y alto, en Acabados y
+  solo de catálogo). Nuevo `model/vinyls.ts` (`Vinyl`, `VINYLS`, `wallFace`,
+  `vinylPlacement`, `vinylProblem`), campo `vinyls` en `PlacedModule` (gira con
+  la estancia y el módulo), `addVinyl`, `patchVinyl` y `removeVinyl` en
+  `store.ts`, `VinylsSection.tsx` dentro del panel Acabados, `vinylParts` y
+  `VinylPlane` en `View3D.tsx`, y una raya por vinilo en el plano. Seis dibujos
+  de prueba en `public/texturas/vinilos/`. `Field` y `Fields` salen de
+  `PropertiesPanel.tsx` a `panels/Field.tsx` para usarlos en los dos paneles. El
+  archivo de plano no cambia de versión. En la foto en calidad el vinilo va
+  recortado (`alphaTest`) y no translúcido: con `transparent` el trazador dejaba
+  un recuadro más oscuro en la pared. Probado en el servidor aparte: vista 3D,
+  pegar uno desde el panel, mover con la casilla, rechazo de una medida que se
+  sale, y la foto en calidad.
 
 - **2026-10-11** · Repaso de los temas pendientes con el usuario. Contestó las
   dudas de los módulos (medidas exteriores, puede haber menores y más de dos,

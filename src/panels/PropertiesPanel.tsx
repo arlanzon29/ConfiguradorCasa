@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useMemo, useState } from 'react'
+import { ReactNode, useMemo, useState } from 'react'
 import { FurnitureItem, furnitureType } from '../model/furniture'
 import {
   MAX_SKIRTING_HEIGHT,
@@ -23,6 +23,7 @@ import { CORNER_GAP, MIN_OPENING, Opening, swingDoor } from '../model/openings'
 import { Wall, deriveWalls, openingSpan, wallOf } from '../model/walls'
 import { Mode, furnitureBox, useHouse } from '../store'
 import { DEFAULT_JOINERY_FINISH } from '../model/finishes'
+import { Field, Fields } from './Field'
 import { ColorPicker, FinishPicker } from './FinishesPanel'
 
 // Panel derecho: los datos de lo que está seleccionado en el plano, en casillas
@@ -31,65 +32,6 @@ import { ColorPicker, FinishPicker } from './FinishesPanel'
 
 const SIDE_NAMES: Record<Side, string> = { n: 'norte', s: 'sur', e: 'este', w: 'oeste' }
 const EPS = 1e-6
-
-interface FieldProps {
-  label: string
-  value: number
-  /** Ocupa las dos columnas. */
-  full?: boolean
-  /** Devuelve un mensaje de error, o '' si se ha aplicado. */
-  onApply: (value: number) => string
-}
-
-function Field({ label, value, full, onApply }: FieldProps) {
-  const shown = formatMeters(value)
-  const [text, setText] = useState(shown)
-  const [error, setError] = useState('')
-  // Cuenta las veces que se aplica: si el valor se ajusta y queda igual que
-  // estaba, la casilla tiene que volver a mostrarlo.
-  const [applied, setApplied] = useState(0)
-
-  useEffect(() => {
-    setText(shown)
-    setError('')
-  }, [shown, applied])
-
-  const commit = () => {
-    if (text === shown) return setError('')
-    const typed = Number(text.replace(',', '.'))
-    if (text.trim() === '' || !Number.isFinite(typed)) return setError('Escribe un número.')
-    const next = roundSize(typed)
-    const problem = next === roundSize(value) ? '' : onApply(next)
-    setError(problem)
-    if (!problem) setApplied((n) => n + 1)
-  }
-
-  return (
-    <>
-      <label className={full ? 'full' : undefined}>
-        {label}
-        <input
-          inputMode="decimal"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onBlur={commit}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') commit()
-            if (e.key === 'Escape') setApplied((n) => n + 1)
-          }}
-        />
-      </label>
-      {error && <p className="notice">{error}</p>}
-    </>
-  )
-}
-
-const Fields = ({ title, children }: { title: string; children: ReactNode }) => (
-  <>
-    <h3>{title}</h3>
-    <div className="size-form fields">{children}</div>
-  </>
-)
 
 function ShellProperties({ shell }: { shell: Shell }) {
   const moveShell = useHouse((s) => s.moveShell)

@@ -15,6 +15,7 @@ import {
   Shell,
   Side,
   Skirting,
+  WALL_HEIGHT,
   clampInto,
   clampToPlot,
   contains,
@@ -34,6 +35,7 @@ import {
   wallLine,
 } from './model/openings'
 import { Plan } from './model/planFile'
+import { Vinyl, vinylProblem, vinylType, wallFace } from './model/vinyls'
 import { JointSettings, Joints, Wall, deriveWalls, fitOpening, pairKey, refitOpenings, wallOf } from './model/walls'
 
 /** Cámara de la vista 3D, en coordenadas de la escena (metros, parcela centrada en el origen). */
@@ -160,6 +162,11 @@ interface HouseState {
    * `color` es null); sin él, pinta todas y borra los colores propios.
    */
   setWallColor: (id: string, color: string | null, side?: Side) => void
+  /** Pega un vinilo del catálogo en la pared de ese lado, centrado. Devuelve su id, o null si no cabe. */
+  addVinyl: (roomId: string, side: Side, typeId: string) => string | null
+  /** Cambia posición o medidas de un vinilo. Devuelve un mensaje de error, o ''. */
+  patchVinyl: (roomId: string, side: Side, id: string, patch: Partial<Omit<Vinyl, 'id'>>) => string
+  removeVinyl: (roomId: string, side: Side, id: string) => void
 
   setWallThickness: (key: string, thickness: number) => void
   setWallOpen: (key: string, open: boolean) => void
@@ -311,6 +318,16 @@ export const useHouse = create<HouseState>()(
           openings: refitOpenings(modules, s.joints, openings ?? s.dragOpenings ?? s.openings),
         })
       }
+
+      /** Cambia la lista de vinilos de un lado de una estancia. */
+      const setVinyls = (roomId: string, side: Side, change: (list: Vinyl[]) => Vinyl[]) =>
+        set((s) => ({
+          modules: s.modules.map((m) =>
+            m.id === roomId
+              ? { ...m, vinyls: { ...m.vinyls, [side]: change(m.vinyls?.[side] ?? []) } }
+              : m,
+          ),
+        }))
 
       /** Cambia un ajuste de la pared `key`: de su pareja si es compartida, de su lado si es exterior. */
       const patchWall = (key: string, thickness?: number, open?: boolean, skirting?: Skirting) => {
@@ -511,6 +528,7 @@ export const useHouse = create<HouseState>()(
                   open: turnSides(m.open),
                   skirting: turnSides(m.skirting),
                   sideColors: turnSides(m.sideColors),
+                  vinyls: turnSides(m.vinyls),
                   floorTurned: !m.floorTurned,
                 },
           )
@@ -644,6 +662,7 @@ export const useHouse = create<HouseState>()(
             open: turn(current.open),
             skirting: turn(current.skirting),
             sideColors: turn(current.sideColors),
+            vinyls: turn(current.vinyls),
           }
           const others = modules.filter((m) => m.id !== id)
           if (!fits(rotated, others, get().shells)) return
@@ -791,6 +810,43 @@ export const useHouse = create<HouseState>()(
               return { ...m, sideColors: { ...m.sideColors, [side]: color ?? undefined } }
             }),
           })),
+        addVinyl: (roomId, side, typeId) => {
+          const { modules, joints } = get()
+          const room = modules.find((m) => m.id === roomId)
+          const type = vinylType(typeId)
+          if (!room || !type) return null
+          const { length } = wallFace(room, side, deriveWalls(modules, joints))
+          // Si la imagen es más grande que la pared, se encoge guardando la proporción.
+          const scale = Math.min(1, length / type.width, WALL_HEIGHT / type.height)
+          const width = roundSize(type.width * scale)
+          const height = roundSize(type.height * scale)
+          const vinyl: Vinyl = {
+            id: crypto.randomUUID(),
+            typeId,
+            x: roundSize(Math.max(0, (length - width) / 2)),
+            // Centrado a 1,3 m del suelo, si cabe.
+            y: roundSize(Math.min(Math.max(0, 1.3 - height / 2), WALL_HEIGHT - height)),
+            width,
+            height,
+          }
+          if (vinylProblem(vinyl, length)) return null
+          setVinyls(roomId, side, (list) => [...list, vinyl])
+          return vinyl.id
+        },
+        patchVinyl: (roomId, side, id, patch) => {
+          const { modules, joints } = get()
+          const room = modules.find((m) => m.id === roomId)
+          const current = room?.vinyls?.[side]?.find((v) => v.id === id)
+          if (!room || !current) return 'Ese vinilo ya no existe.'
+          const next = { ...current, ...patch }
+          const problem = vinylProblem(next, wallFace(room, side, deriveWalls(modules, joints)).length)
+          if (problem) return problem
+          setVinyls(roomId, side, (list) => list.map((v) => (v.id === id ? next : v)))
+          return ''
+        },
+        removeVinyl: (roomId, side, id) =>
+          setVinyls(roomId, side, (list) => list.filter((v) => v.id !== id)),
+
         setWallThickness: (key, thickness) => patchWall(key, thickness),
         setWallOpen: (key, open) => patchWall(key, undefined, open),
         setWallSkirting: (key, skirting) => patchWall(key, undefined, undefined, skirting),

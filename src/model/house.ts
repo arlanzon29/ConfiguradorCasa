@@ -2,6 +2,8 @@
 // (en el código, "module" por razones históricas) y guarda posición y tamaño
 // reales, no celdas de rejilla: la rejilla es solo una ayuda del editor.
 
+import type { Vinyl } from './vinyls'
+
 // Paso de la rejilla: 20 cm. Un módulo de 13 × 4,20 m son 65 × 21 cuadros exactos.
 export const GRID = 0.2
 // Caben dos módulos en línea (2 × 13 de ancho) y en L: uno horizontal (4,20)
@@ -61,6 +63,8 @@ export interface PlacedModule {
   wallColor?: string
   /** Color propio de la pared de un lado, por dentro; si falta, vale wallColor. */
   sideColors?: Partial<Record<Side, string>>
+  /** Vinilos pegados a la pared de cada lado, por dentro (vinyls.ts). */
+  vinyls?: Partial<Record<Side, Vinyl[]>>
   // Los tres siguientes solo afectan a los tramos exteriores de cada lado; las
   // paredes compartidas con otra estancia tienen sus propios ajustes (walls.ts).
   /** Rodapié por lado, en la cara de dentro. */

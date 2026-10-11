@@ -707,6 +707,56 @@ button:disabled {
   pointer-events: none;
 }
 
+.vinyl-mark {
+  stroke: #7c3aed;
+  stroke-width: 0.08;
+  pointer-events: none;
+}
+
+.vinyls h3 {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 14px 0 6px;
+}
+
+.vinyl-catalog,
+.vinyl-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.vinyl-list {
+  grid-template-columns: repeat(5, 1fr);
+  margin-top: 10px;
+}
+
+.vinyl-catalog button,
+.vinyl-list button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 2px;
+  font-size: 12px;
+}
+
+.vinyl-catalog img,
+.vinyl-list img {
+  width: 100%;
+  height: 34px;
+  object-fit: contain;
+}
+
+.vinyl-list img {
+  height: 22px;
+}
+
+.vinyl-list button.active {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
 .mode-finishes .module {
   cursor: pointer;
 }

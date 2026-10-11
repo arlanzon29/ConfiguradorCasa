@@ -10,6 +10,7 @@ import {
 } from '../model/finishes'
 import { Side, formatMeters } from '../model/house'
 import { useHouse } from '../store'
+import VinylsSection from './VinylsSection'
 
 const SIDE_NAMES: Record<Side, string> = { n: 'norte', s: 'sur', e: 'este', w: 'oeste' }
 
@@ -114,6 +115,7 @@ export default function FinishesPanel() {
           </section>
 
           {selectedSide ? (
+            <>
             <section>
               <h2>Color de la pared {SIDE_NAMES[selectedSide]}</h2>
               <ColorPicker
@@ -131,6 +133,8 @@ export default function FinishesPanel() {
                 Haz clic en el centro de la estancia para pintar todas sus paredes a la vez.
               </p>
             </section>
+            <VinylsSection key={`${selected.id}:${selectedSide}`} room={selected} side={selectedSide} />
+            </>
           ) : (
             <section>
               <h2>Color de todas sus paredes</h2>

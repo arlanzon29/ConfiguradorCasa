@@ -13,6 +13,7 @@ import {
 } from '../model/house'
 import { Opening, swingDoor, swingSign } from '../model/openings'
 import { Wall, deriveWalls, nearestWall, openingsOf, wallAcross } from '../model/walls'
+import { vinylPlacement } from '../model/vinyls'
 import { usePhotos } from '../photos'
 import { CameraPose, useHouse } from '../store'
 
@@ -547,6 +548,22 @@ export default function Editor2D() {
           {m.id === selectedId && selectedSide && (
             <line className="side-mark" {...sideMark(m, selectedSide)} />
           )}
+          {/* Vinilos: una raya pegada a su pared, a lo ancho de cada uno. */}
+          {mode === 'finishes' &&
+            (['n', 's', 'e', 'w'] as const).flatMap((side) =>
+              (m.vinyls?.[side] ?? []).map((v) => {
+                const place = vinylPlacement(m, side, v, walls)
+                if (!place) return null
+                const [a, b] = [place.along - v.width / 2, place.along + v.width / 2]
+                // Algo separada de la cara para que no la tape el dibujo de la pared.
+                const across = place.across + (side === 'n' || side === 'w' ? 0.05 : -0.05)
+                return place.horizontal ? (
+                  <line key={v.id} className="vinyl-mark" x1={a - m.x} x2={b - m.x} y1={across - m.y} y2={across - m.y} />
+                ) : (
+                  <line key={v.id} className="vinyl-mark" y1={a - m.y} y2={b - m.y} x1={across - m.x} x2={across - m.x} />
+                )
+              }),
+            )}
         </g>
       ))}
 

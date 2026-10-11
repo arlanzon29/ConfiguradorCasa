@@ -17,7 +17,8 @@ import {
   interiorColor,
   resolveFinish,
 } from '../model/finishes'
-import { PLOT, PlacedModule, WALL_HEIGHT } from '../model/house'
+import { PLOT, PlacedModule, SIDES, Side, WALL_HEIGHT } from '../model/house'
+import { vinylPlacement, vinylType } from '../model/vinyls'
 import { OPPOSITE, Opening } from '../model/openings'
 import { Joints, deriveWalls, openingsOf, wallAcross } from '../model/walls'
 import { Shot, usePhotos } from '../photos'
@@ -443,6 +444,68 @@ function TexturedBox({ position, size, url, scale }: TexturedBoxProps) {
   )
 }
 
+const VINYL_TURN: Record<Side, number> = { n: 0, s: Math.PI, e: -Math.PI / 2, w: Math.PI / 2 }
+
+interface VinylPart {
+  key: string
+  url: string
+  position: [number, number, number]
+  turn: number
+  size: [number, number]
+}
+
+/** Vinilos de todas las estancias, cada uno como un plano pegado a su cara de pared. */
+function vinylParts(modules: PlacedModule[], joints: Joints) {
+  const walls = deriveWalls(modules, joints)
+  const parts: VinylPart[] = []
+  for (const room of modules) {
+    for (const side of SIDES) {
+      for (const v of room.vinyls?.[side] ?? []) {
+        const type = vinylType(v.typeId)
+        const place = vinylPlacement(room, side, v, walls)
+        if (!type || !place) continue
+        const y = SLAB + v.y + v.height / 2
+        parts.push({
+          key: v.id,
+          url: type.image,
+          position: place.horizontal ? [place.along, y, place.across] : [place.across, y, place.along],
+          turn: VINYL_TURN[side],
+          size: [v.width, v.height],
+        })
+      }
+    }
+  }
+  return parts
+}
+
+/** Un vinilo: su imagen sobre un plano sin grosor; lo transparente deja ver la pared. */
+function VinylPlane({ part, photo }: { part: VinylPart; photo: boolean }) {
+  const image = useLoader(TextureLoader, part.url)
+  const maxAnisotropy = useThree((s) => s.gl.capabilities.getMaxAnisotropy())
+  const texture = useMemo(() => {
+    const t = image.clone()
+    t.colorSpace = SRGBColorSpace
+    t.anisotropy = maxAnisotropy
+    t.needsUpdate = true
+    return t
+  }, [image, maxAnisotropy])
+  useEffect(() => () => texture.dispose(), [texture])
+
+  return (
+    <mesh position={part.position} rotation-y={part.turn} receiveShadow>
+      <planeGeometry args={part.size} />
+      {/* En la foto, recortado y no translúcido: el trazador oscurece la pared tras un plano translúcido. */}
+      <meshStandardMaterial
+        key={String(photo)}
+        map={texture}
+        transparent={!photo}
+        alphaTest={photo ? 0.5 : 0}
+        roughness={0.9}
+      />
+    </mesh>
+  )
+}
+
 /** Acabado del suelo de una estancia: una lámina sobre la losa, con la textura a escala real. */
 function Floor({ room }: { room: PlacedModule }) {
   const finish = floorFinish(room.floor)
@@ -500,6 +563,7 @@ export default function View3D() {
     () => skirtingParts(modules, joints, openings),
     [modules, joints, openings],
   )
+  const vinyls = useMemo(() => vinylParts(modules, joints), [modules, joints])
   const joinery = useMemo(
     () => joineryParts(modules, joints, openings),
     [modules, joints, openings],
@@ -705,6 +769,11 @@ export default function View3D() {
         {joinery.map((part, i) => (
           <JoineryBox key={i} part={part} />
         ))}
+        {vinyls.map((part) => (
+          <Suspense key={part.key} fallback={null}>
+            <VinylPlane part={part} photo={photo} />
+          </Suspense>
+        ))}
         {skirtings.map((part, i) => (
           <mesh key={i} position={part.position} receiveShadow>
             <boxGeometry args={part.size} />
@@ -718,7 +787,7 @@ export default function View3D() {
         <PhotoTracer
           // Al repetir se empieza de cero aunque ya hubiera una foto terminada a la vista.
           key={retakeId ?? 'libre'}
-          revision={[modules, parts, skirtings, joinery, furniture]}
+          revision={[modules, parts, skirtings, joinery, furniture, vinyls]}
           onProgress={onProgress}
           saveRequest={saveRequest}
           onSave={(image, shot) => void onSave(image, shot)}
