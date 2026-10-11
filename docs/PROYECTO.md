@@ -212,7 +212,9 @@ Casa
 │  ├─ Estancia 1 · 3 × 3 m        (se pliega; se abre sola si tiene lo elegido)
 │  │  ├─ Paredes · 4              (carpeta)
 │  │  │  ├─ Pared norte
+│  │  │  │  └─ Ventana · 1,2 m
 │  │  │  └─ Pared este · con la Estancia 2
+│  │  │     └─ Puerta · 0,9 m
 │  │  ├─ Mobiliario · 1           (carpeta)
 │  │  │  └─ Sofá
 │  │  └─ Luces · 2                (carpeta)
@@ -235,8 +237,10 @@ Casa
   todas (se queda en el borde de la suya) ni colocar uno nuevo fuera de una
   estancia. Solo sale suelto bajo "Casa" el de un plano antiguo que ya estaba
   fuera.
-- Lo que cuelga de una pared (huecos, vinilos, espejos, tableros) no sale en el
-  árbol: está en Propiedades de su pared.
+- **Puertas y ventanas cuelgan de su pared** en el árbol (lo pidió el usuario),
+  en el orden en que están a lo largo de ella (`openingsOf`); la pared con
+  huecos se pliega. Vinilos, espejos y tableros no salen en el árbol: están
+  en Propiedades de su pared.
 - Estancias de planos antiguos sin módulos cuelgan directamente de "Casa".
 
 **Qué sale en Propiedades** según lo elegido:
@@ -579,6 +583,9 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-11** · **Puertas y ventanas en el árbol**, bajo su pared (lo pidió
+  el usuario), con su nombre y su ancho. Elegir una enseña sus propiedades.
 
 - **2026-10-11** · **"+" en el árbol** (el usuario no encontraba cómo crear una
   luz): en la carpeta Luces añade un foco; en Mobiliario abre la lista de

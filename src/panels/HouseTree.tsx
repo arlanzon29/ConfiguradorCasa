@@ -5,16 +5,17 @@ import { OPENING_CATALOG } from '../model/openings'
 import {
   furnitureName,
   lightName,
+  openingName,
   roomName,
   shellName,
   wallName,
 } from '../model/names'
-import { deriveWalls, wallOf } from '../model/walls'
+import { deriveWalls, openingsOf, wallOf } from '../model/walls'
 import { usePhotos } from '../photos'
 import { useHouse } from '../store'
 
 // Panel izquierdo: la casa como un árbol. Casa → módulos → estancias, y en cada
-// estancia una carpeta con sus paredes, otra con su mobiliario y otra con sus luces. Elegir una línea es lo mismo que pinchar la cosa en el
+// estancia una carpeta con sus paredes (y en cada pared sus puertas y ventanas), otra con su mobiliario y otra con sus luces. Elegir una línea es lo mismo que pinchar la cosa en el
 // plano; sus datos salen en el panel derecho. El "+" de una línea le añade algo:
 // un foco a las luces, un mueble al mobiliario, un hueco a una pared. El orden y
 // de quién cuelga cada cosa los manda la casa: aquí no se mueve nada de rama.
@@ -89,7 +90,7 @@ export default function HouseTree() {
   const [opened, setOpened] = useState<Record<string, boolean>>({})
 
   const walls = useMemo(() => deriveWalls(modules, joints), [modules, joints])
-  // Un hueco elegido marca su pared.
+  // La pared elegida o, con un hueco elegido, la suya: es la que abre sus ramas.
   const opening = openings.find((o) => o.id === selectedOpeningId)
   const wallKey = selectedWall ?? (opening && wallOf(opening, modules, walls)?.key)
 
@@ -104,6 +105,9 @@ export default function HouseTree() {
       onPick={() => pick('options', { selectedFurnitureId: f.id })}
     />
   )
+
+  // Puertas y ventanas de una pared, en el orden en que están a lo largo de ella.
+  const holes = (w: (typeof walls)[number]) => openingsOf(w, modules, walls, openings)
 
   const roomRows = (room: PlacedModule, level: number) => {
     const own = walls.filter((w) => w.moduleId === room.id)
@@ -161,10 +165,12 @@ export default function HouseTree() {
             return (
               <div key={w.key}>
               <Row
+                open={holes(w).length ? (opened[w.key] ?? true) : undefined}
+                onToggle={() => setOpened({ ...opened, [w.key]: !(opened[w.key] ?? true) })}
                 level={level + 2}
                 label={`${wallName(w)}${number}`}
                 detail={w.otherId ? `con la ${roomName(modules, w.otherId)}` : undefined}
-                active={w.key === wallKey}
+                active={w.key === selectedWall}
                 onPick={() => pick('walls', { selectedWall: w.key })}
                 onAdd={() => toggleMenu(w.key)}
                 addTitle="Añadir una puerta o una ventana a esta pared"
@@ -186,6 +192,17 @@ export default function HouseTree() {
                   {notice && <p className="notice">{notice}</p>}
                 </div>
               )}
+              {(opened[w.key] ?? true) &&
+                holes(w).map(({ opening: o }) => (
+                  <Row
+                    key={o.id}
+                    level={level + 3}
+                    label={openingName(o)}
+                    detail={`${formatMeters(o.width)} m`}
+                    active={o.id === selectedOpeningId}
+                    onPick={() => pick('walls', { selectedOpeningId: o.id })}
+                  />
+                ))}
               </div>
             )
             }),
