@@ -211,7 +211,9 @@ No hay colisiones: se atraviesan paredes. Arriba a la izquierda de la vista:
   la vista normal) y "Volver". Al llegar a 200 **pregunta "¿Guardar la foto?"**
   en un recuadro abajo, con "Guardar en Fotos" y "No guardar" (vuelve a la vista
   normal sin guardarla); si se mueve la cámara, la foto empieza otra vez y la
-  pregunta se quita. Al repetir una foto no pregunta: sustituye sola.
+  pregunta se quita. Al repetir una foto pregunta igual, con "¿Sustituir la
+  foto anterior?", "Sustituir la foto" y "No sustituir" (la anterior queda como
+  estaba).
 - **Muestras**: 50, 100 o 200 (`PHOTO_SAMPLES` y `photoSamples` en `store.ts`),
   botones junto al objetivo; donde arriba dice 200 es el número elegido. Se
   guarda en `localStorage` y se sincroniza entre ventanas. Se puede cambiar a
@@ -272,8 +274,9 @@ Teclas: `R` gira lo seleccionado, `Supr` lo borra, `Esc` cancela la herramienta.
   El visor (`PhotoViewer`) cuelga de `App` y se maneja con flechas y `Esc`.
 - **Repetir una foto** (`retake`, `retakeId` y `replace` en `photos.ts`): el panel
   solo marca qué foto se repite; quien la traza es `View3D`, que al ver
-  `retakeId` entra en modo foto, guarda sola al llegar a 200 muestras y llama a
-  `replace`. La foto conserva `id` y `takenAt` (que da el orden y el número) y
+  `retakeId` entra en modo foto y, terminada, enseña el recuadro de guardar con
+  el filtro como lo tenía la original; "Sustituir la foto" llama a `replace`.
+  No sustituye sola: el usuario quiere ver el resultado antes (2026-10-11). La foto conserva `id` y `takenAt` (que da el orden y el número) y
   apunta la fecha nueva en `retakenAt`, que es la que se enseña. Si solo está el
   plano a la vista, `App` pasa a Plano + 3D; volver a Plano 2D, ir a otra foto o
   "Cancelar" la cancelan y la foto anterior queda como estaba. Se guarda la pose
@@ -394,7 +397,8 @@ que la textura "Madera de pino" cubre 2 × 2 m (supuesto, sin confirmar).
 - Repetir una foto: sale con el tamaño que tenga la vista 3D en ese momento, no
   con el de la original; para que salga igual hay que repetirla desde la misma
   vista (p. ej. la ventana de "3D en otra ventana") con el botón "Repetir foto N"
-  de la propia vista. No pide confirmación (se puede cancelar mientras traza).
+  de la propia vista. La pregunta de sustituir, al terminar de repetir, está
+  sin probar a la vista (solo `tsc`).
   El "Repetir" del panel Fotos usa la vista 3D de su misma ventana. Probado en un servidor aparte con una casa de dos estancias
   (sustituye, conserva sitio, pose y objetivo; cancelar no toca la foto); allí la
   pestaña no dibujaba sola y hubo que forzar los fotogramas, y al volver a montar
@@ -462,6 +466,12 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-11** · Al **repetir una foto ya no sustituye sola**: al terminar
+  sale el mismo recuadro que en una foto nueva, con "Sin filtro / Con filtro",
+  "Sustituir la foto" y "No sustituir" (lo pidió el usuario: no podía ver el
+  resultado ni elegir el filtro). En `View3D.tsx`, fuera el guardado automático
+  de `onProgress`. Sin probar a la vista.
 
 - **2026-10-11** · **Tableros** y pestaña **Piezas** (el usuario quiere colocar
   más geometría, como un cabecero; pidió empezar por primitivas, un tablero

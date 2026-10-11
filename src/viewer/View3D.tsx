@@ -793,8 +793,9 @@ export default function View3D() {
     setFilter(false)
     setPhoto(true)
   }
-  // Repetir una foto (panel Fotos): la cámara ya va hacia su sitio; se traza sola
-  // hasta el final y sustituye a la anterior. Si se cancela, se vuelve a la vista normal.
+  // Repetir una foto (panel Fotos): la cámara ya va hacia su sitio y se traza sola
+  // hasta el final; entonces se pregunta si sustituye a la anterior. Si se
+  // cancela, se vuelve a la vista normal.
   const retakeId = usePhotos((s) => s.retakeId)
   // Con la cámara en el sitio y el objetivo de una foto guardada se ofrece repetirla
   // desde aquí: vale también en la ventana de la vista 3D sola, que recibe la pose
@@ -813,7 +814,7 @@ export default function View3D() {
   useEffect(() => {
     if (retakeId) {
       startPhoto()
-      // La que se guardó filtrada se repite filtrada.
+      // La que se guardó filtrada sale filtrada de entrada; se puede cambiar al terminar.
       setFilter(!!usePhotos.getState().photos.find((p) => p.id === retakeId)?.filtered)
     } else if (retaking.current) setPhoto(false)
     retaking.current = retakeId !== null
@@ -821,9 +822,6 @@ export default function View3D() {
   const onProgress = (done: number) => {
     setSamples(done)
     if (done > 0) setWaiting(false)
-    if (done >= useHouse.getState().photoSamples && usePhotos.getState().retakeId) {
-      saveRequest.current = true
-    }
   }
   // Guardada la foto se vuelve a la vista normal: el trazado no tiene por qué seguir.
   const onSave = async (image: Blob, shot: Shot) => {
@@ -904,10 +902,10 @@ export default function View3D() {
           <span>La primera vez puede tardar alrededor de un minuto.</span>
         </div>
       )}
-      {/* Terminada la foto se pregunta si se guarda. Al repetir una no: sustituye sola. */}
-      {photo && !waiting && !retakeId && samples >= photoSamples && (
+      {/* Terminada la foto se pregunta si se guarda o, al repetir una, si sustituye a la anterior. */}
+      {photo && !waiting && samples >= photoSamples && (
         <div className="photo-wait photo-ask">
-          <strong>¿Guardar la foto?</strong>
+          <strong>{retakeId ? '¿Sustituir la foto anterior?' : '¿Guardar la foto?'}</strong>
           <div
             className="lens-toggle"
             title="El filtro quita el grano. Se guarda la que se esté viendo"
@@ -921,9 +919,16 @@ export default function View3D() {
           </div>
           <div className="actions">
             <button onClick={() => (saveRequest.current = true)}>
-              Guardar en Fotos
+              {retakeId ? 'Sustituir la foto' : 'Guardar en Fotos'}
             </button>
-            <button onClick={() => setPhoto(false)}>No guardar</button>
+            <button
+              onClick={() => {
+                usePhotos.getState().cancelRetake()
+                setPhoto(false)
+              }}
+            >
+              {retakeId ? 'No sustituir' : 'No guardar'}
+            </button>
           </div>
         </div>
       )}

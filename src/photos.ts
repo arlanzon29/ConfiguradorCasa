@@ -13,7 +13,7 @@ export interface Shot {
   fov: number
   width: number
   height: number
-  /** Si la imagen se guardó con el filtro de ruido: al repetirla se vuelve a aplicar. */
+  /** Si la imagen se guardó con el filtro de ruido: al repetirla sale filtrada de entrada. */
   filtered?: boolean
 }
 
