@@ -421,6 +421,19 @@ function FurnitureProperties({ item }: { item: FurnitureItem }) {
         >
           Pegar a la pared más próxima
         </button>
+        {box.inRoom && (
+          <button
+            onClick={() =>
+              placeFurniture(
+                item.id,
+                roundSize((box.west + box.east) / 2),
+                roundSize((box.north + box.south) / 2),
+              )
+            }
+          >
+            Centrar en la estancia
+          </button>
+        )}
         <button onClick={() => rotateFurniture(item.id)}>Girar 90° (R)</button>
         <button onClick={() => removeFurniture(item.id)}>Eliminar (Supr)</button>
       </div>

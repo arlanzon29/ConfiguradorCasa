@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { PlacedModule } from '../model/house'
+import { PlacedModule, roundSize } from '../model/house'
 import {
   LIGHT_MARGIN,
   LIGHT_TONES,
   MAX_LIGHT_POWER,
   MIN_LIGHT_POWER,
   RoomLight,
+  lightColor,
 } from '../model/lights'
 import { defaultLightName } from '../model/names'
 import { useHouse } from '../store'
@@ -76,6 +77,13 @@ export function LightProperties({ room, light }: { room: PlacedModule; light: Ro
           onApply={(y) => patch({ y })}
         />
       </Fields>
+      <div className="actions">
+        <button
+          onClick={() => patch({ x: roundSize(room.width / 2), y: roundSize(room.depth / 2) })}
+        >
+          Centrar en la estancia
+        </button>
+      </div>
       <Fields title="Luz">
         <Slide
           label="Potencia (%)"
@@ -91,12 +99,24 @@ export function LightProperties({ room, light }: { room: PlacedModule; light: Ro
         {LIGHT_TONES.map((t) => (
           <button
             key={t.id}
-            className={t.id === light.tone ? 'active' : ''}
-            onClick={() => patch({ tone: t.id })}
+            className={t.id === light.tone && !light.color ? 'active' : ''}
+            // Elegir un tono quita el color propio.
+            onClick={() => patch({ tone: t.id, color: undefined })}
           >
             {t.name}
           </button>
         ))}
+      </div>
+      <h3>Color de emisión</h3>
+      <div className="color-picker">
+        <label className="color-custom">
+          {light.color ? 'Color propio' : 'El de su tono'}
+          <input
+            type="color"
+            value={lightColor(light)}
+            onChange={(e) => patch({ color: e.target.value })}
+          />
+        </label>
       </div>
       <div className="actions spaced">
         <button

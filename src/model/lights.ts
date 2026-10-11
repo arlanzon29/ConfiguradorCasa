@@ -16,6 +16,8 @@ export interface RoomLight {
   /** Potencia en tanto por ciento de la normal. */
   power: number
   tone: LightTone
+  /** Color de emisión propio (`#rrggbb`); si falta, el de su tono. */
+  color?: string
 }
 
 export const LIGHT_TONES: { id: LightTone; name: string; color: string }[] = [
@@ -24,8 +26,9 @@ export const LIGHT_TONES: { id: LightTone; name: string; color: string }[] = [
   { id: 'cool', name: 'Fría', color: '#e4eeff' },
 ]
 
-export const lightColor = (tone: LightTone) =>
-  LIGHT_TONES.find((t) => t.id === tone)?.color ?? LIGHT_TONES[1].color
+/** Color con el que alumbra: el suyo si lo tiene, o el de su tono. */
+export const lightColor = (l: Pick<RoomLight, 'tone' | 'color'>) =>
+  l.color ?? LIGHT_TONES.find((t) => t.id === l.tone)?.color ?? LIGHT_TONES[1].color
 
 // Valores inventados: lado del foco en metros, lo que se separa de los bordes
 // de la estancia, y los límites de la potencia.

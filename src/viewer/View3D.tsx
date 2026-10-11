@@ -995,7 +995,7 @@ export default function View3D() {
               >
                 <mesh position-y={-0.005}>
                   <cylinderGeometry args={[LIGHT_SIZE / 2, LIGHT_SIZE / 2, 0.01, 24]} />
-                  <meshStandardMaterial color="#ffffff" emissive={lightColor(l.tone)} />
+                  <meshStandardMaterial color="#ffffff" emissive={lightColor(l)} />
                 </mesh>
                 {photo && (
                   <rectAreaLight
@@ -1003,7 +1003,7 @@ export default function View3D() {
                     rotation-x={-Math.PI / 2}
                     width={LIGHT_SIZE}
                     height={LIGHT_SIZE}
-                    color={lightColor(l.tone)}
+                    color={lightColor(l)}
                     intensity={(LIGHT_INTENSITY * l.power) / 100}
                   />
                 )}

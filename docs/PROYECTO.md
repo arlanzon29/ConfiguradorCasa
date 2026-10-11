@@ -114,8 +114,9 @@ Otros elementos:
 - **Luz de estancia** (`RoomLight` en `lights.ts`): un **foco de techo**. Se
   guarda en su estancia (`PlacedModule.lights`, una lista, no por lado) con `x`
   desde el borde oeste e `y` desde el borde norte de la estancia, **potencia**
-  (`power`, en % de la normal, de 10 a 300) y **tono** (`tone`: cálida, neutra
-  o fría). Se mueve y gira con la estancia (`turnLights`). **Solo alumbra en la
+  (`power`, en % de la normal, de 10 a 300), **tono** (`tone`: cálida, neutra
+  o fría) y, si se quiere, un **color de emisión** propio (`color`) que manda
+  sobre el tono; elegir un tono lo quita (`lightColor`). Se mueve y gira con la estancia (`turnLights`). **Solo alumbra en la
   foto en calidad** (un panel de luz de 12 cm mirando abajo); en la vista
   normal se ve la pieza, un disco a la altura del techo. **Toda estancia nueva
   nace con un foco** en el centro del techo (lo pidió el usuario), al 100 %,
@@ -242,10 +243,10 @@ Casa
 | Casa | — | Añadir módulo horizontal o vertical. Se ve toda la parcela |
 | Módulo | distancia al borde izquierdo y superior de la parcela; ancho y fondo; girar, eliminar | Añadir estancia (catálogo y medida personalizada) y el resumen |
 | Estancia | distancia al borde de su módulo; ancho y fondo; girar, eliminar | Suelo, color de todas sus paredes, "Añadir luz" (foco de techo) y el catálogo de **mobiliario** con el icono de imán |
-| Foco | distancia a la izquierda y arriba, potencia (%), tono, eliminar | — |
+| Foco | distancia a la izquierda y arriba, "Centrar en la estancia", potencia (%), tono, color de emisión, eliminar | — |
 | Pared | grosor (cm); rodapié (alto y color); quitar/poner | Añadir hueco (puerta, corredera, ventana); en una compartida, de qué estancia es **la cara** que se viste; color de esa cara, sus vinilos, espejos y tableros |
 | Puerta o ventana | distancia a cada extremo de su pared; ancho y alto; altura (ventanas); en abatibles, hacia dónde abre, canto y cerrar/abrir en 3D; acabado de la carpintería y "Aplicar a todas" | — |
-| Mueble | distancia de cada borde a las cuatro paredes de su estancia; pegar a la pared, girar, eliminar | El catálogo de mobiliario |
+| Mueble | distancia de cada borde a las cuatro paredes de su estancia; pegar a la pared, "Centrar en la estancia" (entre las caras interiores de sus paredes), girar, eliminar | El catálogo de mobiliario |
 | Fotos | — | Las fotos guardadas: miniaturas, Anterior/Siguiente, ver, descargar, repetir, eliminar. En el plano, un icono numerado por foto |
 
 Cada casilla se aplica sola con Intro o al salir de ella; `Esc` la deja como
@@ -575,6 +576,12 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-11** · Botón **"Centrar en la estancia"** en el foco y en el mueble
+  (el usuario lo pidió para lo que se sitúa con izquierda y arriba), y **color
+  de emisión** del foco (campo `color`, con un selector libre bajo el tono).
+  Probado en el servidor aparte: centrar un foco con el botón, y el panel con
+  un color propio. Sin probar: el centrado del mueble y el color en una foto.
 
 - **2026-10-11** · Tres cosas pedidas por el usuario. **Propiedades enseña
   solo lo elegido**: al elegir un foco sale solo el foco (`LightProperties`);
