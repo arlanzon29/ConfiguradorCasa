@@ -705,6 +705,13 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Paso 4 de la cocina de prueba** (el usuario: "ponemos
+  encima del armario el fregadero, del lavavajillas la vitro"): el fregadero
+  sobre el armario y la vitrocerámica sobre el lavavajillas pequeño, los dos
+  encima de la encimera, a 0,82 m. Entorno de pruebas (5185); anotado en
+  `crear-cocinas`. La vitro (0,5) sobresale 2,5 cm del lavavajillas (0,45) y
+  toca al fregadero. Visto en 3D.
+
 - **2026-10-12** · **Encimera corregida de posición** (el usuario: "la
   encimera está desplazada a la derecha"): al rehacerla más fina reutilicé la
   `posicion` devuelta, ya redondeada, y la corrí 2 cm a la derecha, hasta
