@@ -124,6 +124,32 @@ function boxes({ shape, width: w, depth: d, height: h }: FurnitureType): Box[] {
         { position: [0, h - 0.015, -d / 2 + 0.05 + 0.07], size: [0.03, 0.03, 0.17], color: steel },
       ]
     }
+    case 'cabinet-table': {
+      // Mesa de trabajo con armarios debajo: tablero, zócalo, cuerpo y dos puertas con tirador.
+      const top = 0.04
+      const kick = 0.08
+      const inset = 0.02
+      const gap = 0.01
+      const door = (sx: number): Box => ({
+        position: [sx * (w / 4 - inset / 4), kick + (h - top - kick) / 2, d / 2 - inset - 0.01],
+        size: [(w - 2 * inset) / 2 - gap, h - top - kick - 2 * gap, 0.02],
+        color: '#e6e3dc',
+      })
+      const handle = (sx: number): Box => ({
+        position: [sx * 0.04, h - top - 0.1, d / 2 - inset + 0.01],
+        size: [0.02, 0.14, 0.02],
+        color: '#8a8d92',
+      })
+      return [
+        { position: [0, h - top / 2, 0], size: [w, top, d], color: WOOD },
+        { position: [0, kick / 2, -inset / 2], size: [w - 2 * inset, kick, d - 2 * inset - 0.04], color: '#3a3a3e' },
+        { position: [0, kick + (h - top - kick) / 2, -inset], size: [w - 2 * inset, h - top - kick, d - 2 * inset - 0.02], color: WHITE },
+        door(-1),
+        door(1),
+        handle(-1),
+        handle(1),
+      ]
+    }
     case 'oven': {
       // Horno: panel de mandos arriba con tres mandos, tirador y ventana de cristal oscuro.
       const front = 0.02

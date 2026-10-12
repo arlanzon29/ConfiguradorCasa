@@ -704,6 +704,15 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Mesa con armarios** (lo pidió el usuario: 120 × 60 y 80
+  de alto, con armarios). Forma `cabinet-table`, tipo `mesa-armarios`,
+  familia **Cocina** (decisión mía: venía de montar la cocina), código
+  provisional `MOB-MESA-ARMARIOS`: tablero de madera de 4 cm, zócalo oscuro,
+  cuerpo blanco y **dos puertas** con tirador al frente. El plano la dibuja
+  con la raya central, como el armario. **Interpretación mía**: "tenga
+  armarios" como un mueble bajo cerrado, no una mesa con cajoneras a los
+  lados; sin cajones ni estantes. Visto en 3D en el servidor aparte (5185).
+
 - **2026-10-12** · **Fregadero** en la familia Cocina (lo pidió el usuario:
   "primero hazme el fregadero"; el resto se habló en el chat). Forma `sink`,
   tipo `fregadero`, 80 × 50 cm de un seno, código provisional
