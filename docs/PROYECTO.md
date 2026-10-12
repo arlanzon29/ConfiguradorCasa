@@ -704,6 +704,12 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Vitrocerámica más fina** (el usuario: "no tan alta, que
+  sea fina y negra"): grueso de 5 a 2 cm y aros más oscuros. Lo interpreté
+  como el grueso de la pieza; la altura de colocación (`lift`, 0,9 m) no se
+  ha tocado. Con ella elegida se ve rojiza (es el resalte de selección).
+  Visto sin elegir en el servidor aparte (5185): negra y fina.
+
 - **2026-10-12** · **Vitrocerámica de 4 fuegos** en la familia Cocina (lo
   pidió el usuario: 50 × 50). Forma nueva `hob` (placa negra con cuatro
   aros; en el plano, cuatro círculos) y campo opcional **`lift`** en

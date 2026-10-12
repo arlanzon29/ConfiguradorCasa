@@ -72,7 +72,7 @@ function boxes({ shape, width: w, depth: d, height: h }: FurnitureType): Box[] {
       const ring = (sx: number, sz: number): Box => ({
         position: [sx * w * 0.22, h + 0.001, sz * d * 0.22],
         size: [w * 0.3, 0.002, d * 0.3],
-        color: '#3a3a3f',
+        color: '#2a2a2e',
       })
       return [
         { position: [0, h / 2, 0], size: [w, h, d], color: '#141416' },
