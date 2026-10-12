@@ -704,6 +704,16 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Mesa con armarios: una sola puerta al medio** (el
+  usuario: "solo puede haber una puerta al medio"). Dos paños fijos a los
+  lados y una puerta centrada con el tirador a su derecha; el plano ya no la
+  dibuja con la raya central. Su otra queja, "la puerta está en el otro
+  lado", la entiendo así: la puerta va en la cara delantera (con giro 0, al
+  sur; su espalda al norte, como el resto de muebles) y en su cocina esa
+  cara queda de espaldas a la cámara; **se arregla girándola 180°** (R o
+  "Girar 90°" dos veces). Sin tocar la convención del catálogo. Por
+  confirmar con el usuario. Visto en 3D en el servidor aparte (5185).
+
 - **2026-10-12** · **Mesa con armarios** (lo pidió el usuario: 120 × 60 y 80
   de alto, con armarios). Forma `cabinet-table`, tipo `mesa-armarios`,
   familia **Cocina** (decisión mía: venía de montar la cocina), código

@@ -130,24 +130,26 @@ function boxes({ shape, width: w, depth: d, height: h }: FurnitureType): Box[] {
       const kick = 0.08
       const inset = 0.02
       const gap = 0.01
-      const door = (sx: number): Box => ({
-        position: [sx * (w / 4 - inset / 4), kick + (h - top - kick) / 2, d / 2 - inset - 0.01],
-        size: [(w - 2 * inset) / 2 - gap, h - top - kick - 2 * gap, 0.02],
-        color: '#e6e3dc',
-      })
-      const handle = (sx: number): Box => ({
-        position: [sx * 0.04, h - top - 0.1, d / 2 - inset + 0.01],
-        size: [0.02, 0.14, 0.02],
-        color: '#8a8d92',
+      // Una sola puerta en el centro, entre dos paños fijos.
+      const inner = w - 2 * inset
+      const doorW = inner / 2
+      const panelW = (inner - doorW) / 2 - gap
+      const faceH = h - top - kick - 2 * gap
+      const faceY = kick + (h - top - kick) / 2
+      const faceZ = d / 2 - inset - 0.01
+      const panel = (sx: number): Box => ({
+        position: [sx * (doorW / 2 + gap + panelW / 2), faceY, faceZ],
+        size: [panelW, faceH, 0.02],
+        color: '#dbd8d0',
       })
       return [
         { position: [0, h - top / 2, 0], size: [w, top, d], color: WOOD },
         { position: [0, kick / 2, -inset / 2], size: [w - 2 * inset, kick, d - 2 * inset - 0.04], color: '#3a3a3e' },
         { position: [0, kick + (h - top - kick) / 2, -inset], size: [w - 2 * inset, h - top - kick, d - 2 * inset - 0.02], color: WHITE },
-        door(-1),
-        door(1),
-        handle(-1),
-        handle(1),
+        panel(-1),
+        panel(1),
+        { position: [0, faceY, faceZ], size: [doorW - gap, faceH, 0.02], color: '#e6e3dc' },
+        { position: [doorW / 2 - 0.06, h - top - 0.12, faceZ + 0.02], size: [0.02, 0.16, 0.02], color: '#8a8d92' },
       ]
     }
     case 'oven': {
