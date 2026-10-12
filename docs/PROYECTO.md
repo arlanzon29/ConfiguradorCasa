@@ -705,6 +705,13 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **El armario, al otro lado** (el usuario: "el armario va
+  al otro lado"): en la cocina de prueba (5185) la hilera queda de izquierda a
+  derecha como armario, lavavajillas pequeño, lavadora pequeña y
+  frigorífico; antes el armario estaba junto al frigorífico. Interpreté "el
+  otro lado" como el extremo izquierdo de la hilera. Anotado en
+  `crear-cocinas`. Visto en 3D.
+
 - **2026-10-12** · **Armario de cocina a 80 cm de alto** (el usuario: "hay
   que dejarlo con 80, para poner luego una encimera encima"): el
   `armario-cocina` pasa de 0,82 a 0,80, como el lavavajillas y la lavadora
