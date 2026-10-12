@@ -705,6 +705,13 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Armario tapado con un tablón de madera** (el usuario:
+  "tapamos el armario con un tablón de madera"): en la cocina de prueba
+  (5185), un tablero de pino de 0,45 × 0,8 × 0,61 m en la pared norte,
+  sobre el armario. Bloque macizo, porque un tablero no puede quedar paralelo
+  a la pared a 0,6 m; el armario queda oculto debajo. Anotado como paso 5 en
+  `crear-cocinas`. Visto en 3D (la veta sale vertical).
+
 - **2026-10-12** · **Fregadero sobre el armario y vitro a su lado** (el
   usuario: "el fregadero encima del armario pero separado de la pared", "y
   la vitro al lado pero no pegado"): el fregadero vuelve a su sitio sobre el
