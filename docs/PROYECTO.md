@@ -15,12 +15,12 @@ npm run build    # tsc --noEmit && vite build
 ```
 
 - Vista 3D sola (para otra ventana): `http://localhost:5173/?vista=3d`
-- **GitHub Pages, preparada pero sin publicar**: la dirección será
-  `https://arlanzon29.github.io/ConfiguradorCasa/`, y hoy da "página no
-  encontrada". `.github/workflows/pages.yml` la compila bien cada vez que algo
-  entra en `main`, pero el paso de publicar falla (las 23 ejecuciones hasta
-  el 2026-10-12): **falta activar Pages en el repositorio** (Settings → Pages
-  → Source: "GitHub Actions"), cosa que solo puede hacer el usuario. Por eso
+- **Publicada en GitHub Pages** (de verdad desde el 2026-10-12, ejecución 25):
+  `https://arlanzon29.github.io/ConfiguradorCasa/`. La compila y publica sola
+  `.github/workflows/pages.yml` cada vez que algo entra en `main`; tarda
+  menos de un minuto. Las 24 ejecuciones anteriores fallaron al publicar
+  porque Pages no estaba activado en el repositorio (Settings → Pages →
+  Source: "GitHub Actions"); lo activó el usuario. Por eso
   `base: './'` en `vite.config.ts` y las rutas de imágenes **sin barra
   inicial** (`texturas/...`, no `/texturas/...`): la web cuelga de una
   subcarpeta. El plano y las fotos de cada visitante se quedan en su
@@ -638,6 +638,12 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-12** · **La web ya está publicada.** El usuario activó Pages y un
+  commit vacío lanzó la publicación, que esta vez terminó bien. Comprobado en
+  la dirección pública: carga la aplicación, con el plano vacío, y
+  `window.eurocasa` tiene las 17 funciones. Sin probar ahí: montar una casa,
+  la foto en calidad y la extensión de Chrome.
 
 - **2026-10-12** · **La web no está publicada**: al ir a probar las funciones
   contra GitHub Pages, la dirección da "página no encontrada". La compilación
