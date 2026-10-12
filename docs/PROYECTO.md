@@ -704,6 +704,18 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Fregadero** en la familia Cocina (lo pidió el usuario:
+  "primero hazme el fregadero"; el resto se habló en el chat). Forma `sink`,
+  tipo `fregadero`, 80 × 50 cm de un seno, código provisional
+  `MOB-FREGADERO`: marco de acero, cubeta de 18 cm de fondo que **cuelga por
+  debajo del borde** y grifo detrás. Medidas mías (el usuario no las dijo).
+  Se coloca con el borde a 0,9 m (`lift` 0,72; ajustable con la casilla de
+  altura) para ir a ras de una encimera. **Sin el hueco en el tablero la
+  cubeta queda tapada por el tablón**: del fregadero solo se ve el borde y el
+  grifo hasta que un tablero admita un hueco (opción B hablada, **sin
+  hacer**, sin respuesta del usuario sobre ella). Visto suelto en 3D en el
+  servidor aparte (5185).
+
 - **2026-10-12** · **WASD más lento** (el usuario: iba muy rápido):
   `MOVE_SPEED` de 10 a 4 m/s (volando) y `WALK_SPEED` de 4 a 1,5 m/s (a pie)
   en `View3D.tsx`. La rueda (1,5 m por paso) y el giro con el ratón no se

@@ -103,6 +103,35 @@ function boxes({ shape, width: w, depth: d, height: h }: FurnitureType): Box[] {
         { position: [0, h * 0.42, d / 2 + 0.014], size: [eye, eye, 0.012], color: '#23262b', round: true },
       ]
     }
+    case 'sink': {
+      // Fregadero de acero de un seno, para encastrar en una encimera: el borde
+      // queda a `bh` sobre la base, la cubeta cuelga por debajo y el grifo sube
+      // por detrás. `h` es el total, con el grifo.
+      const steel = '#c9ccd1'
+      const inner = '#aeb2b8'
+      const bh = 0.18
+      const f = 0.03
+      const t = 0.01
+      const iw = w - 2 * f
+      const id = d - 2 * f
+      const tap = h - bh
+      return [
+        // Borde (el marco que apoya sobre la encimera).
+        { position: [0, bh - t / 2, -(d / 2 - f / 2)], size: [w, t, f], color: steel },
+        { position: [0, bh - t / 2, d / 2 - f / 2], size: [w, t, f], color: steel },
+        { position: [-(w / 2 - f / 2), bh - t / 2, 0], size: [f, t, id], color: steel },
+        { position: [w / 2 - f / 2, bh - t / 2, 0], size: [f, t, id], color: steel },
+        // Cubeta: cuatro paredes y fondo.
+        { position: [0, bh / 2, -(id / 2 - t / 2)], size: [iw, bh, t], color: inner },
+        { position: [0, bh / 2, id / 2 - t / 2], size: [iw, bh, t], color: inner },
+        { position: [-(iw / 2 - t / 2), bh / 2, 0], size: [t, bh, id - 2 * t], color: inner },
+        { position: [iw / 2 - t / 2, bh / 2, 0], size: [t, bh, id - 2 * t], color: inner },
+        { position: [0, t / 2, 0], size: [iw, t, id], color: inner },
+        // Grifo: pie, caño vertical y pico hacia delante.
+        { position: [0, bh + (tap - 0.03) / 2, -d / 2 + 0.05], size: [0.03, tap - 0.03, 0.03], color: steel },
+        { position: [0, h - 0.015, -d / 2 + 0.05 + 0.07], size: [0.03, 0.03, 0.17], color: steel },
+      ]
+    }
     case 'oven': {
       // Horno: panel de mandos arriba con tres mandos, tirador y ventana de cristal oscuro.
       const front = 0.02
