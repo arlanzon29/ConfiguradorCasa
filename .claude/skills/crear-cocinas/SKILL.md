@@ -31,9 +31,9 @@ Medidas en metros, ancho × fondo × alto. Los códigos son provisionales.
 | Pieza (`mueble`) | Medidas | Notas |
 |---|---|---|
 | `lavavajillas` | 0,6 × 0,6 × 0,82 | |
-| `lavavajillas-pequeno` | 0,6 × 0,45 × 0,8 | |
+| `lavavajillas-pequeno` | 0,45 × 0,6 × 0,8 | Estrecho: 45 de ancho y 60 de fondo (usuario, 2026-10-12; antes estaba al revés) |
 | `lavadora` | 0,6 × 0,6 × 0,82 | Ojo de buey redondo |
-| `lavadora-pequena` | 0,6 × 0,45 × 0,8 | |
+| `lavadora-pequena` | 0,45 × 0,6 × 0,8 | Igual: 45 de ancho y 60 de fondo |
 | `horno` | 0,6 × 0,6 × 0,82 | Con las medidas del lavavajillas (lo pidió el usuario) |
 | `frigorifico` | 0,6 × 0,6 × 2,1 | Congelador pequeño **arriba**, frío abajo; asas separadas; bisagras a la izquierda (supuesto) |
 | `frigorifico-pequeno` | 0,6 × 0,6 × 1,8 | Igual |
@@ -49,6 +49,8 @@ En el catálogo hay más muebles (mesas, sofás, camas…): son de otras familia
 Las decididas por el usuario van marcadas **(usuario)**; las demás son
 provisionales, puestas por Claude hasta que él las confirme.
 
+- **"Pequeño" es estrecho, no poco profundo** (usuario, 2026-10-12): 45 de ancho
+  y **60 de fondo**, como el armario de cocina. El fondo de toda la hilera es 0,6.
 - **Se empieza por el frigorífico pequeño de 1,80** (usuario, 2026-10-12): es
   el primer paso de la cocina de prueba. Va en la esquina noreste del salón,
   de espaldas a la pared norte (`frigorifico-pequeno`, `pared: 'norte'`,
@@ -111,11 +113,10 @@ la puerta (sur) y la ventana (norte); sin más. Pasos hechos, en orden:
 
 1. Frigorífico pequeño (1,80 m) en la esquina noreste.
 2. (usuario) Lavavajillas pequeño, lavadora pequeña y armario pequeño: de
-   izquierda a derecha, en ese orden, hasta el frigorífico. Son `lavavajillas-pequeno`
-   (0,6 × 0,45), `lavadora-pequena` (0,6 × 0,45) y `armario-cocina` (0,45 × 0,6),
-   encadenados contra la pared norte. **Ojo**: los dos electrodomésticos pequeños
-   tienen 0,45 de fondo y el armario 0,6, así que los frentes no quedan al mismo
-   plano (hay un escalón de 15 cm en el armario). Sin encimera todavía.
+   izquierda a derecha, en ese orden, hasta el frigorífico. Son `lavavajillas-pequeno`,
+   `lavadora-pequena` y `armario-cocina`, **los tres de 0,45 de ancho y 0,6 de
+   fondo**, encadenados contra la pared norte: todos los frentes quedan en el
+   mismo plano que el frigorífico. Sin encimera todavía.
 
 ## Pendiente
 

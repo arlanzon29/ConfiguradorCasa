@@ -705,6 +705,13 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Lavavajillas y lavadora pequeños: 45 de ancho × 60 de
+  fondo** (el usuario preguntó si tenían 60 de fondo y lo confirmó: yo los
+  había puesto de 60 de ancho y 45 de fondo, al revés). `lavavajillas-pequeno`
+  y `lavadora-pequena` pasan a 0,45 × 0,6 × 0,8 m. La hilera de la cocina de
+  prueba (5185) se rehízo y queda toda a 0,6 de fondo, sin escalón. Hay que
+  tenerlo en cuenta en lo anterior de este registro, donde figuran 60 × 45.
+
 - **2026-10-12** · **Paso 2 de la cocina de prueba** (el usuario: "vamos a
   poner un lavavajillas pequeño, una lavadora pequeña y un armario
   pequeño"). En el entorno de pruebas (5185): armario de 45 cm junto al
