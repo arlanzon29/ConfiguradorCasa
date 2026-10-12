@@ -705,6 +705,15 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Desayunador: puerta hacia la cocina y de menos de media
+  mesa** (el usuario: "la puerta mira hacia la cocina, pero solo puede ser de
+  menos de mitad de armario para que se pueda abrir"): la forma
+  `cabinet-table` lleva ahora **una sola puerta de 0,5 m en el extremo -x** y
+  un paño fijo en el resto (antes una al medio, de 0,56). En la L, mirando la
+  mesa hacia la cocina (`espalda: 'oeste'`), ese extremo cae al sur, el libre.
+  Anotado en `crear-cocinas`. Visto en 3D. Cambia la mesa con armarios del
+  catálogo para todas las casas.
+
 - **2026-10-12** · **Puerta del desayunador en la otra cara** (el usuario: "el
   tirador está mal, hay que ponerlo en la otra puerta" y, al preguntarle
   cuál, "solo hay una puerta"): lo entendí como que la puerta, que es una

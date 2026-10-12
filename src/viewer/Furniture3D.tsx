@@ -125,31 +125,28 @@ function boxes({ shape, width: w, depth: d, height: h }: FurnitureType): Box[] {
       ]
     }
     case 'cabinet-table': {
-      // Mesa de trabajo con armarios debajo: tablero, zócalo, cuerpo y dos puertas con tirador.
+      // Mesa de trabajo con armarios debajo: tablero, zócalo, cuerpo, un paño fijo y
+      // **una sola puerta, de menos de media mesa y en el extremo -x** (a la
+      // izquierda mirándola de frente), para que pueda abrirse cuando el otro extremo
+      // toca otro mueble (el usuario).
       const top = 0.04
       const kick = 0.08
       const inset = 0.02
       const gap = 0.01
-      // Una sola puerta en el centro, entre dos paños fijos.
       const inner = w - 2 * inset
-      const doorW = inner / 2
-      const panelW = (inner - doorW) / 2 - gap
+      const doorW = Math.min(0.5, inner / 2 - 0.05)
+      const doorX = -(inner / 2 - 0.02 - doorW / 2)
+      const panelW = inner / 2 - (doorX + doorW / 2) - gap
       const faceH = h - top - kick - 2 * gap
       const faceY = kick + (h - top - kick) / 2
       const faceZ = d / 2 - inset - 0.01
-      const panel = (sx: number): Box => ({
-        position: [sx * (doorW / 2 + gap + panelW / 2), faceY, faceZ],
-        size: [panelW, faceH, 0.02],
-        color: '#dbd8d0',
-      })
       return [
         { position: [0, h - top / 2, 0], size: [w, top, d], color: WOOD },
         { position: [0, kick / 2, -inset / 2], size: [w - 2 * inset, kick, d - 2 * inset - 0.04], color: '#3a3a3e' },
         { position: [0, kick + (h - top - kick) / 2, -inset], size: [w - 2 * inset, h - top - kick, d - 2 * inset - 0.02], color: WHITE },
-        panel(-1),
-        panel(1),
-        { position: [0, faceY, faceZ], size: [doorW - gap, faceH, 0.02], color: '#e6e3dc' },
-        { position: [0, h - top - 0.08, faceZ + 0.02], size: [0.3, 0.025, 0.025], color: '#8a8d92' },
+        { position: [inner / 2 - panelW / 2, faceY, faceZ], size: [panelW, faceH, 0.02], color: '#dbd8d0' },
+        { position: [doorX, faceY, faceZ], size: [doorW, faceH, 0.02], color: '#e6e3dc' },
+        { position: [doorX, h - top - 0.08, faceZ + 0.02], size: [0.2, 0.025, 0.025], color: '#8a8d92' },
       ]
     }
     case 'oven': {

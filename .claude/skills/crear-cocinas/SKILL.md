@@ -58,7 +58,7 @@ Medidas en metros, ancho × fondo × alto. Los códigos son provisionales.
 | `frigorifico` | 0,6 × 0,6 × 2,1 | Congelador pequeño **arriba**, frío abajo (usuario); asas separadas; bisagras a la izquierda (supuesto) |
 | `frigorifico-pequeno` | 0,6 × 0,6 × 1,8 | Igual |
 | `armario-cocina` | 0,45 × 0,6 × 0,8 | Dos puertas. 80 de alto como los pequeños, para una encimera a ras (usuario) |
-| `mesa-armarios` | 1,2 × 0,6 × 0,8 | Mesa de trabajo con **una sola puerta al medio**, dos paños fijos y el tirador horizontal (usuario). **Es el "armario desayunador"** (usuario: "esa mesa con armarios"); si le piden otro nombre o más alto, se cambia en el catálogo |
+| `mesa-armarios` | 1,2 × 0,6 × 0,8 | Mesa de trabajo con **una sola puerta de 0,5 m en un extremo** (la mitad izquierda de su frente, mirándola de frente), un paño fijo y el tirador horizontal (usuario: "menos de mitad de armario para que se pueda abrir"). **Es el "armario desayunador"** (usuario: "esa mesa con armarios"); si le piden otro nombre o más alto, se cambia en el catálogo |
 | `fregadero` | 0,4 × 0,45 | **Una sola pila, sin profundidad**: se apoya sobre la encimera (el usuario descartó el agujero) |
 | `vitroceramica` | 0,5 × 0,5 × 0,02 | 4 fuegos, fina y negra (usuario). Lleva su altura propia (0,9 m): ponle la de la encimera |
 
@@ -115,11 +115,15 @@ provisionales, puestas por Claude hasta que él las confirme.
   el extremo del armario, formando una L**: pegado al lado del armario y
   saliendo de la pared hacia el interior de la estancia, con su lado largo (1,2)
   en el eje norte-sur. La prueba: `x` el borde izquierdo del armario menos 0,3,
-  `y` la del armario más 0,3, **`espalda: 'este'`**. Con eso la **puerta y su
-  tirador miran hacia fuera de la L**, hacia el salón (el usuario: "el tirador
-  está mal, hay que ponerlo en la otra puerta… solo hay una puerta": quería la
-  puerta en la otra cara, no dos puertas). Primero estuvo con `espalda: 'oeste'`,
-  hacia el lado de trabajo, y se giró 180°.
+  `y` la del armario más 0,3, **`espalda: 'oeste'`**. Con eso la **puerta mira
+  hacia la cocina** (usuario: "la puerta mira hacia la cocina, pero solo puede
+  ser de menos de mitad de armario para que se pueda abrir"). La mesa queda
+  pegada al armario por su cara de puertas: la **puerta es de 0,5 m y va en el
+  extremo libre (el sur)**, donde no hay armario delante, para poder abrirse.
+  En esta orientación el extremo "izquierdo" del frente (-x) cae al sur; **si la
+  giras, la puerta cambia de extremo**: compruébalo siempre en 3D. Se probó
+  también con `espalda: 'este'` (puerta hacia el salón) y con la puerta al medio:
+  descartado, porque la mitad de la puerta quedaba contra el armario.
 - Su tablero queda a 0,80 y la encimera a 0,82: 2 cm de escalón. No se ha
   tocado.
 
