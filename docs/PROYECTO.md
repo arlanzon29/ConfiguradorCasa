@@ -289,7 +289,7 @@ Casa
 Cada casilla se aplica sola con Intro o al salir de ella; `Esc` la deja como
 estaba; lo que no cabe se rechaza con un aviso debajo.
 
-**Clics en el plano** (`Editor2D.tsx`): sobre un hueco o un mueble, lo elige y
+**Clics en el plano** (`Editor2D.tsx`): sobre un hueco, un mueble o un foco, lo elige y
 lo arrastra; a menos de 35 cm de una pared (`WALL_NEAR`), elige la pared; en
 el centro de una estancia, la elige, y **solo ya elegida se arrastra** (el
 primer clic elige, el segundo mueve). Los tiradores para estirarla son solo los
@@ -471,7 +471,7 @@ que la textura "Madera de pino" cubre 2 × 2 m (supuesto, sin confirmar).
 - Luces: valores inventados (foco de 12 cm; al 100 % alumbra como el panel
   provisional, `LIGHT_INTENSITY` en `View3D.tsx`; se separa 20 cm del
   borde de la estancia, sin descontar el grosor de las paredes). No hay
-  encendido y apagado, ni luz en la vista normal, ni arrastre en el plano. Al encoger la estancia no se reencajan. El foco es pequeño y
+  encendido y apagado, ni luz en la vista normal. Al encoger la estancia no se reencajan. El foco es pequeño y
   da más grano que el panel: a 50 muestras se nota sin filtro. Probado en el
   servidor aparte (5184) en una estancia de 3 × 3 vacía: añadir dos focos,
   cambiar el tono, el círculo en el plano, el disco en la vista normal y una
@@ -621,6 +621,18 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-12** · **Los focos se arrastran en el plano** (el usuario no podía
+  moverlos). Pinchar uno lo elige y lo arrastra, en pasos de 5 cm y sin salir
+  del techo de su estancia (a 20 cm del borde, `LIGHT_MARGIN`). Se dibujan
+  **por encima de los muebles**, como el techo: en el plano del usuario dos de
+  los tres focos tenían una cama debajo y no se podían pinchar. Se agarran de
+  un círculo invisible de 20 cm de radio (`light-hit`), mayor que el dibujado.
+  En `Editor2D.tsx`, arrastre `light` con `patchLight`. Probado con el ratón
+  en el plano del usuario (con su permiso): arrastrar un foco con una cama
+  debajo, el tope en la esquina, y devolverlo con "Centrar en la estancia".
+  Sin probar: que un foco encima de un mueble pequeño no estorbe para
+  agarrar el mueble.
 
 - **2026-10-12** · **Elegir qué se ve en el plano** (lo pidió el usuario, sobre
   todo para quitar el mobiliario): botones Mobiliario, Cámara y Rejilla junto

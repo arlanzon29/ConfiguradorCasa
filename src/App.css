@@ -826,6 +826,15 @@ button:disabled {
   fill: #facc15;
   stroke: #a16207;
   stroke-width: 0.03;
+  cursor: grab;
+}
+
+.light-hit {
+  fill: transparent;
+  stroke: none;
+}
+
+.placing .light-mark {
   pointer-events: none;
 }
 

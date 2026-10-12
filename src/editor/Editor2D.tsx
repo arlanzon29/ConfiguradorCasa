@@ -10,6 +10,7 @@ import {
   roundSize,
   snap,
 } from '../model/house'
+import { LIGHT_MARGIN } from '../model/lights'
 import { OPENING_CATALOG, Opening, swingDoor, swingSign } from '../model/openings'
 import { Wall, deriveWalls, nearestWall, openingsOf, wallAcross } from '../model/walls'
 import { vinylPlacement } from '../model/vinyls'
@@ -216,6 +217,8 @@ type Drag =
   // `grab`: distancia del puntero al inicio del hueco, a lo largo de su pared.
   | { opening: string; grab: number; horizontal: boolean }
   | { furniture: string; dx: number; dy: number }
+  // Un foco, con su estancia; `dx`, `dy`: del puntero al foco.
+  | { light: string; room: string; dx: number; dy: number }
   | { shell: string; dx: number; dy: number }
   | { camera: 'move'; dx: number; dy: number }
   | { camera: 'aim' }
@@ -243,6 +246,7 @@ export default function Editor2D() {
   const pick = useHouse((s) => s.pick)
   const addFurniture = useHouse((s) => s.addFurniture)
   const moveFurniture = useHouse((s) => s.moveFurniture)
+  const patchLight = useHouse((s) => s.patchLight)
   const selectedOpeningId = useHouse((s) => s.selectedOpeningId)
   const moveModule = useHouse((s) => s.moveModule)
   const resizeModule = useHouse((s) => s.resizeModule)
@@ -435,6 +439,16 @@ export default function Editor2D() {
           )
         } else if ('furniture' in d) {
           moveFurniture(d.furniture, snapFurniture(p.x - d.dx), snapFurniture(p.y - d.dy))
+        } else if ('light' in d) {
+          const room = useHouse.getState().modules.find((m) => m.id === d.room)
+          if (!room) return
+          // Dentro del techo de su estancia, en pasos de 5 cm como los muebles.
+          const within = (v: number, size: number) =>
+            Math.min(Math.max(snapFurniture(v), LIGHT_MARGIN), size - LIGHT_MARGIN)
+          patchLight(d.room, d.light, {
+            x: within(p.x - d.dx - room.x, room.width),
+            y: within(p.y - d.dy - room.y, room.depth),
+          })
         } else if ('opening' in d) {
           moveOpening(d.opening, snapOpening((d.horizontal ? p.x : p.y) - d.grab))
         } else if (d.edge) {
@@ -556,17 +570,6 @@ export default function Editor2D() {
                 )
               }),
             )}
-          {/* Luces: un círculo por foco, donde cae en el techo. */}
-          {mode === 'modules' &&
-            (m.lights ?? []).map((l) => (
-              <circle
-                key={l.id}
-                className={l.id === selectedLightId ? 'light-mark selected' : 'light-mark'}
-                cx={l.x}
-                cy={l.y}
-                r={0.1}
-              />
-            ))}
         </g>
       ))}
 
@@ -593,6 +596,32 @@ export default function Editor2D() {
           <FurnitureSymbol item={item} />
         </g>
       ))}
+
+      {/* Luces: un círculo por foco, donde cae en el techo. Van por encima de los
+          muebles, como el techo, para poder agarrarlas aunque haya uno debajo. */}
+      {mode === 'modules' &&
+        modules.flatMap((m) =>
+          (m.lights ?? []).map((l) => (
+            <g
+              key={l.id}
+              className={l.id === selectedLightId ? 'light-mark selected' : 'light-mark'}
+              transform={`translate(${m.x + l.x} ${m.y + l.y})`}
+              onPointerDown={(e) => {
+                // Con algo por colocar, el clic sigue hasta el lienzo.
+                if (tool) return
+                e.stopPropagation()
+                pick('modules', { selectedId: m.id, selectedLightId: l.id })
+                const p = toMeters(e)
+                drag.current = { light: l.id, room: m.id, dx: p.x - m.x - l.x, dy: p.y - m.y - l.y }
+                svgRef.current!.setPointerCapture(e.pointerId)
+              }}
+            >
+              {/* El foco es pequeño: se agarra de un círculo mayor, que no se ve. */}
+              <circle className="light-hit" r={0.2} />
+              <circle className="light-dot" r={0.1} />
+            </g>
+          )),
+        )}
 
       {/* Tiradores de la estancia seleccionada, por encima de las paredes. */}
       {modules
