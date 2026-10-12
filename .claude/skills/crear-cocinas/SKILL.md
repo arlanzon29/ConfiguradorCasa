@@ -146,13 +146,15 @@ la puerta (sur) y la ventana (norte); sin más. Pasos hechos, en orden:
    Se colocan sueltos con `x` e `y` (`espalda: 'norte'`). Lo que el usuario
    descartó por el camino: pegarlos entre sí, y centrar el conjunto a lo ancho.
 
-5. (usuario) **Tapar el armario con un tablón de madera**: un tablero de
-   `acabado: 'pino'` en la pared norte, del suelo (`altura` 0) hasta la encimera
-   (`alto` 0,8), con el ancho del armario (0,45) y **0,61 de fondo** (1 cm más
-   que el armario para que el frente quede por delante y no se mezcle con el
-   suyo). Es un **bloque macizo** que esconde las puertas del armario: un
-   tablero cuelga de la pared y no puede ser una tapa fina delante. El armario
-   sigue debajo, oculto. `posicion` la `x` del armario.
+5. (usuario) **Tapa lateral de madera en el extremo izquierdo**: un tablón de
+   `pino`, **de canto** (saliendo de la pared), 0,02 de grueso, **0,82 de alto**
+   (hasta la cara de arriba de la encimera), 0,6 de fondo, justo a la izquierda
+   del armario: `ponerTablero` con `ancho: 0.02`, `alto: 0.82`, `fondo: 0.6`,
+   `altura: 0`, `posicion` el borde izquierdo del armario menos 0,01.
+   El usuario primero pidió "tapar el armario con un tablón": salió un bloque
+   macizo (0,45 × 0,8 × 0,61) que **escondía las puertas** y lo descartó ("la tapa
+   al otro lado, la 1, y quita el bloque"). **Un tablero no puede ser una tapa
+   fina delante de un mueble**; para cerrar un costado sí vale de canto.
 
 ## Pendiente
 

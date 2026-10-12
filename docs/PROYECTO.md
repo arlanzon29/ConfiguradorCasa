@@ -705,6 +705,13 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Tapa lateral en vez del bloque** (el usuario: "la tapa al
+  otro lado", y tras preguntarle, "la 1, y quita el bloque macizo"): en la
+  cocina de prueba (5185) se quita el bloque de pino que tapaba el armario y
+  se pone una **tapa de canto** de 0,02 × 0,82 × 0,6 m a la izquierda del
+  armario, para cerrar el costado a la vista. Anotado en `crear-cocinas`.
+  Visto en 3D desde la esquina suroeste.
+
 - **2026-10-12** · **Armario tapado con un tablón de madera** (el usuario:
   "tapamos el armario con un tablón de madera"): en la cocina de prueba
   (5185), un tablero de pino de 0,45 × 0,8 × 0,61 m en la pared norte,
