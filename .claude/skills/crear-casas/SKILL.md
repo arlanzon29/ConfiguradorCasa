@@ -121,6 +121,11 @@ el disco; el puente eres tú:
   que escriba el cuerpo del POST en el archivo y se cierre) y haz desde la
   página `fetch('http://127.0.0.1:<puerto>/', { method: 'POST', body: texto })`.
   Comprueba después el archivo (JSON válido y número de fotos).
+- **Lo que hay en el navegador es lo bueno** (decisión del usuario,
+  2026-10-12): al guardar, no compares con el archivo anterior ni restaures
+  nada de él, fotos incluidas; el usuario puede haber repetido una foto o
+  cambiado la casa por la interfaz. Antes de sobrescribir, guarda una copia del
+  archivo previo en el scratchpad, por si piden volver atrás.
 - **Por defecto, guarda con fotos** si la casa las tiene (decisión del
   usuario, 2026-10-12), salvo que pida lo contrario.
 - **Abrir con fotos**: tampoco lo pases por la conversación. Sirve el archivo

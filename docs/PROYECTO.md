@@ -666,6 +666,14 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Casa de Daniel actualizada en `comercial/`** con dos
+  enchufes (0,3 m, detrás de las mesillas) y un interruptor (0,8 m, junto a
+  la cama, a la derecha de quien se tumba) en la pared este de la Habitación
+  Infantil; todo por funciones, en el servidor aparte (5185). Primera vez que
+  se guarda con la foto 4 repetida por el usuario. **Regla del usuario: al
+  guardar, lo del navegador es lo bueno**, fotos incluidas; anotada en la
+  skill `crear-casas`.
+
 - **2026-10-12** · **Interruptores y enchufes** (tema 7 de pendientes; el
   usuario decidió: solo se ven, y entran también los enchufes). Nuevo
   `model/mechanisms.ts` (cinco tipos de catálogo con su código, medidas y
