@@ -385,6 +385,9 @@ maneja como la bandeja de la prueba `D:\IA\Macedonia\games\sala-ar`
 (ahí lo tenía resuelto el usuario): **gatillo o botón lateral (agarre)
 mantenidos**, la mesa sigue al mando (justo debajo) y gira hacia donde apunta,
 aunque esté lejos (el usuario esperaba que el botón lateral la colocara);
+**los dos mandos a la vez** (gatillo o lateral en ambos): la distancia entre
+ellos **agranda o reduce** la maqueta (de 1:100 a 1:1) y girar las manos la
+gira, con la mesa entre las dos manos;
 **stick** izquierda o derecha, la gira poco a poco; **A o X**,
 cambia entre maqueta y tamaño real (1:1); **B o Y** sale. Sin sombras ni fondo.
 Solo con mandos: las manos (pellizco) no están.
@@ -700,6 +703,16 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-12** · **AR: escalar con los dos mandos** (el usuario: lo de la
+  maqueta lejos y la que no funcionaba era un problema de caché de las Quest,
+  no del código; pidió poder ampliarla y reducirla con los dos mandos).
+  `ARTable` en `View3D.tsx`: con gatillo o lateral en los dos, la distancia
+  entre los mandos fija la escala (de 1:100, `AR_MIN_SCALE`, a 1:1), el giro
+  de las manos gira la maqueta y la mesa queda entre las dos manos. A o X
+  alterna entre 1:20 y 1:1 (con una escala intermedia, según esté por encima
+  o por debajo de 1:2). **Sin probar**, ni en el emulador: el usuario lo prueba
+  en las Quest.
 
 - **2026-10-12** · **Versión visible** (el usuario no sabía si la AR no
   funcionaba por la versión que cargaban las Quest). `__APP_VERSION__`

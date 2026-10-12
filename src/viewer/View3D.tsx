@@ -472,9 +472,13 @@ function exitHint(title: string, lines: string[]) {
 // como la bandeja de la prueba `sala-ar` (D:\IA\Macedonia\games\sala-ar):
 //  · gatillo o botón lateral (agarre) mantenido: la mesa sigue al mando, justo
 //    debajo, y gira hacia donde apunta (la trae aunque esté lejos);
+//  · los dos mandos a la vez (gatillo o lateral): la distancia entre ellos
+//    agranda o reduce la maqueta, y girar las manos la gira;
 //  · stick a izquierda o derecha: la gira poco a poco;
 //  · A o X: cambia entre maqueta (1:20) y tamaño real (1:1).
 const AR_SCALE = 1 / 20
+// Lo más pequeña que puede quedar la maqueta (1:100); lo más grande, 1:1.
+const AR_MIN_SCALE = 0.01
 const AR_TABLE_HEIGHT = 0.75
 const AR_TABLE_MARGIN = 0.06
 const AR_TURN_SPEED = 1.5
@@ -502,6 +506,8 @@ function ARTable({
     yaw: 0,
     scale: AR_SCALE,
     ready: false,
+    // El gesto de escalar con los dos mandos: de dónde partía.
+    pinch: null as null | { dist: number; angle: number; scale: number; yaw: number },
   })
   // Estado de los botones fotograma a fotograma, para detectar la pulsación (no la mantenida).
   const held = useRef(new Map<string, boolean>())
@@ -515,6 +521,7 @@ function ARTable({
 
   useEffect(() => {
     table.current.ready = false
+    table.current.pinch = null
     held.current.clear()
   }, [enabled])
 
@@ -553,6 +560,7 @@ function ARTable({
     }
 
     let toggle = false
+    const placing: { hand: string; pos: Vector3; fwd: Vector3 }[] = []
     for (const source of session.inputSources) {
       const pad = source.gamepad
       if (!pad || !space) continue
@@ -570,15 +578,40 @@ function ARTable({
       if (press && !wasPress) toggle = true
 
       if (place) {
-        // La mesa va justo debajo del mando y mira hacia donde apunta.
-        t.pos.set(v.hand.x, Math.max(v.hand.y - 0.03, 0), v.hand.z)
-        if (Math.hypot(v.fwd.x, v.fwd.z) > 0.2) t.yaw = Math.atan2(-v.fwd.x, -v.fwd.z)
+        placing.push({ hand, pos: v.hand.clone(), fwd: v.fwd.clone() })
         continue
       }
       const stick = pad.axes[2] ?? 0
       if (Math.abs(stick) > 0.3) t.yaw += -stick * AR_TURN_SPEED * delta
     }
-    if (toggle) t.scale = t.scale === AR_SCALE ? 1 : AR_SCALE
+
+    if (placing.length >= 2) {
+      // Con los dos mandos: la distancia entre ellos escala la maqueta, girar las
+      // manos la gira, y la mesa queda entre las dos.
+      placing.sort((a, b) => a.hand.localeCompare(b.hand))
+      const [a, b] = placing
+      const dist = a.pos.distanceTo(b.pos)
+      const angle = Math.atan2(b.pos.z - a.pos.z, b.pos.x - a.pos.x)
+      if (!t.pinch) t.pinch = { dist, angle, scale: t.scale, yaw: t.yaw }
+      if (t.pinch.dist > 0.02) {
+        t.scale = Math.min(Math.max((t.pinch.scale * dist) / t.pinch.dist, AR_MIN_SCALE), 1)
+        t.yaw = t.pinch.yaw - (angle - t.pinch.angle)
+      }
+      t.pos.set(
+        (a.pos.x + b.pos.x) / 2,
+        Math.max(Math.min(a.pos.y, b.pos.y) - 0.03, 0),
+        (a.pos.z + b.pos.z) / 2,
+      )
+    } else {
+      t.pinch = null
+      if (placing.length === 1) {
+        // La mesa va justo debajo del mando y mira hacia donde apunta.
+        const { pos, fwd } = placing[0]
+        t.pos.set(pos.x, Math.max(pos.y - 0.03, 0), pos.z)
+        if (Math.hypot(fwd.x, fwd.z) > 0.2) t.yaw = Math.atan2(-fwd.x, -fwd.z)
+      }
+    }
+    if (toggle) t.scale = t.scale >= 0.5 ? AR_SCALE : 1
 
     o.position.copy(t.pos)
     o.rotation.set(0, t.yaw, 0)
@@ -644,8 +677,8 @@ function VRRig({ ar }: { ar: boolean }) {
     const hint = ar
       ? exitHint('Pulsa B o Y para salir', [
           'Gatillo o botón lateral: poner la maqueta',
-          'Stick: girarla',
-          'A o X: maqueta o tamaño real',
+          'Los dos mandos a la vez: escalar y girar',
+          'Stick: girarla · A o X: tamaño real',
           __APP_VERSION__,
         ])
       : exitHint('Pulsa B o Y para salir', ['Stick: caminar y girar', __APP_VERSION__])
