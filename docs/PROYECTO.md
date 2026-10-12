@@ -624,6 +624,11 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Skill `crear-casas` probada por el usuario en una sesión
+  nueva**: con un solo prompt (módulo de 12 × 4 m, salón, habitación y baño,
+  ocho huecos y nueve muebles) la casa se montó en **34 segundos**, y le
+  parece bien. El dato es suyo; el resultado no lo he visto yo.
+
 - **2026-10-12** · **Muebles sueltos por funciones** (el usuario pidió
   amueblar el salón de la casa de prueba: mesa de comedor en el centro con
   cuatro sillas, sofá y mesilla). `ponerMueble` admite ahora `x`, `y` (el
