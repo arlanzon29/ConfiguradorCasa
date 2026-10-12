@@ -154,14 +154,15 @@ export default function App() {
             <div className="plan-layers">
               <span className="muted">Ver en el plano:</span>
               {PLAN_LAYERS.map((layer) => (
-                <label key={layer.id}>
-                  <input
-                    type="checkbox"
-                    checked={planLayers[layer.id]}
-                    onChange={(e) => setPlanLayer(layer.id, e.target.checked)}
-                  />
+                <button
+                  key={layer.id}
+                  className={planLayers[layer.id] ? 'active' : ''}
+                  aria-pressed={planLayers[layer.id]}
+                  title={planLayers[layer.id] ? 'Quitar del plano' : 'Mostrar en el plano'}
+                  onClick={() => setPlanLayer(layer.id, !planLayers[layer.id])}
+                >
                   {layer.name}
-                </label>
+                </button>
               ))}
             </div>
           )}

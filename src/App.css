@@ -434,17 +434,13 @@ button:hover {
 .plan-layers {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   margin-left: auto;
   white-space: nowrap;
-  font-size: 13px;
 }
 
-.plan-layers label {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  cursor: pointer;
+.plan-layers span {
+  font-size: 13px;
 }
 
 .view-toggle .active {
