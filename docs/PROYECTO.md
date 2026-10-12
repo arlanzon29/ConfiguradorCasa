@@ -624,6 +624,17 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Ir a una estancia usa la vista de su foto guardada** (lo
+  pidió el usuario). `llevarCamara` sin `mirando` ni `desde` va a la última
+  foto de esa estancia, con su objetivo (`goTo` de `photos.ts`); si no hay,
+  como antes. Una foto es de la estancia que la cámara tiene un metro por
+  delante (`photoRoom` en `api.ts`), no de la que la contiene: la del usuario
+  estaba sacada desde el umbral de la puerta, 6 cm dentro del salón, y con la
+  primera regla se la daba al salón. `casa()` devuelve también las `fotos`.
+  En la skill `crear-casas`. Probado en el servidor aparte (5183): la
+  habitación va a su foto y el salón, sin foto, a la vista recta. Sin probar:
+  varias fotos en una misma estancia.
+
 - **2026-10-12** · **Cámara desde una esquina**: `llevarCamara` admite
   `desde` (noroeste, noreste, suroeste, sureste) y mira en diagonal al centro
   de la estancia. El usuario no se hacía idea de la habitación con las vistas

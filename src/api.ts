@@ -10,7 +10,7 @@ import { furnitureName, roomName, shellName } from './model/names'
 import { OPPOSITE, Opening, swingDoor, validOpeningSize, wallLine } from './model/openings'
 import { deriveWalls, wallOf } from './model/walls'
 import { usePhotos } from './photos'
-import { PHOTO_EVENT, PHOTO_SAMPLES, furnitureBox, useHouse } from './store'
+import { CameraPose, PHOTO_EVENT, PHOTO_SAMPLES, furnitureBox, useHouse } from './store'
 
 type Fallo = { error: string }
 
@@ -27,6 +27,24 @@ const findRoom = (ref: string) => {
   const { modules } = state()
   const key = ref.trim().toLowerCase()
   return modules.find((m) => m.id === ref || roomName(modules, m.id).toLowerCase() === key)
+}
+
+/** La estancia que contiene ese punto del plano. */
+const roomAt = (x: number, y: number) =>
+  state().modules.find(
+    (m) => x >= m.x && x <= m.x + m.width && y >= m.y && y <= m.y + m.depth,
+  )
+
+/**
+ * De qué estancia es una foto: la que tiene la cámara un metro por delante (una
+ * foto sacada desde el umbral de la puerta es de la estancia a la que mira) y,
+ * si ahí no hay ninguna, la que la contiene.
+ */
+function photoRoom(pose: CameraPose) {
+  const x = pose.position[0] + PLOT.width / 2
+  const y = pose.position[2] + PLOT.depth / 2
+  // El giro 0 mira al norte y crece hacia el oeste.
+  return roomAt(x - Math.sin(pose.yaw), y - Math.cos(pose.yaw)) ?? roomAt(x, y)
 }
 
 /** Una estancia tal como se cuenta: posición desde la esquina de su módulo. */
@@ -60,6 +78,13 @@ function casa() {
     estanciasSueltas: modules.filter((m) => !m.shellId).map((m) => describeRoom(m)),
     huecos: state().openings.map(describeOpening),
     muebles: state().furniture.map(describeFurniture),
+    // Las fotos guardadas: desde dónde se sacó cada una, en coordenadas del plano.
+    fotos: usePhotos.getState().photos.map((p, i) => {
+      const x = roundSize(p.pose.position[0] + PLOT.width / 2)
+      const y = roundSize(p.pose.position[2] + PLOT.depth / 2)
+      const room = photoRoom(p.pose)
+      return { foto: i + 1, ...(room && { estancia: roomName(modules, room.id) }), x, y }
+    }),
   }
 }
 
@@ -441,7 +466,8 @@ const ESQUINAS: Record<string, { north: boolean; west: boolean }> = {
 /**
  * Lleva la cámara de la vista 3D a una estancia, de pie y mirando hacia
  * `mirando` (norte, sur, este, oeste) desde la pared de enfrente, centrada.
- * Sin `mirando`, a lo largo del lado más largo, para abarcar más. Con `desde`
+ * Sin nada, va a donde se sacó la última foto guardada en esa estancia, con su
+ * objetivo; si no hay ninguna, mira a lo largo del lado más largo. Con `desde`
  * (noroeste, noreste, suroeste, sureste) se pone en esa esquina y mira en
  * diagonal al centro.
  */
@@ -460,6 +486,15 @@ function llevarCamara(p: { estancia: string; mirando?: string; desde?: string })
       pitch: 0,
     })
     return { estancia: roomName(state().modules, room.id), desde: p.desde }
+  }
+  if (p.mirando === undefined) {
+    // Sin decir desde dónde, vale la vista de una foto guardada en esa estancia: la más reciente.
+    const { photos, goTo } = usePhotos.getState()
+    const at = photos.map((f) => photoRoom(f.pose)?.id).lastIndexOf(room.id)
+    if (at >= 0) {
+      goTo(photos[at].id)
+      return { estancia: roomName(state().modules, room.id), foto: at + 1 }
+    }
   }
   const side = p.mirando === undefined ? (room.width >= room.depth ? 'e' : 's') : LADOS[p.mirando]
   if (!side) return { error: 'Lado desconocido.' } as Fallo
