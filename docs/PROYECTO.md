@@ -705,7 +705,9 @@ medida variable, exterior…).
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
 - **2026-10-12** · **Mesa con armarios: una sola puerta al medio** (el
-  usuario: "solo puede haber una puerta al medio"). Dos paños fijos a los
+  usuario: "solo puede haber una puerta al medio"; luego "me falta el
+  tirador": el tirador pasó de vertical a un lado a una barra horizontal
+  centrada arriba, como la del lavavajillas, porque quedaba tapado). Dos paños fijos a los
   lados y una puerta centrada con el tirador a su derecha; el plano ya no la
   dibuja con la raya central. Su otra queja, "la puerta está en el otro
   lado", la entiendo así: la puerta va en la cara delantera (con giro 0, al

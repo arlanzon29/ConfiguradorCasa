@@ -149,7 +149,7 @@ function boxes({ shape, width: w, depth: d, height: h }: FurnitureType): Box[] {
         panel(-1),
         panel(1),
         { position: [0, faceY, faceZ], size: [doorW - gap, faceH, 0.02], color: '#e6e3dc' },
-        { position: [doorW / 2 - 0.06, h - top - 0.12, faceZ + 0.02], size: [0.02, 0.16, 0.02], color: '#8a8d92' },
+        { position: [0, h - top - 0.08, faceZ + 0.02], size: [0.3, 0.025, 0.025], color: '#8a8d92' },
       ]
     }
     case 'oven': {
