@@ -704,6 +704,11 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Armario medio** en el catálogo de mobiliario (lo pidió el
+  usuario: un armario que sea la mitad del actual): `armario-medio`, 0,9 × 0,6
+  × 2,2 m, familia dormitorio, código provisional `MOB-ARMARIO-MEDIO`. El
+  armario de 1,8 m se queda como estaba. Solo `tsc`; sin verlo a la vista.
+
 - **2026-10-12** · **Anotado en `docs/PENDIENTES.md` (tema 18)**: dentro de
   "Casa" en el árbol debe haber una carpeta "Módulos" con su "+" para añadir
   un módulo nuevo; y dentro de cada módulo, una carpeta "Estancias" con su
