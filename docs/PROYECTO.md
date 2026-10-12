@@ -15,9 +15,12 @@ npm run build    # tsc --noEmit && vite build
 ```
 
 - Vista 3D sola (para otra ventana): `http://localhost:5173/?vista=3d`
-- **Publicada en GitHub Pages** (desde el 2026-10-12):
-  `https://arlanzon29.github.io/ConfiguradorCasa/`. La compila y publica sola
-  `.github/workflows/pages.yml` cada vez que algo entra en `main`. Por eso
+- **GitHub Pages, preparada pero sin publicar**: la dirección será
+  `https://arlanzon29.github.io/ConfiguradorCasa/`, y hoy da "página no
+  encontrada". `.github/workflows/pages.yml` la compila bien cada vez que algo
+  entra en `main`, pero el paso de publicar falla (las 23 ejecuciones hasta
+  el 2026-10-12): **falta activar Pages en el repositorio** (Settings → Pages
+  → Source: "GitHub Actions"), cosa que solo puede hacer el usuario. Por eso
   `base: './'` en `vite.config.ts` y las rutas de imágenes **sin barra
   inicial** (`texturas/...`, no `/texturas/...`): la web cuelga de una
   subcarpeta. El plano y las fotos de cada visitante se quedan en su
@@ -635,6 +638,13 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-12** · **La web no está publicada**: al ir a probar las funciones
+  contra GitHub Pages, la dirección da "página no encontrada". La compilación
+  pasa y el paso `deploy-pages` falla con "Ensure GitHub Pages has been
+  enabled" en todas las ejecuciones. Corregido lo que decía este documento
+  ("Publicada en GitHub Pages"); el código no cambia. Falta que el usuario
+  active Pages en el repositorio.
 
 - **2026-10-12** · **Decidido por el usuario: sin servidor, Claude maneja el
   navegador.** Anotado en "Decisiones de diseño". Pendiente de comprobar: que
