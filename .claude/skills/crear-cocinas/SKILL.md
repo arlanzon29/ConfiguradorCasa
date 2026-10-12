@@ -56,14 +56,14 @@ provisionales, puestas por Claude hasta que él las confirme.
   de espaldas a la pared norte (`frigorifico-pequeno`, `pared: 'norte'`,
   `posicion` de sobra para que se arrime a la esquina).
 - **Encimera = un tablero** (usuario): `ponerTablero` fino y con fondo, no una
-  pieza de catálogo. Medidas con las que se montó: **0,04 de alto, 0,6 de fondo**,
+  pieza de catálogo. Medidas con las que se montó: **0,02 de alto** (grueso, usuario), **0,6 de fondo**,
   acabado `gris-perla` (granito, la textura que pasó el usuario).
 - **Las piezas de debajo miden lo mismo** (usuario): los electrodomésticos pequeños
   y el armario de cocina, **0,80** de alto, para poner una encimera encima a
   ras. Con los normales (0,82) no encajan: no los mezcles bajo la misma encimera.
 - **Altura de la encimera** (provisional): el tablero apoya **sobre** lo que hay
   debajo. Con la hilera de 0,80, su borde inferior va a **0,80** (`altura: 0,80`)
-  y la cara de arriba queda a **0,84**. Con la de 0,82 serían 0,82 y 0,86.
+  y la cara de arriba queda a **0,82** con la encimera de 2 cm. Con la de 0,82 serían 0,82 y 0,84.
 - **Lo que va encima de la encimera** (vitro, fregadero): `ponerMueble` con
   `altura` = la cara de arriba de la encimera (0,86).
 - **Las piezas de suelo van a ras, una al lado de otra**, de espaldas a la pared.
@@ -91,7 +91,7 @@ const ar  = e.ponerMueble({ mueble: 'armario-cocina', estancia, pared: 'norte', 
 const lv  = e.ponerMueble({ mueble: 'lavavajillas',   estancia, pared: 'norte', posicion: ar.x - 0.225 - 0.3 })
 // Encimera sobre las tres primeras: de lv.x - 0.3 a la.x + 0.3
 const izq = lv.x - 0.3, der = la.x + 0.3
-e.ponerTablero({ estancia, lado: 'norte', ancho: der - izq, alto: 0.04, fondo: 0.6,
+e.ponerTablero({ estancia, lado: 'norte', ancho: der - izq, alto: 0.02, fondo: 0.6,
                  posicion: (izq + der) / 2, altura: 0.82, acabado: 'gris-perla' })
 e.ponerMueble({ mueble: 'vitroceramica', estancia, pared: 'norte', posicion: ar.x, altura: 0.86 })
 ```
@@ -125,9 +125,10 @@ la puerta (sur) y la ventana (norte); sin más. Pasos hechos, en orden:
    altura.
 3. (usuario) **Encimera**: un tablero contra la pared norte, de gris perla
    (`acabado: 'gris-perla'`), de 1,35 m de ancho (del borde izquierdo del
-   armario al derecho de la lavadora; llega justo al frigorífico), 0,04 de
-   alto, 0,6 de fondo y `altura` 0,80 (cara de arriba a 0,84). Fue
-   `ponerTablero` con `posicion` 2,58 y `ancho` 1,35.
+   armario al derecho de la lavadora; llega justo al frigorífico), **0,02 de
+   alto** (el usuario: "la encimera es menos gruesa"; salió de 0,04), 0,6 de
+   fondo y `altura` 0,80 (cara de arriba a 0,82). Fue `ponerTablero` con
+   `posicion` 2,58 y `ancho` 1,35.
 
 ## Pendiente
 
