@@ -15,7 +15,10 @@ import {
   DEFAULT_JOINERY_FINISH,
   DEFAULT_WALL_COLOR,
   Finish,
-  floorFinish,
+  BASE_FLOOR,
+  FloorFinish,
+  floorOf,
+  interiorFinish,
   interiorColor,
   resolveFinish,
 } from '../model/finishes'
@@ -55,7 +58,25 @@ interface WallPart {
   size: [number, number, number]
   /** Color de cada cara de la caja, en el orden de BoxGeometry: +x, -x, +y, -y, +z, -z. */
   faces: string[]
+  /** Caras con material: una lámina con textura encima de la caja. */
+  skins: WallSkin[]
 }
+
+/** Lámina con textura pegada a una cara de pared que da a una estancia con material. */
+interface WallSkin {
+  position: [number, number, number]
+  /** Giro alrededor del eje vertical, para que la lámina mire hacia fuera de la caja. */
+  turn: number
+  size: [number, number]
+  url: string
+  /** Metros reales que cubre la imagen. */
+  scale: [number, number]
+  /** Metros desde el origen de la textura, para que siga sin saltos de una caja a la siguiente. */
+  start: [number, number]
+}
+
+// Separación de la lámina de material a su pared, como la de los vinilos en la foto.
+const SKIN_GAP = 0.0005
 
 /**
  * Cajas que forman las paredes de la casa, en coordenadas del plano (x, y → x, z):
@@ -87,6 +108,17 @@ function wallParts(
       : wall.side === 'n' || wall.side === 'w'
         ? [facadeColor, own]
         : [own, facadeColor]
+    // Y su material, si lo tienen: solo las que dan a una estancia.
+    const material = (id: string | undefined, side: Side) => {
+      const finish = resolveFinish(interiorFinish(room(id), side), DEFAULT_WALL_COLOR)
+      return finish.texture ? finish : undefined
+    }
+    const ownSkin = material(wall.moduleId, wall.side)
+    const [lowSkin, highSkin] = wall.shared
+      ? [ownSkin, material(wall.otherId, OPPOSITE[wall.side])]
+      : wall.side === 'n' || wall.side === 'w'
+        ? [undefined, ownSkin]
+        : [ownSkin, undefined]
 
     const add = (from: number, to: number, bottom: number, top: number) => {
       if (to - from < 1e-3 || top - bottom < 1e-3) return
@@ -99,17 +131,39 @@ function wallParts(
       const endLow = from === wall.from ? facadeColor : DEFAULT_WALL_COLOR
       const endHigh = to === wall.to ? facadeColor : DEFAULT_WALL_COLOR
       const neutral = DEFAULT_WALL_COLOR
+      const skins: WallSkin[] = []
+      // `toward` es 1 en la cara sur o este de la caja y -1 en la norte u oeste.
+      const skin = (finish: Omit<FloorFinish, 'id' | 'name'> | undefined, toward: 1 | -1) => {
+        if (!finish?.texture) return
+        const out = axis + toward * (across / 2 + SKIN_GAP)
+        // La lámina mira hacia +z sin girar; según el giro, su eje u va a favor
+        // o en contra del eje de la pared, y el origen de la textura se ajusta.
+        const turn = wall.horizontal ? (toward > 0 ? 0 : Math.PI) : toward > 0 ? Math.PI / 2 : -Math.PI / 2
+        const forward = wall.horizontal ? toward > 0 : toward < 0
+        skins.push({
+          position: wall.horizontal ? [mid, y, out] : [out, y, mid],
+          turn,
+          size: [along, top - bottom],
+          url: finish.texture,
+          scale: finish.size ?? [1, 1],
+          start: [forward ? from : -to, bottom],
+        })
+      }
+      skin(lowSkin, -1)
+      skin(highSkin, 1)
       parts.push(
         wall.horizontal
           ? {
               position: [mid, y, axis],
               size: [along, top - bottom, across],
               faces: [endHigh, endLow, neutral, neutral, high, low],
+              skins,
             }
           : {
               position: [axis, y, mid],
               size: [across, top - bottom, along],
               faces: [high, low, neutral, neutral, endHigh, endLow],
+              skins,
             },
       )
     }
@@ -367,6 +421,33 @@ function WallBox({ part }: { part: WallPart }) {
     // Las paredes no proyectan sombra: oscurecían demasiado el interior.
     <mesh position={part.position} geometry={geometry} receiveShadow>
       <meshStandardMaterial vertexColors />
+    </mesh>
+  )
+}
+
+/** Material de una cara de pared: una lámina con la textura a escala real. */
+function WallSkinPlane({ skin }: { skin: WallSkin }) {
+  const image = useLoader(TextureLoader, skin.url)
+  const maxAnisotropy = useThree((s) => s.gl.capabilities.getMaxAnisotropy())
+  const [w, h] = skin.size
+  const [sx, sy] = skin.scale
+  const [u, v] = skin.start
+  const texture = useMemo(() => {
+    const t = image.clone()
+    t.wrapS = t.wrapT = RepeatWrapping
+    t.colorSpace = SRGBColorSpace
+    t.anisotropy = maxAnisotropy
+    t.repeat.set(w / sx, h / sy)
+    t.offset.set(u / sx, v / sy)
+    t.needsUpdate = true
+    return t
+  }, [image, maxAnisotropy, w, h, sx, sy, u, v])
+  useEffect(() => () => texture.dispose(), [texture])
+
+  return (
+    <mesh position={skin.position} rotation-y={skin.turn} receiveShadow>
+      <planeGeometry args={skin.size} />
+      <meshStandardMaterial map={texture} roughness={0.7} />
     </mesh>
   )
 }
@@ -701,7 +782,7 @@ function VinylSheetPlane({ sheet, walls }: { sheet: VinylSheet; walls: Wall[] })
 
 /** Acabado del suelo de una estancia: una lámina sobre la losa, con la textura a escala real. */
 function Floor({ room }: { room: PlacedModule }) {
-  const finish = floorFinish(room.floor)
+  const finish = resolveFinish(floorOf(room), BASE_FLOOR.color)
   return (
     <mesh rotation-x={-Math.PI / 2} position-y={SLAB + 0.003} receiveShadow>
       <planeGeometry args={[room.width, room.depth]} />
@@ -997,7 +1078,7 @@ export default function View3D() {
                 )}
               </group>
             ))}
-            {m.floor && m.floor !== 'base' && (
+            {floorOf(m) && (
               <Suspense fallback={null}>
                 <Floor room={m} />
               </Suspense>
@@ -1018,6 +1099,14 @@ export default function View3D() {
         {parts.map((part, i) => (
           <WallBox key={i} part={part} />
         ))}
+        {/* Paredes con material: la textura va en una lámina sobre la cara. */}
+        {parts.flatMap((part, i) =>
+          part.skins.map((skin, j) => (
+            <Suspense key={`${i}:${j}`} fallback={null}>
+              <WallSkinPlane skin={skin} />
+            </Suspense>
+          )),
+        )}
         {/* Carpintería de puertas y ventanas: cercos, hojas, cristales y manillas. */}
         {joinery.map((part, i) => (
           <JoineryBox key={i} part={part} />

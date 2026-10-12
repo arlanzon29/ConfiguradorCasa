@@ -1,11 +1,11 @@
 import {
+  BASE_FLOOR,
   DEFAULT_WALL_COLOR,
-  FLOORS,
   Finish,
   MATERIALS,
   WALL_COLORS,
-  floorFinish,
-  interiorColor,
+  floorOf,
+  interiorFinish,
   resolveFinish,
 } from '../model/finishes'
 import { PlacedModule, Side } from '../model/house'
@@ -66,44 +66,28 @@ export function FinishPicker({ value, onChange }: { value: Finish; onChange: (fi
   )
 }
 
-/** Lo que es de la estancia entera: su suelo y el color de todas sus paredes. */
+/** Lo que es de la estancia entera: su suelo y el acabado de todas sus paredes. */
 export function RoomFinishes({ room }: { room: PlacedModule }) {
   const setFloor = useHouse((s) => s.setFloor)
   const turnFloor = useHouse((s) => s.turnFloor)
   const setWallColor = useHouse((s) => s.setWallColor)
-  const current = floorFinish(room.floor)
+  const floor = floorOf(room)
 
   return (
     <>
       <section>
         <h2>Suelo</h2>
-        <div className="swatches">
-          {FLOORS.map((f) => (
-            <button
-              key={f.id}
-              className={f.id === current.id ? 'swatch active' : 'swatch'}
-              onClick={() => setFloor(room.id, f.id)}
-            >
-              <span
-                className="swatch-sample"
-                style={{
-                  backgroundColor: f.color,
-                  backgroundImage: f.texture && `url(${f.texture})`,
-                }}
-              />
-              {f.name}
-            </button>
-          ))}
-        </div>
-        {current.texture && (
-          <div className="actions">
+        <FinishPicker value={floor ?? BASE_FLOOR.color} onChange={(f) => setFloor(room.id, f)} />
+        <div className="actions spaced">
+          {floor && resolveFinish(floor, BASE_FLOOR.color).texture && (
             <button onClick={() => turnFloor(room.id)}>Girar el suelo 90°</button>
-          </div>
-        )}
+          )}
+          {floor && <button onClick={() => setFloor(room.id, BASE_FLOOR.id)}>Quitar el acabado</button>}
+        </div>
       </section>
       <section>
-        <h2>Color de todas sus paredes</h2>
-        <ColorPicker
+        <h2>Acabado de todas sus paredes</h2>
+        <FinishPicker
           value={room.wallColor ?? DEFAULT_WALL_COLOR}
           onChange={(color) => setWallColor(room.id, color)}
         />
@@ -113,22 +97,22 @@ export function RoomFinishes({ room }: { room: PlacedModule }) {
   )
 }
 
-/** Lo que lleva la cara de una pared que da a una estancia: color, vinilos y espejos. */
+/** Lo que lleva la cara de una pared que da a una estancia: acabado, vinilos y espejos. */
 export function FaceFinishes({ room, side }: { room: PlacedModule; side: Side }) {
   const setWallColor = useHouse((s) => s.setWallColor)
 
   return (
     <>
       <section>
-        <h2>Color de la pared {SIDE_NAMES[side]}</h2>
-        <ColorPicker
-          value={interiorColor(room, side)}
+        <h2>Acabado de la pared {SIDE_NAMES[side]}</h2>
+        <FinishPicker
+          value={interiorFinish(room, side)}
           onChange={(color) => setWallColor(room.id, color, side)}
         />
         {room.sideColors?.[side] && (
           <div className="actions spaced">
             <button onClick={() => setWallColor(room.id, null, side)}>
-              Volver al color de la estancia
+              Volver al acabado de la estancia
             </button>
           </div>
         )}

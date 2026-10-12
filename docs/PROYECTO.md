@@ -76,11 +76,14 @@ Otros elementos:
 - **Acabado** (`Finish` en `finishes.ts`): un solo concepto, un texto que es un
   color liso (`#rrggbb`) o el `id` de un material del catálogo (`MATERIALS`, los
   acabados con textura). `resolveFinish` da su color y su textura; `FinishPicker`
-  (`FinishesPanel.tsx`) lo elige: materiales arriba, colores debajo. Hoy lo usa
-  la carpintería. Suelos y paredes guardan ya valores compatibles (el suelo el
-  `id` de su material, la pared su color) pero siguen con sus selectores de antes.
-- **Acabados**: suelo por estancia (catálogo con textura) y color de pared por
-  estancia o por lado (`wallColor`, `sideColors`). Solo se ven en 3D.
+  (`FinishesPanel.tsx`) lo elige: materiales arriba, colores debajo. Lo usan la
+  carpintería, el suelo (`floor`; `floorOf` lo lee, y `base` es sin acabado) y
+  las paredes (`wallColor` y `sideColors`, que pese al nombre guardan un
+  acabado; `interiorFinish`). Una pared con material lleva su textura en una
+  lámina a 0,5 mm de la cara (`WallSkin` en `View3D.tsx`), porque la caja va
+  coloreada por vértice.
+- **Acabados**: suelo por estancia y pared por estancia o por lado
+  (`wallColor`, `sideColors`), los dos con `FinishPicker`. Solo se ven en 3D.
 - **Vinilo** (`Vinyl` en `vinyls.ts`): una imagen con fondo transparente pegada
   a la cara de una pared que da a una estancia. Es **superficie, no geometría**
   (distinción del usuario: un espejo sí es geometría): no tiene grosor. Se guarda
@@ -498,10 +501,10 @@ que la textura "Madera de pino" cubre 2 × 2 m (supuesto, sin confirmar).
   En una pared con tramos de distinto grosor, los límites son los de la cara más
   metida. En el plano son solo una raya morada, sin arrastre: se colocan con las
   casillas. Sin probar el giro de estancia o de módulo con vinilos.
-- Acabados: el concepto único (color o material) solo está puesto en la
-  carpintería. El suelo no admite todavía un color liso y las paredes no admiten
-  material: sus caras van coloreadas por vértice (`WallBox`) y una textura pide
-  rehacer esa malla. En la carpintería el acabado es uno por hueco (cerco y hojas
+- Acabados: en una pared con material, el vinilo de la foto (lámina opaca)
+  toma el color de muestra del material, no su textura; los cantos de la pared
+  en los huecos siguen lisos. Suelos y paredes con material sin probar a la
+  vista ni en la foto (solo `tsc` y compilación). En la carpintería el acabado es uno por hueco (cerco y hojas
   iguales, las dos caras iguales); la manilla y el cristal son fijos. El único
   material del catálogo es "Madera de pino". Probado a la vista en el servidor
   aparte con clics simulados (material, color y "aplicar a todas"); sin probar en
@@ -598,6 +601,14 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-12** · **Mismo acabado en suelos y paredes** (tema 16; lo pidió el
+  usuario, que descartó el resto del tema). El suelo admite color liso y las
+  paredes material, con el selector de la carpintería (`FinishPicker`).
+  `interiorFinish`, `floorOf` y `BASE_FLOOR` en `finishes.ts` (fuera
+  `floorFinish`); `WallSkin` y `WallSkinPlane` en `View3D.tsx`; botón "Quitar
+  el acabado" del suelo. El archivo de plano no cambia. Primer cambio hecho
+  desde una sesión en la nube, en la rama `claude/practical-bell-86xdxp`.
 
 - **2026-10-11** · **Carpetas dentro de cada pared** (lo pidió el usuario: así
   el "+" sabe qué hacer): Puertas, Ventanas, Vinilos, Espejos y Tableros, cada
