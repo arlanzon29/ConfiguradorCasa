@@ -27,6 +27,12 @@ import { PLOT, PlacedModule, SIDES, Side, WALL_HEIGHT } from '../model/house'
 import { BOARD_FALLBACK_COLOR } from '../model/boards'
 import { LIGHT_SIZE, lightColor } from '../model/lights'
 import { MIRROR_THICKNESS } from '../model/mirrors'
+import {
+  MECHANISM_MODULE,
+  MECHANISM_THICKNESS,
+  mechanismSize,
+  mechanismType,
+} from '../model/mechanisms'
 import { VINYLS, VinylSheet, vinylPlacement, vinylSheets, vinylType } from '../model/vinyls'
 import { OPPOSITE, Opening } from '../model/openings'
 import { Joints, Wall, deriveWalls, openingsOf, wallAcross } from '../model/walls'
@@ -724,6 +730,76 @@ function BoardBox({ part }: { part: BoardPart }) {
   )
 }
 
+interface MechanismBox {
+  position: [number, number, number]
+  size: [number, number, number]
+  color: string
+}
+
+const MECHANISM_PLATE_COLOR = '#f2f1ec'
+const MECHANISM_DETAIL_COLOR = '#dcdad2'
+const MECHANISM_HOLE_COLOR = '#2b2b2b'
+
+/**
+ * Interruptores y enchufes de todas las estancias. Cada uno es una placa fina
+ * pegada a su cara de pared y, encima, el detalle de cada módulo suyo: un
+ * pulsador en el interruptor y dos agujeros en el enchufe.
+ */
+function mechanismParts(modules: PlacedModule[], joints: Joints) {
+  const walls = deriveWalls(modules, joints)
+  const parts: { key: string; boxes: MechanismBox[] }[] = []
+  for (const room of modules) {
+    for (const side of SIDES) {
+      for (const v of room.mechanisms?.[side] ?? []) {
+        const type = mechanismType(v.typeId)
+        if (!type) continue
+        const { width, height } = mechanismSize(type)
+        const boxes: MechanismBox[] = []
+        // Una caja de `w` × `h` con su esquina izquierda en `x` (desde la de la placa) y a `depth` de la pared.
+        const add = (dx: number, y: number, w: number, h: number, thick: number, depth: number, color: string) => {
+          const place = vinylPlacement(room, side, { x: v.x + dx, width: w }, walls, depth)
+          if (!place) return
+          const cy = SLAB + v.y + y + h / 2
+          boxes.push({
+            position: place.horizontal ? [place.along, cy, place.across] : [place.across, cy, place.along],
+            size: place.horizontal ? [w, h, thick] : [thick, h, w],
+            color,
+          })
+        }
+        add(0, 0, width, height, MECHANISM_THICKNESS, MECHANISM_THICKNESS / 2, MECHANISM_PLATE_COLOR)
+        for (let i = 0; i < type.modules; i++) {
+          const left = i * MECHANISM_MODULE
+          const front = MECHANISM_THICKNESS + 0.001
+          if (type.kind === 'switch') {
+            add(left + (MECHANISM_MODULE - 0.05) / 2, 0.015, 0.05, 0.05, 0.004, front, MECHANISM_DETAIL_COLOR)
+          } else {
+            add(left + (MECHANISM_MODULE - 0.056) / 2, 0.012, 0.056, 0.056, 0.003, front - 0.0005, MECHANISM_DETAIL_COLOR)
+            for (const hole of [-0.013, 0.013]) {
+              add(left + MECHANISM_MODULE / 2 + hole - 0.004, 0.033, 0.008, 0.014, 0.004, front + 0.0005, MECHANISM_HOLE_COLOR)
+            }
+          }
+        }
+        parts.push({ key: v.id, boxes })
+      }
+    }
+  }
+  return parts
+}
+
+/** Un interruptor o enchufe: su placa y su detalle, como cajas lisas. */
+function MechanismPiece({ part }: { part: { boxes: MechanismBox[] } }) {
+  return (
+    <>
+      {part.boxes.map((b, i) => (
+        <mesh key={i} position={b.position} castShadow receiveShadow>
+          <boxGeometry args={b.size} />
+          <meshStandardMaterial color={b.color} roughness={0.5} />
+        </mesh>
+      ))}
+    </>
+  )
+}
+
 // Píxeles por metro de la lámina de vinilos de la foto, y su lado máximo en píxeles.
 const SHEET_DENSITY = 500
 const SHEET_MAX = 2048
@@ -881,6 +957,7 @@ export default function View3D() {
   const vinyls = useMemo(() => vinylParts(modules, joints), [modules, joints])
   const mirrors = useMemo(() => mirrorParts(modules, joints), [modules, joints])
   const boards = useMemo(() => boardParts(modules, joints), [modules, joints])
+  const mechanisms = useMemo(() => mechanismParts(modules, joints), [modules, joints])
   const walls = useMemo(() => deriveWalls(modules, joints), [modules, joints])
   const vinylSheetList = useMemo(
     () => vinylSheets(modules, walls, openings),
@@ -1170,6 +1247,9 @@ export default function View3D() {
         {boards.map((part) => (
           <BoardBox key={part.key} part={part} />
         ))}
+        {mechanisms.map((part) => (
+          <MechanismPiece key={part.key} part={part} />
+        ))}
         {skirtings.map((part, i) => (
           <mesh key={i} position={part.position} receiveShadow>
             <boxGeometry args={part.size} />
@@ -1183,7 +1263,7 @@ export default function View3D() {
         <PhotoTracer
           // Al repetir se empieza de cero aunque ya hubiera una foto terminada a la vista.
           key={retakeId ?? 'libre'}
-          revision={[modules, parts, skirtings, joinery, furniture, vinyls, mirrors, boards]}
+          revision={[modules, parts, skirtings, joinery, furniture, vinyls, mirrors, boards, mechanisms]}
           goal={photoSamples}
           filter={filter}
           onProgress={onProgress}

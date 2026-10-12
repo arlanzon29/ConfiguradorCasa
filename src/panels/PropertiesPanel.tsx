@@ -39,6 +39,7 @@ import { BoardsSection } from './BoardsSection'
 import { ColorPicker, FaceFinishes, FinishPicker, RoomFinishes } from './FinishesPanel'
 import { AddLight, LightProperties } from './LightsSection'
 import MirrorsSection from './MirrorsSection'
+import MechanismsSection from './MechanismsSection'
 import ModulesPanel from './ModulesPanel'
 import OptionsPanel from './OptionsPanel'
 import PhotosPanel from './PhotosPanel'
@@ -584,6 +585,8 @@ export default function PropertiesPanel({ hidden, onToggle }: Props) {
         <VinylsSection {...props} />
       ) : piece.kind === 'mirror' ? (
         <MirrorsSection {...props} />
+      ) : piece.kind === 'mechanism' ? (
+        <MechanismsSection {...props} />
       ) : (
         <BoardsSection {...props} />
       )

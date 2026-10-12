@@ -4,6 +4,7 @@
 
 import type { Board } from './boards'
 import type { RoomLight } from './lights'
+import type { Mechanism } from './mechanisms'
 import type { Mirror } from './mirrors'
 import type { Vinyl } from './vinyls'
 
@@ -80,6 +81,8 @@ export interface PlacedModule {
   mirrors?: Partial<Record<Side, Mirror[]>>
   /** Tableros anclados a la pared de cada lado, por dentro (boards.ts). */
   boards?: Partial<Record<Side, Board[]>>
+  /** Interruptores y enchufes de la pared de cada lado, por dentro (mechanisms.ts). */
+  mechanisms?: Partial<Record<Side, Mechanism[]>>
   /** Focos del techo (lights.ts). */
   lights?: RoomLight[]
   // Los tres siguientes solo afectan a los tramos exteriores de cada lado; las

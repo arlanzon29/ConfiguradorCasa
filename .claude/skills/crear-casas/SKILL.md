@@ -46,7 +46,7 @@ su id; los huecos, por su id.
 
 | Función | Parámetros | Notas |
 |---|---|---|
-| `casa()` | — | Lee la casa: `modulos` con sus `estancias`, y `huecos`. Llámala antes de tocar una casa que no has montado tú |
+| `casa()` | — | Lee la casa: `modulos` con sus `estancias`, y `huecos`, `muebles`, `mecanismos` (interruptores y enchufes) y `fotos`. Llámala antes de tocar una casa que no has montado tú |
 | `nuevoPlano()` | — | Borra todo y deja un módulo vacío de 13 × 4,2 m |
 | `medirModulo` | `{ modulo?, ancho, fondo }` | Sin `modulo`, el primero. Falla si alguna estancia dejaría de caber |
 | `crearEstancia` | `{ nombre?, ancho, fondo, x?, y?, modulo? }` | Con `x` e `y`, en ese sitio; sin ellos, en el primer hueco libre |
@@ -57,6 +57,9 @@ su id; los huecos, por su id.
 | `catalogoMuebles()` | — | Los muebles que hay, con `ancho`, `fondo` (de la espalda al frente) y `alto`. Hoy: `mesa-comedor`, `mesa-centro`, `silla`, `sofa`, `cama-doble` (1,6 × 2 m; la "cama de matrimonio"), `cama-individual`, `mesilla`, `armario` |
 | `ponerMueble` | `{ mueble, estancia, pared?, posicion?, x?, y?, espalda? }` | `mueble`: id o nombre del catálogo. **Contra una pared**: con `pared` (`norte`, `sur`, `este`, `oeste`) va **de espaldas** a ella (cabecero, respaldo, fondo del armario), a ras; `posicion` son los metros desde el extremo oeste o norte del lado hasta el **centro** del mueble (sin ella, centrado; si se sale, se arrima a la esquina). **Suelto**: sin `pared`, su centro va a (`x`, `y`) desde la esquina de arriba a la izquierda de la estancia (sin ellos, al centro de ella), de espaldas a `espalda` (por defecto `norte`). Falla si no cabe o se mete en una pared |
 | `quitarMueble` | `{ mueble }` | Por su id (los da `casa().muebles`) |
+| `catalogoMecanismos()` | — | Los interruptores y enchufes que hay, con `ancho` y la `altura` a la que se ponen (al centro): `interruptor`, `interruptor-doble`, `conmutador` (1,1 m) y `enchufe`, `enchufe-doble` (0,3 m). Placas de 8 cm (la doble, 16) |
+| `ponerMecanismo` | `{ tipo, estancia, lado, posicion?, altura? }` | Un interruptor o enchufe en la cara **interior** de la pared de ese `lado` de la estancia (en una compartida, su cara; la de la otra estancia se pide con la otra estancia). `posicion`: metros desde el extremo oeste (norte y sur) o norte (este y oeste) del lado hasta el **centro** de la placa; sin ella, centrado. `altura`: metros del suelo al **centro**; sin ella, la del catálogo. **Solo se ve: no enciende nada.** No impide pisar un hueco ni otra pieza: míralo tú (el interruptor junto a la puerta, a un lado, del lado de la manilla; el enchufe no detrás de un mueble) |
+| `quitarMecanismo` | `{ mecanismo }` | Por su id (los da `casa().mecanismos`) |
 | `catalogoAcabados()` | — | `materiales` (con textura; hoy solo `pino`, "Madera de pino") y `colores` de la paleta (Blanco roto, Blanco, Gris perla, Arena, Salvia, Azul grisáceo, Terracota, Antracita). Si preguntan qué opciones hay, léelas de aquí y cuéntalas |
 | `ponerSuelo` | `{ estancia, acabado, girado? }` | `acabado`: nombre o id de un material o color del catálogo, un color `#rrggbb`, o `sin acabado`. `girado`: la veta girada 90°. El suelo es por estancia; `casa()` da el `suelo` de cada una |
 | `pintarParedes` | `{ estancia, acabado, lado? }` | Las caras **interiores** de las paredes de esa estancia, con un color o un material (igual que en `ponerSuelo`, salvo `sin acabado`). Con `lado`, solo esa pared; sin él, las cuatro, y se pierden los colores propios que tuviera alguna. Una pared compartida tiene dos caras: pintar el salón no cambia la cara que da a la habitación. `casa()` da las `paredes` de cada estancia |
@@ -94,9 +97,9 @@ se ven en la vista 3D y en la foto, no en el plano.
 
 Cada elemento de catálogo lleva un `codigo` (campo `code` en el código), para
 asociarlo a la base de costes de `comercial/`, que **la web no conoce**. Salen
-en `catalogoMuebles`, `catalogoAcabados` y, por instancia, en `casa().muebles`
-y `casa().huecos`. Lo que no es catálogo (módulo, paredes, rodapié, techo,
-focos, tablero, espejo) tiene su código en `src/model/articles.ts`. **Todos son
+en `catalogoMuebles`, `catalogoAcabados`, `catalogoMecanismos` y, por
+instancia, en `casa().muebles`, `casa().huecos` y `casa().mecanismos`. Lo que
+no es catálogo (módulo, paredes, rodapié, techo, focos, tablero, espejo) tiene su código en `src/model/articles.ts`. **Todos son
 inventados por Claude**, a falta de los de EuroCasa: no los des por reales.
 
 ## Casas guardadas: la carpeta `comercial/`
@@ -168,6 +171,11 @@ EuroCasa. Cuando el usuario dé una regla suya, sustituye a la de aquí.
   canto, de modo que solo asoma el respaldo. En la mesa de comedor
   (1,6 × 0,9 m), cuatro sillas van dos a cada lado largo, a ±0,4 m del centro
   a lo largo y a ±0,3 m a lo ancho.
+- Interruptores y enchufes (provisional, criterio de Claude): el interruptor
+  junto a la puerta, por el lado de la manilla y a 0,1–0,2 m del cerco, dentro
+  de la estancia; un enchufe por pared libre como mínimo, y junto a la cama
+  uno a cada lado (en el cabecero, sobre la mesilla). Antes de ponerlos,
+  mira dónde caen los huecos y los muebles de `casa()`.
 - Una puerta abatible barre un cuarto de círculo de su ancho hacia donde
   abre: no pongas muebles ahí.
 - "Vamos a la habitación", "vuelve al baño": `llevarCamara` **sin `mirando`

@@ -4,6 +4,7 @@
 import { FurnitureItem, furnitureType } from './furniture'
 import { PlacedModule, Shell, Side } from './house'
 import { RoomLight } from './lights'
+import { Mechanism, mechanismType } from './mechanisms'
 import { Opening } from './openings'
 import { Vinyl, vinylType } from './vinyls'
 import { Wall } from './walls'
@@ -34,8 +35,13 @@ export const defaultFurnitureName = (item: FurnitureItem) =>
 export const furnitureName = (item: FurnitureItem) => item.name ?? defaultFurnitureName(item)
 
 /** Piezas colgadas de una cara de pared. */
-export type PieceKind = 'vinyl' | 'mirror' | 'board'
-const PIECE_LISTS = { vinyl: 'vinyls', mirror: 'mirrors', board: 'boards' } as const
+export type PieceKind = 'vinyl' | 'mirror' | 'board' | 'mechanism'
+const PIECE_LISTS = {
+  vinyl: 'vinyls',
+  mirror: 'mirrors',
+  board: 'boards',
+  mechanism: 'mechanisms',
+} as const
 
 /** Las piezas de esa clase en la cara de `side` de una estancia. */
 export const piecesOf = (room: PlacedModule, kind: PieceKind, side: Side) =>
@@ -45,6 +51,12 @@ export function defaultPieceName(room: PlacedModule, kind: PieceKind, side: Side
   const list = piecesOf(room, kind, side)
   const piece = list.find((p) => p.id === id)
   if (kind === 'vinyl') return vinylType((piece as Vinyl | undefined)?.typeId ?? '')?.name ?? 'Vinilo'
+  if (kind === 'mechanism') {
+    // Numerado entre los de su mismo tipo: "Enchufe 1", "Enchufe 2", "Interruptor 1".
+    const typeId = (piece as Mechanism | undefined)?.typeId ?? ''
+    const same = (list as Mechanism[]).filter((p) => p.typeId === typeId)
+    return `${mechanismType(typeId)?.name ?? 'Mecanismo'} ${same.findIndex((p) => p.id === id) + 1}`
+  }
   return `${kind === 'mirror' ? 'Espejo' : 'Tablero'} ${list.findIndex((p) => p.id === id) + 1}`
 }
 export const pieceName = (room: PlacedModule, kind: PieceKind, side: Side, id: string) =>

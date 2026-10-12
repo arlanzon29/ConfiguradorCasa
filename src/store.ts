@@ -46,6 +46,7 @@ import {
 } from './model/lights'
 import { Board, BoardPose, DEFAULT_BOARD, boardProblem, boardReach, posedBoard } from './model/boards'
 import { DEFAULT_MIRROR, Mirror } from './model/mirrors'
+import { Mechanism, mechanismSize, mechanismType } from './model/mechanisms'
 import { Vinyl, vinylProblem, vinylType, wallFace } from './model/vinyls'
 import { JointSettings, Joints, Wall, deriveWalls, fitOpening, pairKey, refitOpenings, wallOf } from './model/walls'
 
@@ -249,6 +250,16 @@ interface HouseState {
     pose?: BoardPose,
   ) => string
   removeBoard: (roomId: string, side: Side, id: string) => void
+  /** Pone un interruptor o enchufe del catálogo en la pared de ese lado, centrado. Devuelve su id, o null si no cabe. */
+  addMechanism: (roomId: string, side: Side, typeId: string) => string | null
+  /** Cambia posición de un interruptor o enchufe. Devuelve un mensaje de error, o ''. */
+  patchMechanism: (
+    roomId: string,
+    side: Side,
+    id: string,
+    patch: Partial<Omit<Mechanism, 'id'>>,
+  ) => string
+  removeMechanism: (roomId: string, side: Side, id: string) => void
   /** Pone un foco en el techo de la estancia, hacia el centro. Devuelve su id, o null si no cabe. */
   addLight: (roomId: string) => string | null
   /** Cambia posición, potencia o tono de un foco. Devuelve un mensaje de error, o ''. */
@@ -481,6 +492,16 @@ export const useHouse = create<HouseState>()(
           modules: s.modules.map((m) =>
             m.id === roomId
               ? { ...m, boards: { ...m.boards, [side]: change(m.boards?.[side] ?? []) } }
+              : m,
+          ),
+        }))
+
+      /** Cambia la lista de interruptores y enchufes de un lado de una estancia. */
+      const setMechanisms = (roomId: string, side: Side, change: (list: Mechanism[]) => Mechanism[]) =>
+        set((s) => ({
+          modules: s.modules.map((m) =>
+            m.id === roomId
+              ? { ...m, mechanisms: { ...m.mechanisms, [side]: change(m.mechanisms?.[side] ?? []) } }
               : m,
           ),
         }))
@@ -729,6 +750,7 @@ export const useHouse = create<HouseState>()(
                   vinyls: turnSides(m.vinyls),
                   mirrors: turnSides(m.mirrors),
                   boards: turnSides(m.boards),
+                  mechanisms: turnSides(m.mechanisms),
                   lights: turnLights(m.lights, m.depth),
                   floorTurned: !m.floorTurned,
                 },
@@ -881,6 +903,7 @@ export const useHouse = create<HouseState>()(
             vinyls: turn(current.vinyls),
             mirrors: turn(current.mirrors),
             boards: turn(current.boards),
+            mechanisms: turn(current.mechanisms),
             lights: turnLights(current.lights, current.depth),
           }
           const others = modules.filter((m) => m.id !== id)
@@ -1151,6 +1174,46 @@ export const useHouse = create<HouseState>()(
         },
         removeBoard: (roomId, side, id) =>
           setBoards(roomId, side, (list) => list.filter((v) => v.id !== id)),
+        addMechanism: (roomId, side, typeId) => {
+          const { modules, joints } = get()
+          const room = modules.find((m) => m.id === roomId)
+          const type = mechanismType(typeId)
+          if (!room || !type) return null
+          const { length } = wallFace(room, side, deriveWalls(modules, joints))
+          const size = mechanismSize(type)
+          const mechanism: Mechanism = {
+            id: crypto.randomUUID(),
+            typeId,
+            x: roundSize(Math.max(0, (length - size.width) / 2)),
+            y: roundSize(type.y),
+          }
+          // Para que no caiga encima de otro del mismo sitio, se corre hacia la derecha mientras quepa.
+          const taken = () =>
+            (room.mechanisms?.[side] ?? []).some(
+              (o) => Math.abs(o.x - mechanism.x) < 0.1 && Math.abs(o.y - mechanism.y) < 0.1,
+            )
+          while (taken() && mechanism.x + size.width + 0.1 <= length) mechanism.x = roundSize(mechanism.x + 0.1)
+          if (vinylProblem({ ...mechanism, ...size }, length)) return null
+          setMechanisms(roomId, side, (list) => [...list, mechanism])
+          return mechanism.id
+        },
+        patchMechanism: (roomId, side, id, patch) => {
+          const { modules, joints } = get()
+          const room = modules.find((m) => m.id === roomId)
+          const current = room?.mechanisms?.[side]?.find((v) => v.id === id)
+          const type = current && mechanismType(current.typeId)
+          if (!room || !current || !type) return 'Ese interruptor o enchufe ya no existe.'
+          const next = { ...current, ...patch }
+          const problem = vinylProblem(
+            { ...next, ...mechanismSize(type) },
+            wallFace(room, side, deriveWalls(modules, joints)).length,
+          )
+          if (problem) return problem
+          setMechanisms(roomId, side, (list) => list.map((v) => (v.id === id ? next : v)))
+          return ''
+        },
+        removeMechanism: (roomId, side, id) =>
+          setMechanisms(roomId, side, (list) => list.filter((v) => v.id !== id)),
         addLight: (roomId) => {
           const room = get().modules.find((m) => m.id === roomId)
           if (!room) return null

@@ -14,6 +14,7 @@ import { LIGHT_MARGIN } from '../model/lights'
 import { OPENING_CATALOG, Opening, swingDoor, swingSign } from '../model/openings'
 import { Wall, deriveWalls, nearestWall, openingsOf, wallAcross } from '../model/walls'
 import { vinylPlacement } from '../model/vinyls'
+import { mechanismSize, mechanismType } from '../model/mechanisms'
 import { usePhotos } from '../photos'
 import { CameraPose, useHouse } from '../store'
 
@@ -552,6 +553,24 @@ export default function Editor2D() {
                   <line key={v.id} className="mirror-mark" x1={a - m.x} x2={b - m.x} y1={across - m.y} y2={across - m.y} />
                 ) : (
                   <line key={v.id} className="mirror-mark" y1={a - m.y} y2={b - m.y} x1={across - m.x} x2={across - m.x} />
+                )
+              }),
+            )}
+          {/* Interruptores y enchufes: una raya corta pegada a la pared. */}
+          {mode === 'walls' &&
+            (['n', 's', 'e', 'w'] as const).flatMap((side) =>
+              (m.mechanisms?.[side] ?? []).map((v) => {
+                const type = mechanismType(v.typeId)
+                if (!type) return null
+                const { width } = mechanismSize(type)
+                const place = vinylPlacement(m, side, { x: v.x, width }, walls)
+                if (!place) return null
+                const [a, b] = [place.along - width / 2, place.along + width / 2]
+                const across = place.across + (side === 'n' || side === 'w' ? 0.02 : -0.02)
+                return place.horizontal ? (
+                  <line key={v.id} className="mechanism-mark" x1={a - m.x} x2={b - m.x} y1={across - m.y} y2={across - m.y} />
+                ) : (
+                  <line key={v.id} className="mechanism-mark" y1={a - m.y} y2={b - m.y} x1={across - m.x} x2={across - m.x} />
                 )
               }),
             )}

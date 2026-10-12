@@ -128,6 +128,17 @@ Otros elementos:
   balda (tumbado). Cambiar de postura intercambia el grueso con la medida que
   ocupaba ese sitio (`posedBoard`). No se impide que pise nada. En 3D es una
   caja (`boardParts` y `BoardBox` en `View3D.tsx`).
+- **Interruptores y enchufes** (`Mechanism` en `mechanisms.ts`): una placa
+  de 8 × 8 cm (16 × 8 la doble) y 1,2 cm de grueso pegada a la cara de una
+  pared que da a una estancia. **Solo se ven**: no encienden nada (lo decidió el
+  usuario). Se guardan en su estancia por lado (`PlacedModule.mechanisms`),
+  con `typeId`, `x` (desde la esquina izquierda de la cara, mirándola desde
+  dentro) e `y` (del suelo a su borde inferior); el ancho y alto los da el
+  tipo. Cinco tipos de catálogo (`MECHANISMS`): interruptor, interruptor
+  doble, conmutador (1,1 m al centro) y enchufe, enchufe doble (0,3 m). Cada
+  tipo lleva su código de artículo. No se impide que pisen un hueco u otra
+  pieza. En 3D son cajas lisas con su detalle (`mechanismParts` y
+  `MechanismPiece` en `View3D.tsx`); en el plano, una raya corta roja.
 - **Luz de estancia** (`RoomLight` en `lights.ts`): un **foco de techo**. Se
   guarda en su estancia (`PlacedModule.lights`, una lista, no por lado) con `x`
   desde el borde oeste e `y` desde el borde norte de la estancia, **potencia**
@@ -171,6 +182,7 @@ src/
     mirrors.ts      espejos: la pieza y sus medidas por defecto
     boards.ts       tableros: la pieza, sus posturas y sus límites
     lights.ts       luces de estancia: el foco de techo, tonos y límites
+    mechanisms.ts   interruptores y enchufes: catálogo, medidas y alturas
     furniture.ts    catálogo de mobiliario por familias
     planFile.ts     formato del archivo de plano (guardar/cargar)
   editor/
@@ -239,7 +251,9 @@ Casa
 │  │  │     │  └─ Luna
 │  │  │     ├─ Espejos · 1
 │  │  │     │  └─ Espejo 1 · cara de la Estancia 2
-│  │  │     └─ Tableros · 0
+│  │  │     ├─ Tableros · 0
+│  │  │     └─ Instalación · 1
+│  │  │        └─ Enchufe 1
 │  │  ├─ Mobiliario · 1           (carpeta)
 │  │  │  └─ Sofá
 │  │  └─ Luces · 2                (carpeta)
@@ -264,15 +278,16 @@ Casa
   fuera.
 - **Puertas y ventanas cuelgan de su pared** en el árbol (lo pidió el usuario),
   en el orden en que están a lo largo de ella (`openingsOf`); la pared con
-  algo dentro se pliega. Debajo van sus **vinilos, espejos y tableros**
-  (`pieces` en `HouseTree.tsx`): los de la cara que da a su estancia y, en una
+  algo dentro se pliega. Debajo van sus **vinilos, espejos, tableros y
+  interruptores o enchufes** (`pieces` en `HouseTree.tsx`): los de la cara que da a su estancia y, en una
   compartida, los de la otra cara, con el rótulo "cara de la Estancia N". La
   pieza elegida está en `selectedPiece` (`store.ts`) y Propiedades enseña solo
-  la suya; en la pared quedan los apartados para añadirlas. Dentro de cada pared hay **cinco carpetas** (las pidió el usuario, para que
-  el "+" sepa qué hacer): Puertas, Ventanas, Vinilos, Espejos y Tableros
-  (`WALL_GROUPS`, `wallFolder`). El "+" de cada una añade lo suyo: directo si
+  la suya; en la pared quedan los apartados para añadirlas. Dentro de cada pared hay **seis carpetas** (las pidió el usuario, para que
+  el "+" sepa qué hacer): Puertas, Ventanas, Vinilos, Espejos, Tableros e
+  Instalación (`WALL_GROUPS`, `wallFolder`; esta última, con interruptores y
+  enchufes). El "+" de cada una añade lo suyo: directo si
   solo hay una clase (ventana, espejo, tablero) y con una lista si hay varias
-  (puerta o corredera; los vinilos). La pared no lleva "+". El "+" pone las
+  (puerta o corredera; los vinilos; los cinco tipos de la instalación). La pared no lleva "+". El "+" pone las
   piezas en la cara de su estancia; para la otra cara de una
   compartida hay que elegirla en Propiedades de la pared.
 - Estancias de planos antiguos sin módulos cuelgan directamente de "Casa".
@@ -287,6 +302,7 @@ Casa
 | Foco | distancia a la izquierda y arriba, "Centrar en la estancia", potencia (%), tono, color de emisión, eliminar | — |
 | Pared | grosor (cm); rodapié (alto y color); quitar/poner | Añadir hueco (puerta, corredera, ventana); en una compartida, de qué estancia es **la cara** que se viste; color de esa cara, y añadir vinilo, espejo o tablero |
 | Vinilo, espejo o tablero | posición, medidas y lo propio de cada uno (giro y proporción; postura, fondo y acabado), eliminar | — |
+| Interruptor o enchufe | código, distancia a la izquierda y al suelo, eliminar | — |
 | Puerta o ventana | distancia a cada extremo de su pared; ancho y alto; altura (ventanas); en abatibles, hacia dónde abre, canto y cerrar/abrir en 3D; acabado de la carpintería y "Aplicar a todas" | — |
 | Mueble | distancia de cada borde a las cuatro paredes de su estancia; pegar a la pared, "Centrar en la estancia" (entre las caras interiores de sus paredes), girar, eliminar | El catálogo de mobiliario |
 | Fotos | — | Las fotos guardadas: miniaturas, Anterior/Siguiente, ver, descargar, repetir, eliminar. En el plano, un icono numerado por foto |
@@ -507,6 +523,17 @@ que la textura "Madera de pino" cubre 2 × 2 m (supuesto, sin confirmar).
   y un sofá. Sin probar: arrastrar estancia, módulo, hueco y mueble con el
   ratón, estirar con los tiradores, las teclas, Fotos, plegar ramas, ni un
   plano antiguo sin módulos con muebles.
+- Interruptores y enchufes: medidas y alturas inventadas (placa de 8 × 8 cm,
+  1,2 cm de grueso; interruptor a 1,1 m y enchufe a 0,3 m al centro), códigos
+  también. Solo se ven; el dato "qué foco gobierna" no existe. No chocan con
+  huecos, muebles ni otras piezas, no se arrastran en el plano y al encoger la
+  estancia no se reencajan. No hay regulador, USB, TV ni timbre. Probado en el
+  servidor aparte (5185): ponerlos por funciones en las cuatro paredes con
+  sus errores, verlos en 3D (un enchufe doble, un interruptor), el árbol con
+  la carpeta Instalación y su "+", el panel del elegido, guardar y leer el
+  plano, y girar el módulo (cuatro giros devuelven el estado). Sin probar: las
+  casillas y barras con el teclado, "Eliminar", la foto en calidad ni el giro
+  de una estancia suelta (se comprobó el del módulo).
 - Tableros: medidas inventadas (1 × 1 m y 2 cm de grueso al colocarlo, apoyado
   en el suelo; mínimo 5 mm en cualquier medida). No chocan con muebles, huecos
   ni otras piezas, y al encoger la estancia no se reencajan. El fondo máximo es
@@ -638,6 +665,19 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-12** · **Interruptores y enchufes** (tema 7 de pendientes; el
+  usuario decidió: solo se ven, y entran también los enchufes). Nuevo
+  `model/mechanisms.ts` (cinco tipos de catálogo con su código, medidas y
+  alturas inventadas), campo `mechanisms` en `PlacedModule` (gira con la
+  estancia y el módulo), `addMechanism`, `patchMechanism` y `removeMechanism`
+  en `store.ts`, `MechanismsSection.tsx`, carpeta "Instalación" en cada pared
+  del árbol (con "+" y lista de tipos), `mechanismParts` y `MechanismPiece` en
+  `View3D.tsx` y una raya por pieza en el plano. En `window.eurocasa`:
+  `catalogoMecanismos`, `ponerMecanismo` y `quitarMecanismo`, y `casa()` da los
+  `mecanismos`; su parte en la skill `crear-casas`. El archivo de plano no
+  cambia de versión. Entrada `pruebas3` (puerto 5185) en `.claude/launch.json`,
+  porque el 5183 y el 5184 los tenían ocupados otras conversaciones.
 
 - **2026-10-12** · **Código de artículo en cada elemento** (lo pidió el
   usuario: el coste **no estará en la web**, sino en la carpeta `comercial/`,

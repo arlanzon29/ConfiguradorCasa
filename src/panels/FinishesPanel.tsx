@@ -12,6 +12,7 @@ import {
 import { PlacedModule, Side } from '../model/house'
 import { useHouse } from '../store'
 import MirrorsSection from './MirrorsSection'
+import MechanismsSection from './MechanismsSection'
 import VinylsSection from './VinylsSection'
 
 const SIDE_NAMES: Record<Side, string> = { n: 'norte', s: 'sur', e: 'este', w: 'oeste' }
@@ -139,6 +140,7 @@ export function FaceFinishes({ room, side }: { room: PlacedModule; side: Side })
       </section>
       <VinylsSection key={`${room.id}:${side}`} room={room} side={side} />
       <MirrorsSection key={`espejos:${room.id}:${side}`} room={room} side={side} />
+      <MechanismsSection key={`mecanismos:${room.id}:${side}`} room={room} side={side} />
     </>
   )
 }

@@ -260,9 +260,13 @@ el imán a paredes y el objetivo de la cámara.
 - **Idea del usuario:** interruptores en la pared.
 - Serían otra pieza anclada a la pared, como vinilos y espejos, con su altura
   estándar (alrededor de 1,1 m).
-- Queda por hablar: si son solo para que se vean (y para planificar la instalación
-  eléctrica), o si además encienden y apagan las luces del tema 2; y si entran
-  también los enchufes.
+- **Hecho el 2026-10-12.** Decidido por el usuario: **solo se ven** (no
+  encienden luces) y **entran también los enchufes**. Cinco tipos de catálogo
+  (interruptor, interruptor doble, conmutador, enchufe, enchufe doble), en la
+  carpeta "Instalación" de cada pared.
+- Queda por hablar, si hiciera falta: que enciendan y apaguen los focos del
+  tema 2 (el dato "qué foco gobierna" no está guardado), más tipos (regulador,
+  USB, TV, timbre) y colocarlos arrastrando en el plano.
 
 ### 6. Espejos
 

@@ -3,10 +3,12 @@
 // Claude": pocas funciones, con parámetros en el idioma del comercial, que
 // devuelven lo creado o el motivo por el que no se ha podido.
 
-import { PLOT, PlacedModule, Shell, Side, fits, roundSize, validSize } from './model/house'
+import { PLOT, PlacedModule, Shell, Side, fits, roundSize, sideLength, validSize } from './model/house'
+import { MECHANISMS, MECHANISM_HEIGHT, mechanismSize, mechanismType } from './model/mechanisms'
+import { wallFace } from './model/vinyls'
 import { BASE_FLOOR, MATERIALS, WALL_COLORS, floorOf, interiorFinish } from './model/finishes'
 import { FURNITURE, FurnitureItem, Rotation, furnitureType } from './model/furniture'
-import { furnitureName, roomName, shellName } from './model/names'
+import { furnitureName, pieceName, roomName, shellName } from './model/names'
 import { OPPOSITE, Opening, openingCode, swingDoor, validOpeningSize, wallLine } from './model/openings'
 import { deriveWalls, wallOf } from './model/walls'
 import { Plan, parsePhotos, parsePlan, serializePlan } from './model/planFile'
@@ -79,6 +81,7 @@ function casa() {
     estanciasSueltas: modules.filter((m) => !m.shellId).map((m) => describeRoom(m)),
     huecos: state().openings.map(describeOpening),
     muebles: state().furniture.map(describeFurniture),
+    mecanismos: describeMechanisms(),
     // Las fotos guardadas: desde dónde se sacó cada una, en coordenadas del plano.
     fotos: usePhotos.getState().photos.map((p, i) => {
       const x = roundSize(p.pose.position[0] + PLOT.width / 2)
@@ -400,6 +403,111 @@ function quitarMueble(p: { mueble: string }) {
   return casa()
 }
 
+/** Todos los interruptores y enchufes de la casa, tal como se cuentan. */
+function describeMechanisms() {
+  const { modules, joints } = state()
+  const walls = deriveWalls(modules, joints)
+  return modules.flatMap((room) =>
+    (Object.keys(LADOS) as string[]).flatMap((name) =>
+      (room.mechanisms?.[LADOS[name]] ?? []).flatMap((m) => {
+        const type = mechanismType(m.typeId)
+        if (!type) return []
+        const side = LADOS[name]
+        const { width, height } = mechanismSize(type)
+        const { left } = wallFace(room, side, walls)
+        // La cara se mide desde su izquierda mirando la pared desde dentro; el lado, desde el oeste o el norte.
+        const centre = m.x + width / 2
+        const posicion =
+          side === 'n' || side === 'e'
+            ? left + centre
+            : sideLength(room, side) - left - centre
+        return [
+          {
+            id: m.id,
+            codigo: type.code,
+            tipo: type.id,
+            nombre: pieceName(room, 'mechanism', side, m.id),
+            estancia: roomName(modules, room.id),
+            lado: name,
+            posicion: roundSize(posicion),
+            // Metros del suelo al centro de la placa.
+            altura: roundSize(m.y + height / 2),
+          },
+        ]
+      }),
+    ),
+  )
+}
+
+/** El catálogo de interruptores y enchufes, con la altura a la que se ponen (al centro). */
+const catalogoMecanismos = () =>
+  MECHANISMS.map((t) => ({
+    tipo: t.id,
+    codigo: t.code,
+    nombre: t.name,
+    ancho: mechanismSize(t).width,
+    altura: roundSize(t.y + MECHANISM_HEIGHT / 2),
+  }))
+
+/**
+ * Pone un interruptor o un enchufe del catálogo en la cara interior de la pared
+ * de un lado de una estancia. `posicion`: metros desde el extremo oeste (lados
+ * norte y sur) o norte (este y oeste) del lado hasta el **centro** de la placa
+ * (sin ella, centrado). `altura`: metros del suelo al centro (por defecto, la
+ * del catálogo: 1,1 m el interruptor y 0,3 m el enchufe). Solo se ve: no
+ * enciende nada. No impide que pise un hueco u otra pieza.
+ */
+function ponerMecanismo(p: {
+  tipo: string
+  estancia: string
+  lado: string
+  posicion?: number
+  altura?: number
+}) {
+  const key = p.tipo.trim().toLowerCase()
+  const type = MECHANISMS.find((t) => t.id === key || t.name.toLowerCase() === key)
+  if (!type) return { error: `No hay ningún interruptor o enchufe "${p.tipo}" en el catálogo.` } as Fallo
+  const room = findRoom(p.estancia)
+  if (!room) return { error: `No hay ninguna estancia "${p.estancia}".` } as Fallo
+  const side = LADOS[p.lado]
+  if (!side) return { error: 'Lado desconocido.' } as Fallo
+
+  const id = state().addMechanism(room.id, side, type.id)
+  if (!id) return { error: 'No cabe en esa pared.' } as Fallo
+  if (p.posicion !== undefined || p.altura !== undefined) {
+    const { modules, joints } = state()
+    const { left } = wallFace(room, side, deriveWalls(modules, joints))
+    const { width, height } = mechanismSize(type)
+    const patch: { x?: number; y?: number } = {}
+    if (p.posicion !== undefined) {
+      const centre =
+        side === 'n' || side === 'e' ? p.posicion - left : sideLength(room, side) - left - p.posicion
+      patch.x = roundSize(centre - width / 2)
+    }
+    if (p.altura !== undefined) patch.y = roundSize(p.altura - height / 2)
+    const error = state().patchMechanism(room.id, side, id, patch)
+    if (error) {
+      state().removeMechanism(room.id, side, id)
+      return { error } as Fallo
+    }
+  }
+  return describeMechanisms().find((m) => m.id === id)!
+}
+
+/** Quita un interruptor o enchufe, por su id (los da `casa().mecanismos`). */
+function quitarMecanismo(p: { mecanismo: string }) {
+  const { modules } = state()
+  for (const room of modules) {
+    for (const side of Object.values(LADOS)) {
+      if (room.mechanisms?.[side]?.some((m) => m.id === p.mecanismo)) {
+        state().removeMechanism(room.id, side, p.mecanismo)
+        return casa()
+      }
+    }
+  }
+  return { error: `No hay ningún interruptor ni enchufe "${p.mecanismo}".` } as Fallo
+}
+
 /** Los acabados que hay: materiales (con textura) y colores de la paleta. */
 const catalogoAcabados = () => ({
   materiales: MATERIALS.map((m) => ({ acabado: m.id, codigo: m.code, nombre: m.name })),
@@ -584,6 +692,9 @@ const eurocasa = {
   catalogoMuebles,
   ponerMueble,
   quitarMueble,
+  catalogoMecanismos,
+  ponerMecanismo,
+  quitarMecanismo,
   casa,
   nuevoPlano,
   medirModulo,

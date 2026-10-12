@@ -27,6 +27,7 @@ export const ARTICLES = {
   board: 'PIE-TABLERO',
   /** Espejo, por unidad. */
   mirror: 'PIE-ESPEJO',
+  // Los interruptores y enchufes llevan su código en su tipo (mechanisms.ts).
 } as const
 
 export type ArticleKey = keyof typeof ARTICLES

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { FAMILIES, FURNITURE } from '../model/furniture'
 import { PlacedModule, formatMeters } from '../model/house'
 import { OPENING_CATALOG, OPPOSITE } from '../model/openings'
+import { MECHANISMS, Mechanism, mechanismSize, mechanismType } from '../model/mechanisms'
 import { VINYLS, vinylPlacement } from '../model/vinyls'
 import {
   furnitureName,
@@ -39,6 +40,7 @@ const WALL_GROUPS: WallGroup[] = [
   { name: 'Vinilos', one: 'un vinilo', piece: 'vinyl' },
   { name: 'Espejos', one: 'un espejo', piece: 'mirror' },
   { name: 'Tableros', one: 'un tablero', piece: 'board' },
+  { name: 'Instalación', one: 'un interruptor o enchufe', piece: 'mechanism' },
 ]
 
 interface RowProps {
@@ -134,7 +136,7 @@ export default function HouseTree() {
   // Vinilos, espejos y tableros de una pared: los de la cara que da a su estancia
   // y, si es compartida, los de la otra. Son del lado entero de su estancia; si
   // ese lado tiene varios tramos de pared, cada pieza va al tramo donde cae.
-  const KINDS: PieceKind[] = ['vinyl', 'mirror', 'board']
+  const KINDS: PieceKind[] = ['vinyl', 'mirror', 'board', 'mechanism']
   const pieces = (w: (typeof walls)[number]) => {
     const faces = [
       { id: w.moduleId, side: w.side },
@@ -152,7 +154,10 @@ export default function HouseTree() {
         piecesOf(room, kind, side)
           .filter((p) => {
             if (stretches.length < 2) return true
-            const at = vinylPlacement(room, side, p as never, walls)?.along
+            // El interruptor o enchufe no guarda su ancho: lo da su tipo.
+            const type = kind === 'mechanism' ? mechanismType((p as Mechanism).typeId) : undefined
+            const box = type ? { ...p, ...mechanismSize(type) } : p
+            const at = vinylPlacement(room, side, box as never, walls)?.along
             return at === undefined ? stretches[0] === w : at >= w.from && at <= w.to
           })
           .map((p) => ({ kind, room, side, id: p.id })),
@@ -167,7 +172,9 @@ export default function HouseTree() {
         ? s.addVinyl(w.moduleId, w.side, typeId!)
         : kind === 'mirror'
           ? s.addMirror(w.moduleId, w.side)
-          : s.addBoard(w.moduleId, w.side)
+          : kind === 'mechanism'
+            ? s.addMechanism(w.moduleId, w.side, typeId!)
+            : s.addBoard(w.moduleId, w.side)
     if (!id) return setNotice('No cabe en esta pared.')
     setMenu(null)
     pick('walls', {
@@ -191,7 +198,9 @@ export default function HouseTree() {
       ? OPENING_CATALOG.filter((t) => t.kind === group.opening)
       : group.piece === 'vinyl'
         ? VINYLS
-        : []
+        : group.piece === 'mechanism'
+          ? MECHANISMS
+          : []
     const addOne = (typeId?: string) => {
       if (group.piece) return addPiece(w, group.piece, typeId)
       // Sale centrado en la pared; luego se desliza por ella.

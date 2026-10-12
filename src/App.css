@@ -817,6 +817,12 @@ button:disabled {
   pointer-events: none;
 }
 
+.mechanism-mark {
+  stroke: #e11d48;
+  stroke-width: 0.1;
+  pointer-events: none;
+}
+
 .board-mark {
   stroke: #b45309;
   pointer-events: none;
