@@ -37,7 +37,7 @@ Medidas en metros, ancho × fondo × alto. Los códigos son provisionales.
 | `horno` | 0,6 × 0,6 × 0,82 | Con las medidas del lavavajillas (lo pidió el usuario) |
 | `frigorifico` | 0,6 × 0,6 × 2,1 | Congelador pequeño **arriba**, frío abajo; asas separadas; bisagras a la izquierda (supuesto) |
 | `frigorifico-pequeno` | 0,6 × 0,6 × 1,8 | Igual |
-| `armario-cocina` | 0,45 × 0,6 × 0,82 | Para ponerlo junto al lavavajillas; dos puertas |
+| `armario-cocina` | 0,45 × 0,6 × 0,8 | Para ponerlo junto al lavavajillas; dos puertas. 80 de alto como los pequeños, para una encimera a ras (usuario) |
 | `mesa-armarios` | 1,2 × 0,6 × 0,8 | Mesa de trabajo con **una sola puerta al medio** y dos paños fijos |
 | `fregadero` | 0,4 × 0,45 | **Una sola pila, sin profundidad**: se apoya sobre la encimera (el usuario descartó el agujero) |
 | `vitroceramica` | 0,5 × 0,5 × 0,02 | 4 fuegos, fina y negra. Lleva su altura propia (0,9 m): ponle la de la encimera |
@@ -58,9 +58,12 @@ provisionales, puestas por Claude hasta que él las confirme.
 - **Encimera = un tablero** (usuario): `ponerTablero` fino y con fondo, no una
   pieza de catálogo. Medidas con las que se montó: **0,04 de alto, 0,6 de fondo**,
   acabado `gris-perla` (granito, la textura que pasó el usuario).
+- **Las piezas de debajo miden lo mismo** (usuario): los electrodomésticos pequeños
+  y el armario de cocina, **0,80** de alto, para poner una encimera encima a
+  ras. Con los normales (0,82) no encajan: no los mezcles bajo la misma encimera.
 - **Altura de la encimera** (provisional): el tablero apoya **sobre** lo que hay
-  debajo. Con electrodomésticos de 0,82, su borde inferior va a **0,82**
-  (`altura: 0,82`) y la cara de arriba queda a **0,86**.
+  debajo. Con la hilera de 0,80, su borde inferior va a **0,80** (`altura: 0,80`)
+  y la cara de arriba queda a **0,84**. Con la de 0,82 serían 0,82 y 0,86.
 - **Lo que va encima de la encimera** (vitro, fregadero): `ponerMueble` con
   `altura` = la cara de arriba de la encimera (0,86).
 - **Las piezas de suelo van a ras, una al lado de otra**, de espaldas a la pared.

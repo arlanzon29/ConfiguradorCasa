@@ -705,6 +705,11 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Armario de cocina a 80 cm de alto** (el usuario: "hay
+  que dejarlo con 80, para poner luego una encimera encima"): el
+  `armario-cocina` pasa de 0,82 a 0,80, como el lavavajillas y la lavadora
+  pequeños, para que la encimera apoye a ras. Anotado en `crear-cocinas`.
+
 - **2026-10-12** · **Lavavajillas y lavadora pequeños: 45 de ancho × 60 de
   fondo** (el usuario preguntó si tenían 60 de fondo y lo confirmó: yo los
   había puesto de 60 de ancho y 45 de fondo, al revés). `lavavajillas-pequeno`
