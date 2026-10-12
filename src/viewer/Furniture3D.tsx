@@ -68,11 +68,11 @@ function boxes({ shape, width: w, depth: d, height: h }: FurnitureType): Box[] {
       ]
     }
     case 'fridge': {
-      // Combi de puerta lateral con dos puertas: arriba el frío, abajo el congelador.
+      // Puerta lateral con dos puertas: arriba el congelador (pequeño), abajo el frío.
       // Las bisagras van a la izquierda y los tiradores (verticales) a la derecha.
       const front = 0.025
       const gap = 0.01
-      const freezer = h * 0.32
+      const freezer = h * 0.25
       const cold = h - freezer - gap
       const doorW = w - 0.02
       const handle = (y: number, len: number): Box => ({
@@ -82,10 +82,10 @@ function boxes({ shape, width: w, depth: d, height: h }: FurnitureType): Box[] {
       })
       return [
         { position: [0, h / 2, -front / 2], size: [w, h, d - front], color: WHITE },
-        { position: [0, freezer / 2, d / 2 - front / 2], size: [doorW, freezer - gap / 2, front], color: '#d6d8dc' },
-        { position: [0, freezer + gap + cold / 2, d / 2 - front / 2], size: [doorW, cold - gap / 2, front], color: '#d6d8dc' },
-        handle(freezer - 0.12, 0.16),
-        handle(freezer + gap + 0.12 + 0.1, 0.35),
+        { position: [0, cold / 2, d / 2 - front / 2], size: [doorW, cold - gap / 2, front], color: '#d6d8dc' },
+        { position: [0, cold + gap + freezer / 2, d / 2 - front / 2], size: [doorW, freezer - gap / 2, front], color: '#d6d8dc' },
+        handle(cold - 0.15, 0.4),
+        handle(cold + gap + 0.1, 0.14),
       ]
     }
     case 'washer': {

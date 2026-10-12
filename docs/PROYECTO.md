@@ -704,6 +704,11 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Congelador arriba** en los frigoríficos (el usuario: "el
+  congelado pequeño va en la parte superior"). Forma `fridge`: congelador
+  arriba, un 25 % del alto, y el frío debajo; los tiradores se ajustan.
+  Visto en el servidor aparte (5185) en 3D.
+
 - **2026-10-12** · **Frigorífico con dos puertas y lavadoras** (lo pidió el
   usuario: la puerta lateral con dos partes, frío y congelador, y una
   lavadora con los tamaños del lavavajillas). Forma nueva `fridge`: dos
