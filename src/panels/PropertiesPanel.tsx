@@ -31,7 +31,10 @@ import {
   piecesOf,
   roomName,
 } from '../model/names'
-import { Field, Fields, NameField } from './Field'
+import { ARTICLES } from '../model/articles'
+import { openingCode } from '../model/openings'
+import { finishCode, DEFAULT_CEILING, BASE_FLOOR, floorOf } from '../model/finishes'
+import { ArticleCode, Field, Fields, NameField } from './Field'
 import { BoardsSection } from './BoardsSection'
 import { ColorPicker, FaceFinishes, FinishPicker, RoomFinishes } from './FinishesPanel'
 import { AddLight, LightProperties } from './LightsSection'
@@ -80,6 +83,7 @@ function ShellProperties({ shell }: { shell: Shell }) {
         fallback={defaultShellName(shells, shell.id)}
         onApply={(name) => rename('shell', shell.id, name)}
       />
+      <ArticleCode codes={[{ code: ARTICLES.shell }]} />
       <p>Módulo · {formatMeters(shell.width * shell.depth)} m²</p>
       <Fields title="Distancia al borde de la parcela">
         <Field label="Izquierda (m)" value={shell.x} onApply={(x) => move(x, shell.y)} />
@@ -136,6 +140,12 @@ function RoomProperties({ room }: { room: PlacedModule }) {
         fallback={defaultRoomName(modules, room.id)}
         onApply={(name) => rename('room', room.id, name)}
       />
+      <ArticleCode
+        codes={[
+          { label: 'Suelo', code: floorOf(room) ? finishCode(floorOf(room), BASE_FLOOR.id) : ARTICLES.floor },
+          { label: 'Techo', code: finishCode(room.ceiling, DEFAULT_CEILING) },
+        ]}
+      />
       <p>Estancia · {formatMeters(room.width * room.depth)} m²</p>
       <Fields title={shell ? 'Distancia al borde del módulo' : 'Distancia al borde de la parcela'}>
         <Field
@@ -173,6 +183,12 @@ function WallProperties({ wall }: { wall: Wall }) {
         value={wall.name}
         fallback={defaultWallName(wall)}
         onApply={(name) => rename('wall', wall.key, name)}
+      />
+      <ArticleCode
+        codes={[
+          { code: wall.shared ? ARTICLES.wallShared : ARTICLES.wallExterior },
+          ...(wall.skirting.height > 0 ? [{ label: 'Rodapié', code: ARTICLES.skirting }] : []),
+        ]}
       />
       <p>
         {wall.shared
@@ -258,6 +274,12 @@ function OpeningProperties({ opening, walls }: { opening: Opening; walls: Wall[]
         value={opening.name}
         fallback={defaultOpeningName(opening)}
         onApply={(name) => useHouse.getState().rename('opening', opening.id, name)}
+      />
+      <ArticleCode
+        codes={[
+          { code: openingCode(opening) },
+          { label: 'Acabado', code: finishCode(opening.finish, DEFAULT_JOINERY_FINISH) },
+        ]}
       />
       <p>{opening.kind === 'door' ? 'Puerta' : 'Ventana'}</p>
       {wall && span && (
@@ -385,6 +407,7 @@ function FurnitureProperties({ item }: { item: FurnitureItem }) {
         fallback={defaultFurnitureName(item)}
         onApply={(name) => useHouse.getState().rename('furniture', item.id, name)}
       />
+      <ArticleCode codes={[{ code: type.code }]} />
       <p>
         {type.name} · {formatMeters(type.width)} × {formatMeters(type.depth)} m ·{' '}
         {formatMeters(type.height)} m de alto · giro {item.rotation}°

@@ -10,7 +10,8 @@ import {
 } from '../model/lights'
 import { defaultLightName } from '../model/names'
 import { useHouse } from '../store'
-import { Fields, NameField } from './Field'
+import { ARTICLES } from '../model/articles'
+import { ArticleCode, Fields, NameField } from './Field'
 import { Slide } from './VinylsSection'
 
 /** En las propiedades de una estancia: el botón para ponerle un foco. Los que tiene están en el árbol. */
@@ -60,6 +61,7 @@ export function LightProperties({ room, light }: { room: PlacedModule; light: Ro
         fallback={defaultLightName(room, light.id)}
         onApply={(name) => rename('light', light.id, name)}
       />
+      <ArticleCode codes={[{ code: ARTICLES.light }]} />
       <p>Foco de techo</p>
       <Fields title="Distancia desde">
         <Slide

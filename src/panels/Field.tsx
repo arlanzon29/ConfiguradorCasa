@@ -97,6 +97,22 @@ export function NameField({ value, fallback, onApply }: NameFieldProps) {
   )
 }
 
+/**
+ * El código de artículo de lo elegido (o de varias partidas suyas), para
+ * asociarlo a la base de costes. Solo se enseña: no se escribe aquí.
+ */
+export function ArticleCode({ codes }: { codes: { label?: string; code: string }[] }) {
+  return (
+    <div className="article-codes">
+      {codes.map(({ label, code }) => (
+        <p key={(label ?? '') + code} className="article-code">
+          {label ?? 'Código de artículo'}: <code>{code}</code>
+        </p>
+      ))}
+    </div>
+  )
+}
+
 export const Fields = ({ title, children }: { title: string; children: ReactNode }) => (
   <>
     <h3>{title}</h3>

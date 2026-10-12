@@ -5,7 +5,9 @@ import { wallFace } from '../model/vinyls'
 import { deriveWalls } from '../model/walls'
 import { useHouse } from '../store'
 import { defaultPieceName } from '../model/names'
-import { Fields, NameField } from './Field'
+import { ARTICLES } from '../model/articles'
+import { finishCode } from '../model/finishes'
+import { ArticleCode, Fields, NameField } from './Field'
 import { FinishPicker } from './FinishesPanel'
 import { Slide } from './VinylsSection'
 
@@ -61,6 +63,12 @@ export function BoardsSection({ room, side, chosenId }: { room: PlacedModule; si
             value={chosen.name}
             fallback={defaultPieceName(room, 'board', side, chosen.id)}
             onApply={(name) => patch({ name: name || undefined })}
+          />
+          <ArticleCode
+            codes={[
+              { code: ARTICLES.board },
+              { label: 'Acabado', code: finishCode(chosen.finish, '#f2efe8') },
+            ]}
           />
           <p>Tablero</p>
           <h3>Postura</h3>

@@ -1030,3 +1030,8 @@ button:disabled {
   dominant-baseline: central;
   pointer-events: none;
 }
+
+/* Código de artículo de lo elegido, en Propiedades: solo se lee. */
+.article-codes { margin: 0 0 6px; }
+.article-code { margin: 0; font-size: 12px; color: #667; }
+.article-code code { font-size: 12px; user-select: all; }

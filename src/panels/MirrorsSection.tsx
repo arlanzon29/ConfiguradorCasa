@@ -5,7 +5,8 @@ import { MIN_VINYL, wallFace } from '../model/vinyls'
 import { deriveWalls } from '../model/walls'
 import { useHouse } from '../store'
 import { defaultPieceName } from '../model/names'
-import { Fields, NameField } from './Field'
+import { ARTICLES } from '../model/articles'
+import { ArticleCode, Fields, NameField } from './Field'
 import { Slide } from './VinylsSection'
 
 /** Espejos de una pared: el botón para colgar uno y las medidas del elegido. */
@@ -61,6 +62,7 @@ export default function MirrorsSection({ room, side, chosenId }: { room: PlacedM
             fallback={defaultPieceName(room, 'mirror', side, chosen.id)}
             onApply={(name) => patch({ name: name || undefined })}
           />
+          <ArticleCode codes={[{ code: ARTICLES.mirror }]} />
           <p>Espejo</p>
           <Fields title="Distancia desde">
             <Slide

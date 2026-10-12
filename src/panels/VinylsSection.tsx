@@ -4,7 +4,7 @@ import { MIN_VINYL, VINYLS, Vinyl, vinylType, wallFace } from '../model/vinyls'
 import { deriveWalls } from '../model/walls'
 import { useHouse } from '../store'
 import { defaultPieceName } from '../model/names'
-import { Field, Fields, NameField } from './Field'
+import { ArticleCode, Field, Fields, NameField } from './Field'
 
 interface SlideProps {
   label: string
@@ -95,6 +95,7 @@ export default function VinylsSection({ room, side, chosenId }: { room: PlacedMo
             fallback={defaultPieceName(room, 'vinyl', side, chosen.id)}
             onApply={(name) => patch({ name: name || undefined })}
           />
+          <ArticleCode codes={[{ code: vinylType(chosen.typeId)?.code ?? '—' }]} />
           <p>Vinilo · {vinylType(chosen.typeId)?.name}</p>
           <Fields title="Distancia desde">
             <Slide

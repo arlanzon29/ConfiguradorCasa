@@ -648,10 +648,14 @@ Se anota aquí cada cosa que se hace, la más reciente arriba.
   catálogo (módulo, pared exterior y compartida, suelo, techo, rodapié, foco,
   tablero, espejo). `window.eurocasa` los devuelve como `codigo`. **Los
   códigos los inventé yo** (el usuario lo pidió así) y son provisionales.
-  Probado en el servidor aparte (5184): catálogos y casa de Daniel con sus
-  códigos; `tsc`. **Sin hacer**: la medición de la casa (cantidades por
-  código), la tabla de costes en `comercial/` y mostrar el código en
-  Propiedades.
+  **Propiedades enseña el código** de lo elegido (`ArticleCode` en
+  `Field.tsx`, justo bajo el nombre; solo se lee): módulo, estancia (suelo y
+  techo), pared (y rodapié), hueco (y acabado), mueble, foco, vinilo, espejo y
+  tablero (y acabado). Probado en el servidor aparte (5184): catálogos y casa
+  de Daniel con sus códigos, y el panel del sofá, de una estancia y de una
+  pared exterior. Sin probar a la vista: hueco, foco, vinilo, espejo y
+  tablero (`tsc` sí). **Sin hacer**: la medición de la casa (cantidades por
+  código) y la tabla de costes en `comercial/`.
 
 - **2026-10-12** · **Casa de Daniel Rodriguez Martinez guardada en
   `comercial/`**, con sus 5 fotos dentro (2,7 MB). Se dio cuenta de que la
