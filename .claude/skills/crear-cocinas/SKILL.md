@@ -141,8 +141,11 @@ la puerta (sur) y la ventana (norte); sin más. Pasos hechos, en orden:
    usuario pidió **separar la vitro un poco más y centrar los dos en la
    encimera**. Queda: fregadero (0,4) y vitro (0,5) con **12 cm** entre ellos,
    el conjunto (1,02 m) centrado en la encimera (1,35 m): 16,5 cm de sobra a
-   cada lado. Se colocan sueltos con `x` e `y` (`espalda: 'norte'`) calculando
-   desde el centro de la encimera.
+   cada lado, y **también centrados en el fondo** (el usuario: "centrados en el
+   otro eje"): la `y` de los dos es la del centro de la encimera, la misma que la
+   de los muebles de debajo (0,45 en la prueba), con unos 7,5 cm de encimera
+   por delante y por detrás del fregadero. Se colocan sueltos con `x` e `y`
+   (`espalda: 'norte'`) calculando desde el centro de la encimera.
 
 ## Pendiente
 

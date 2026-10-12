@@ -705,6 +705,11 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Fregadero y vitro centrados también en el fondo** (el
+  usuario: "no centrado en el otro eje"): los dos a la `y` del centro de la
+  encimera (0,45 m en la prueba), no pegados a la pared. Entorno de pruebas
+  (5185); anotado en `crear-cocinas`. Visto en 3D.
+
 - **2026-10-12** · **Fregadero y vitro centrados y separados** (el usuario:
   "separa un poco más la vitro y céntralos en la encimera"): 12 cm entre el
   fregadero y la vitro, y el conjunto centrado en la encimera (16,5 cm de
