@@ -212,9 +212,11 @@ function ponerHueco(
 /**
  * Cambia un hueco ya puesto (`hueco` es su id): medidas, altura sobre el suelo
  * y, en una puerta abatible, hacia qué estancia abre ("fuera" en una exterior).
- * Al cambiar el ancho conserva su centro.
+ * Al cambiar el ancho conserva su centro. Con `posicion` lo mueve a lo largo de
+ * su pared: metros desde el extremo oeste o norte del lado de su estancia (la
+ * `estancia` y el `lado` que da `casa()`) hasta el centro del hueco.
  */
-function cambiarHueco(p: { hueco: string } & Ajustes) {
+function cambiarHueco(p: { hueco: string; posicion?: number } & Ajustes) {
   const find = () => state().openings.find((o) => o.id === p.hueco)
   const before = find()
   if (!before) return { error: `No hay ningún hueco "${p.hueco}".` } as Fallo
@@ -251,8 +253,27 @@ function cambiarHueco(p: { hueco: string } & Ajustes) {
     const start = wallLine(modules.find((m) => m.id === before.moduleId)!, before.side).start
     state().moveOpening(p.hueco, start + before.offset + (before.width - width) / 2)
   }
+  if (p.posicion !== undefined) {
+    const start = wallLine(modules.find((m) => m.id === before.moduleId)!, before.side).start
+    const from = start + p.posicion - width / 2
+    state().moveOpening(p.hueco, from)
+    // Si ahí no cabe entero (la pared lo arrima a otro sitio) o pisa otro hueco, vuelve a donde estaba.
+    if (Math.abs(start + find()!.offset - from) > 0.01) {
+      state().moveOpening(p.hueco, start + before.offset + (before.width - width) / 2)
+      return { error: 'En esa posición no cabe, o pisa otro hueco; no se ha movido.' } as Fallo
+    }
+  }
   if (swing) state().setDoor(p.hueco, { swing })
   return describeOpening(find()!)
+}
+
+/** Quita un hueco, por su id. */
+function quitarHueco(p: { hueco: string }) {
+  if (!state().openings.some((o) => o.id === p.hueco)) {
+    return { error: `No hay ningún hueco "${p.hueco}".` } as Fallo
+  }
+  state().removeOpening(p.hueco)
+  return casa()
 }
 
 /** Un mueble tal como se cuenta: su centro, desde la esquina de su estancia. */
@@ -335,6 +356,7 @@ const eurocasa = {
   eliminarEstancia,
   ponerHueco,
   cambiarHueco,
+  quitarHueco,
 }
 
 declare global {

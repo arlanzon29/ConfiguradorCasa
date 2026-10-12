@@ -624,6 +624,16 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Mover y quitar huecos por funciones** (el usuario pidió
+  la función para correr la puerta de la habitación y hacer sitio a un
+  armario): `cambiarHueco` admite `posicion` (metros hasta el centro del
+  hueco, a lo largo del lado de su estancia) y hay `quitarHueco`; las dos, en
+  la skill `crear-casas`. Si en la posición pedida no cabe entero, no se
+  mueve y lo dice. Probado en el servidor aparte (5183): la puerta corrida
+  hacia la fachada, y dos rechazos (una posición en el tramo de otra pared y
+  otra pegada a la esquina). Sin probar: `quitarHueco`, y mover un hueco a la
+  vez que se cambia su ancho.
+
 - **2026-10-12** · **Muebles por funciones** (el usuario pidió una cama de
   matrimonio en la habitación de la casa de prueba): `catalogoMuebles`,
   `ponerMueble` y `quitarMueble` en `window.eurocasa`, y su parte en la skill
