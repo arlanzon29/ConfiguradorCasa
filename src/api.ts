@@ -4,6 +4,7 @@
 // devuelven lo creado o el motivo por el que no se ha podido.
 
 import { PlacedModule, Shell, Side, fits, roundSize, validSize } from './model/house'
+import { BASE_FLOOR, MATERIALS, WALL_COLORS, floorOf } from './model/finishes'
 import { FURNITURE, FurnitureItem, Rotation } from './model/furniture'
 import { furnitureName, roomName, shellName } from './model/names'
 import { OPPOSITE, Opening, swingDoor, validOpeningSize, wallLine } from './model/openings'
@@ -38,6 +39,7 @@ function describeRoom(m: PlacedModule, shell?: Shell) {
     y: roundSize(m.y - (shell?.y ?? 0)),
     ancho: m.width,
     fondo: m.depth,
+    suelo: floorOf(m) ?? 'sin acabado',
   }
 }
 
@@ -369,7 +371,41 @@ function quitarMueble(p: { mueble: string }) {
   return casa()
 }
 
+/** Los acabados que hay: materiales (con textura) y colores de la paleta. */
+const catalogoAcabados = () => ({
+  materiales: MATERIALS.map((m) => ({ acabado: m.id, nombre: m.name })),
+  colores: WALL_COLORS.map((c) => ({ acabado: c.color, nombre: c.name })),
+})
+
+/** Un acabado dicho por su nombre, su id o un color `#rrggbb`; undefined si no existe. */
+function findFinish(ref: string) {
+  const key = ref.trim().toLowerCase()
+  if (/^#[0-9a-f]{6}$/.test(key)) return key
+  return (
+    MATERIALS.find((m) => m.id === key || m.name.toLowerCase() === key)?.id ??
+    WALL_COLORS.find((c) => c.name.toLowerCase() === key)?.color
+  )
+}
+
+/**
+ * Pone el suelo de una estancia: un material o un color del catálogo (por
+ * nombre o id), un color `#rrggbb`, o "sin acabado". Con `girado` se dice si la
+ * veta va girada 90°.
+ */
+function ponerSuelo(p: { estancia: string; acabado: string; girado?: boolean }) {
+  const room = findRoom(p.estancia)
+  if (!room) return { error: `No hay ninguna estancia "${p.estancia}".` } as Fallo
+  const none = p.acabado.trim().toLowerCase() === 'sin acabado'
+  const finish = none ? BASE_FLOOR.id : findFinish(p.acabado)
+  if (!finish) return { error: `No hay ningún acabado "${p.acabado}".` } as Fallo
+  state().setFloor(room.id, finish)
+  if (p.girado !== undefined && !!room.floorTurned !== p.girado) state().turnFloor(room.id)
+  return { estancia: roomName(state().modules, room.id), suelo: none ? 'sin acabado' : finish }
+}
+
 const eurocasa = {
+  catalogoAcabados,
+  ponerSuelo,
   catalogoMuebles,
   ponerMueble,
   quitarMueble,

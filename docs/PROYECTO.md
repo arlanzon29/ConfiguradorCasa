@@ -624,6 +624,14 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Suelos por funciones** (el usuario pidió madera de pino
+  en el salón y la habitación de la casa de prueba): `ponerSuelo` (estancia,
+  acabado por nombre, id o color, y `girado`) y `catalogoAcabados` en
+  `window.eurocasa`, con su parte en la skill `crear-casas`; `casa()` da el
+  `suelo` de cada estancia. Probado en el servidor aparte (5183): el pino en
+  las dos estancias, visto en 3D en el salón, y el rechazo de un acabado que
+  no existe. Sin probar: un color, "sin acabado" y `girado`.
+
 - **2026-10-12** · **Descartado por el usuario**: que Claude monte la casa
   escribiendo el `.json` del plano y cargándolo de golpe, y también la
   variante que propuse (una función `montar(casa)` con la casa entera). Se

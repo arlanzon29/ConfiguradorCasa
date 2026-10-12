@@ -57,6 +57,8 @@ su id; los huecos, por su id.
 | `catalogoMuebles()` | — | Los muebles que hay, con `ancho`, `fondo` (de la espalda al frente) y `alto`. Hoy: `mesa-comedor`, `mesa-centro`, `silla`, `sofa`, `cama-doble` (1,6 × 2 m; la "cama de matrimonio"), `cama-individual`, `mesilla`, `armario` |
 | `ponerMueble` | `{ mueble, estancia, pared?, posicion?, x?, y?, espalda? }` | `mueble`: id o nombre del catálogo. **Contra una pared**: con `pared` (`norte`, `sur`, `este`, `oeste`) va **de espaldas** a ella (cabecero, respaldo, fondo del armario), a ras; `posicion` son los metros desde el extremo oeste o norte del lado hasta el **centro** del mueble (sin ella, centrado; si se sale, se arrima a la esquina). **Suelto**: sin `pared`, su centro va a (`x`, `y`) desde la esquina de arriba a la izquierda de la estancia (sin ellos, al centro de ella), de espaldas a `espalda` (por defecto `norte`). Falla si no cabe o se mete en una pared |
 | `quitarMueble` | `{ mueble }` | Por su id (los da `casa().muebles`) |
+| `catalogoAcabados()` | — | `materiales` (con textura; hoy solo `pino`, "Madera de pino") y `colores` de la paleta (Blanco roto, Blanco, Gris perla, Arena, Salvia, Azul grisáceo, Terracota, Antracita). Si preguntan qué opciones hay, léelas de aquí y cuéntalas |
+| `ponerSuelo` | `{ estancia, acabado, girado? }` | `acabado`: nombre o id de un material o color del catálogo, un color `#rrggbb`, o `sin acabado`. `girado`: la veta girada 90°. El suelo es por estancia; `casa()` da el `suelo` de cada una |
 
 Los muebles **no chocan** entre sí ni con las puertas: comprueba tú, con las
 medidas del catálogo y las posiciones de `casa()`, que no se pisan ni tapan
@@ -80,7 +82,9 @@ e.ponerHueco({ tipo: 'ventana', estancia: 'Habitación', lado: 'norte' })
 **Lo que todavía no tiene función** (se hace por la interfaz, o se prepara la
 función antes): mover o cambiar de medida una estancia (hoy: eliminarla y
 crearla otra vez, y se pierden sus huecos y muebles), canto de las bisagras, segundo módulo, mover o girar un mueble ya puesto
-(hoy: quitarlo y ponerlo otra vez), luces, acabados, fotos.
+(hoy: quitarlo y ponerlo otra vez), luces, acabados de paredes, techo y
+carpintería, fotos. El suelo solo se ve en la vista 3D y en la foto, no en el
+plano.
 
 ## Cómo trabajar con el comercial
 
