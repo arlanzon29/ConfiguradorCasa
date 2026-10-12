@@ -624,6 +624,17 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Foto en calidad por funciones** (el usuario pidió una
+  foto de la habitación de la casa de prueba): `hacerFoto` (con `muestras`,
+  si se quiere) en `window.eurocasa`, con su parte en la skill
+  `crear-casas`. El modo foto es estado propio de `View3D`, así que la
+  función lanza un evento de `window` (`PHOTO_EVENT` en `store.ts`) y
+  `View3D` lo escucha y hace lo mismo que el botón. **No guarda**: la
+  pregunta de guardar sigue siendo de quien mira la página. Probado en el
+  servidor aparte (5183), en la ventana `?vista=3d`: la foto arranca, y el
+  rechazo de unas muestras que no existen. Sin probar: el aviso de que la
+  vista 3D no está abierta.
+
 - **2026-10-12** · **Cámara por funciones** (el usuario preguntó si sabría
   llevarla al baño): `llevarCamara` (estancia y, si se quiere, `mirando`) en
   `window.eurocasa`, con su parte en la skill `crear-casas`. Usa el vuelo de

@@ -88,6 +88,9 @@ export function stopCameraFlight() {
  */
 export const PHOTO_SAMPLES = [50, 100, 200]
 
+/** Evento de `window` con el que se pide una foto en calidad sin pulsar el botón (api.ts). */
+export const PHOTO_EVENT = 'eurocasa:foto'
+
 /** Lo que el usuario puede quitar de la vista en el plano 2D. */
 export const PLAN_LAYERS = [
   { id: 'furniture', name: 'Mobiliario' },

@@ -10,7 +10,7 @@ import { furnitureName, roomName, shellName } from './model/names'
 import { OPPOSITE, Opening, swingDoor, validOpeningSize, wallLine } from './model/openings'
 import { deriveWalls, wallOf } from './model/walls'
 import { usePhotos } from './photos'
-import { furnitureBox, useHouse } from './store'
+import { PHOTO_EVENT, PHOTO_SAMPLES, furnitureBox, useHouse } from './store'
 
 type Fallo = { error: string }
 
@@ -454,7 +454,27 @@ function llevarCamara(p: { estancia: string; mirando?: string }) {
   return { estancia: roomName(state().modules, room.id), mirando: lado(side) }
 }
 
+/**
+ * Empieza una foto en calidad de lo que ve la cámara, con `muestras` (50, 100
+ * o 200) si se dicen. Hace falta la vista 3D abierta. Al terminar, la propia
+ * página pregunta si se guarda: eso lo decide quien la mira.
+ */
+function hacerFoto(p: { muestras?: number } = {}) {
+  if (!document.querySelector('.view3d-wrap')) {
+    return { error: 'La vista 3D no está abierta: hay que pasar a "Vista 3D" o "Plano + 3D".' } as Fallo
+  }
+  if (p.muestras !== undefined) {
+    if (!PHOTO_SAMPLES.includes(p.muestras)) {
+      return { error: `Las muestras son ${PHOTO_SAMPLES.join(', ')}.` } as Fallo
+    }
+    state().setPhotoSamples(p.muestras)
+  }
+  window.dispatchEvent(new Event(PHOTO_EVENT))
+  return { foto: 'empezada', muestras: state().photoSamples }
+}
+
 const eurocasa = {
+  hacerFoto,
   llevarCamara,
   catalogoAcabados,
   ponerSuelo,

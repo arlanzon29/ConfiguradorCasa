@@ -61,6 +61,7 @@ su id; los huecos, por su id.
 | `ponerSuelo` | `{ estancia, acabado, girado? }` | `acabado`: nombre o id de un material o color del catálogo, un color `#rrggbb`, o `sin acabado`. `girado`: la veta girada 90°. El suelo es por estancia; `casa()` da el `suelo` de cada una |
 | `pintarParedes` | `{ estancia, acabado, lado? }` | Las caras **interiores** de las paredes de esa estancia, con un color o un material (igual que en `ponerSuelo`, salvo `sin acabado`). Con `lado`, solo esa pared; sin él, las cuatro, y se pierden los colores propios que tuviera alguna. Una pared compartida tiene dos caras: pintar el salón no cambia la cara que da a la habitación. `casa()` da las `paredes` de cada estancia |
 | `llevarCamara` | `{ estancia, mirando? }` | Lleva la cámara de la vista 3D a esa estancia, de pie (ojos a 1,6 m), centrada en la pared contraria a `mirando` (`norte`, `sur`, `este`, `oeste`) y mirando hacia allí. Sin `mirando`, a lo largo del lado más largo. La cámara vuela, tarda algo más de un segundo: espera antes de capturar. Úsala para enseñar o comprobar a la vista lo que has cambiado en una estancia |
+| `hacerFoto` | `{ muestras? }` | Empieza una **foto en calidad** de lo que ve la cámara (llévala antes con `llevarCamara`). `muestras`: 50, 100 o 200; sin decirlo, las que estén elegidas. Hace falta la vista 3D a la vista ("Vista 3D", "Plano + 3D" o la ventana `?vista=3d`). La primera foto tarda alrededor de un minuto en arrancar. **No la guarda**: al terminar, la página pregunta "¿Guardar la foto?" y lo decide quien la mira |
 
 Los muebles **no chocan** entre sí ni con las puertas: comprueba tú, con las
 medidas del catálogo y las posiciones de `casa()`, que no se pisan ni tapan
@@ -84,7 +85,8 @@ e.ponerHueco({ tipo: 'ventana', estancia: 'Habitación', lado: 'norte' })
 **Lo que todavía no tiene función** (se hace por la interfaz, o se prepara la
 función antes): mover o cambiar de medida una estancia (hoy: eliminarla y
 crearla otra vez, y se pierden sus huecos y muebles), canto de las bisagras, segundo módulo, mover o girar un mueble ya puesto
-(hoy: quitarlo y ponerlo otra vez), luces, acabados de techo y carpintería, rodapié, fotos. Suelos y paredes solo
+(hoy: quitarlo y ponerlo otra vez), luces, acabados de techo y carpintería, rodapié, guardar una foto o elegir su
+filtro y objetivo. Suelos y paredes solo
 se ven en la vista 3D y en la foto, no en el plano.
 
 ## Cómo trabajar con el comercial

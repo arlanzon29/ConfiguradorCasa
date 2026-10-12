@@ -31,7 +31,7 @@ import { VINYLS, VinylSheet, vinylPlacement, vinylSheets, vinylType } from '../m
 import { OPPOSITE, Opening } from '../model/openings'
 import { Joints, Wall, deriveWalls, openingsOf, wallAcross } from '../model/walls'
 import { Shot, usePhotos } from '../photos'
-import { LENSES, PHOTO_SAMPLES, cameraFlying, samePose, stopCameraFlight, useHouse } from '../store'
+import { LENSES, PHOTO_EVENT, PHOTO_SAMPLES, cameraFlying, samePose, stopCameraFlight, useHouse } from '../store'
 import Furniture3D from './Furniture3D'
 import { JoineryMaterial, JoineryPart, joineryParts } from './joinery'
 import PhotoTracer from './PhotoTracer'
@@ -919,6 +919,11 @@ export default function View3D() {
     setFilter(false)
     setPhoto(true)
   }
+  // La foto pedida desde fuera de la interfaz (`hacerFoto` en api.ts) empieza igual que con el botón.
+  useEffect(() => {
+    window.addEventListener(PHOTO_EVENT, startPhoto)
+    return () => window.removeEventListener(PHOTO_EVENT, startPhoto)
+  }, [])
   // Repetir una foto (panel Fotos): la cámara ya va hacia su sitio y se traza sola
   // hasta el final; entonces se pregunta si sustituye a la anterior. Si se
   // cancela, se vuelve a la vista normal.
