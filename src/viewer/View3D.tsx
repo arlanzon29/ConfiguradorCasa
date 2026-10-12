@@ -470,8 +470,8 @@ function exitHint(title: string, lines: string[]) {
 // Realidad aumentada con el paso de cámara de las Quest 3. La casa se ve como una
 // maqueta sobre una mesa virtual translúcida, a 1:20, delante de ti. Se maneja
 // como la bandeja de la prueba `sala-ar` (D:\IA\Macedonia\games\sala-ar):
-//  · gatillo mantenido: la mesa sigue al mando, justo debajo, y gira hacia donde apunta;
-//  · agarre con la mano sobre la mesa: la lleva sin girarla;
+//  · gatillo o botón lateral (agarre) mantenido: la mesa sigue al mando, justo
+//    debajo, y gira hacia donde apunta (la trae aunque esté lejos);
 //  · stick a izquierda o derecha: la gira poco a poco;
 //  · A o X: cambia entre maqueta (1:20) y tamaño real (1:1).
 const AR_SCALE = 1 / 20
@@ -502,7 +502,6 @@ function ARTable({
     yaw: 0,
     scale: AR_SCALE,
     ready: false,
-    carry: null as null | { hand: string; offset: Vector3 },
   })
   // Estado de los botones fotograma a fotograma, para detectar la pulsación (no la mantenida).
   const held = useRef(new Map<string, boolean>())
@@ -516,7 +515,6 @@ function ARTable({
 
   useEffect(() => {
     table.current.ready = false
-    table.current.carry = null
     held.current.clear()
   }, [enabled])
 
@@ -554,7 +552,6 @@ function ARTable({
       t.ready = true
     }
 
-    const half = [(size[0] * t.scale) / 2, (size[1] * t.scale) / 2]
     let toggle = false
     for (const source of session.inputSources) {
       const pad = source.gamepad
@@ -565,36 +562,21 @@ function ARTable({
       v.hand.set(at.x, at.y, at.z)
       v.fwd.set(0, 0, -1).applyQuaternion(v.quat.set(q.x, q.y, q.z, q.w))
       const hand = source.handedness
-      const trigger = !!pad.buttons[0]?.pressed
-      const squeeze = !!pad.buttons[1]?.pressed
+      // El gatillo y el botón lateral (agarre) hacen lo mismo: colocar la mesa.
+      const place = !!pad.buttons[0]?.pressed || !!pad.buttons[1]?.pressed
       const press = !!pad.buttons[4]?.pressed
-      const wasSqueeze = held.current.get(hand + 'squeeze') ?? false
       const wasPress = held.current.get(hand + 'press') ?? false
-      held.current.set(hand + 'squeeze', squeeze)
       held.current.set(hand + 'press', press)
       if (press && !wasPress) toggle = true
 
-      if (trigger) {
+      if (place) {
         // La mesa va justo debajo del mando y mira hacia donde apunta.
         t.pos.set(v.hand.x, Math.max(v.hand.y - 0.03, 0), v.hand.z)
         if (Math.hypot(v.fwd.x, v.fwd.z) > 0.2) t.yaw = Math.atan2(-v.fwd.x, -v.fwd.z)
-        t.carry = null
         continue
       }
       const stick = pad.axes[2] ?? 0
       if (Math.abs(stick) > 0.3) t.yaw += -stick * AR_TURN_SPEED * delta
-
-      if (squeeze && !wasSqueeze) {
-        // Con la mano sobre la mesa (un poco más allá de su borde), se la lleva.
-        const local = v.hand.clone().sub(t.pos).applyAxisAngle(new Vector3(0, 1, 0), -t.yaw)
-        const near =
-          Math.abs(local.x) < half[0] + AR_TABLE_MARGIN + 0.08 &&
-          Math.abs(local.z) < half[1] + AR_TABLE_MARGIN + 0.08 &&
-          Math.abs(local.y) < 0.15
-        if (near) t.carry = { hand, offset: t.pos.clone().sub(v.hand) }
-      }
-      if (!squeeze && t.carry?.hand === hand) t.carry = null
-      if (t.carry?.hand === hand) t.pos.copy(v.hand).add(t.carry.offset)
     }
     if (toggle) t.scale = t.scale === AR_SCALE ? 1 : AR_SCALE
 
@@ -636,7 +618,13 @@ function VRRig({ ar }: { ar: boolean }) {
 
   useEffect(() => {
     const group = origin.current
-    if (!session || !group || ar) return
+    if (!session || !group) return
+    if (ar) {
+      // En AR el mundo es la habitación real: el origen vuelve a cero, por si venía de una sesión de VR.
+      group.position.set(0, 0, 0)
+      group.rotation.set(0, 0, 0)
+      return
+    }
     stopCameraFlight()
     const pose = useHouse.getState().cameraPose
     group.position.set(pose?.position[0] ?? 0, SLAB, pose?.position[2] ?? 0)
@@ -655,8 +643,8 @@ function VRRig({ ar }: { ar: boolean }) {
     const camera = gl.xr.getCamera()
     const hint = ar
       ? exitHint('Pulsa B o Y para salir', [
-          'Gatillo: poner la maqueta donde apuntas',
-          'Agarre cerca: llevarla · Stick: girarla',
+          'Gatillo o botón lateral: poner la maqueta',
+          'Stick: girarla',
           'A o X: maqueta o tamaño real',
         ])
       : exitHint('Pulsa B o Y para salir', ['Stick: caminar y girar'])

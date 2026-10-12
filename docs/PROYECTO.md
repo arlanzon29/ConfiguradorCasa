@@ -382,9 +382,10 @@ AR"**, para las Quest 3 (`immersive-ar`, con el paso de cámara). La casa sale
 como una **maqueta a 1:20 sobre una mesa translúcida**, centrada en su mesa y
 sin el césped de la parcela, a 0,8 m delante de ti y a 0,75 m del suelo. Se
 maneja como la bandeja de la prueba `D:\IA\Macedonia\games\sala-ar`
-(ahí lo tenía resuelto el usuario): **gatillo mantenido**, la mesa sigue al mando
-(justo debajo) y gira hacia donde apunta; **agarre con la mano sobre ella**, la
-lleva sin girarla; **stick** izquierda o derecha, la gira poco a poco; **A o X**,
+(ahí lo tenía resuelto el usuario): **gatillo o botón lateral (agarre)
+mantenidos**, la mesa sigue al mando (justo debajo) y gira hacia donde apunta,
+aunque esté lejos (el usuario esperaba que el botón lateral la colocara);
+**stick** izquierda o derecha, la gira poco a poco; **A o X**,
 cambia entre maqueta y tamaño real (1:1); **B o Y** sale. Sin sombras ni fondo.
 Solo con mandos: las manos (pellizco) no están.
 
@@ -699,6 +700,14 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-12** · **AR: maqueta lejos y botón lateral** (el usuario probó la
+  AR en las Quest: la maqueta "sale lejísimos" y el botón lateral debía
+  colocarla). Causa de lo primero: el origen de la sesión conservaba la
+  posición de una sesión de VR o de la cámara de la vista normal; ahora se
+  pone a cero al entrar en AR. Y el botón lateral coloca la mesa igual que el
+  gatillo, aunque esté lejos (antes solo la cogía con la mano encima). Sin
+  probar en gafas; en el emulador la mesa nace delante de la cabeza.
 
 - **2026-10-12** · **Realidad aumentada** (la segunda visualización; el usuario
   quería situar la mesa y su ángulo con un agarrador, y remitió a su prueba
