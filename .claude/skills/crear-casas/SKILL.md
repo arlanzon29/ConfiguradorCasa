@@ -103,6 +103,14 @@ el disco; el puente eres tú:
 
 - **Guardar**: `JSON.stringify(await window.eurocasa.bajarCasa())` en la
   página y escribe ese texto en `comercial/<nombre>.json` con Write.
+- **Guardar con fotos** (`{ fotos: true }`): el texto pesa ~0,5 MB por foto,
+  demasiado para escribirlo tú. Levanta un receptor de un solo uso en
+  segundo plano (un `http.createServer` de Node en el scratchpad, con CORS,
+  que escriba el cuerpo del POST en el archivo y se cierre) y haz desde la
+  página `fetch('http://127.0.0.1:<puerto>/', { method: 'POST', body: texto })`.
+  Comprueba después el archivo (JSON válido y número de fotos).
+- **Por defecto, guarda con fotos** si la casa las tiene (decisión del
+  usuario, 2026-10-12), salvo que pida lo contrario.
 - **Abrir**: lee el archivo con Read y pásalo a la página:
   `window.eurocasa.subirCasa(<texto del archivo como cadena JSON>)`.
 - **Listar**: mira qué hay en `comercial/` con Glob. Nombra los archivos con

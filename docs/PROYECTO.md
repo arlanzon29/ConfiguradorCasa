@@ -639,6 +639,16 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Casa de Daniel Rodriguez Martinez guardada en
+  `comercial/`**, con sus 5 fotos dentro (2,7 MB). Se dio cuenta de que la
+  primera versión iba sin fotos (`bajarCasa` las deja fuera por defecto) y el
+  usuario pidió guardarla con ellas; **por defecto se guarda con fotos**.
+  Con tanto texto no sirve escribirlo a mano: un receptor local de un solo
+  uso recibe un POST de la página y escribe el archivo (descrito en la skill
+  `crear-casas`). Comprobado: JSON válido, versión 2, 3 estancias y 5 fotos.
+  Abrir la casa desde el archivo (sin fotos) funcionó en el servidor aparte
+  (5184). Sin probar: abrirla con fotos.
+
 - **2026-10-12** · **Casas guardadas en `comercial/`** (lo pidió el usuario:
   una carpeta en su disco con las casas de los comerciales, fuera de GitHub,
   y que Claude pueda subir y bajar casas). `bajarCasa` (devuelve el texto del
