@@ -705,6 +705,19 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Correcciones de la casa de la web publicada** (el
+  usuario: "aplica todas las correcciones"): hilera de la cocina sin solapes
+  (lavavajillas `x` 4,59, armario 5,12, lavadora 5,65, frigorífico 6,25; la
+  hilera entera cabía justo, con 5 mm de aire entre las piezas); armario
+  elevado 2 cm (`altura` 0,02) para que su tapa llegue a los 0,82 de los
+  electrodomésticos normales; tapa de pino a 4,28 con 0,82 de alto; encimera
+  de 1,68 m a 0,82 m (de la tapa al frigorífico); tele sobre la mesa de
+  centro (`altura` 0,4) y de cara a la estancia; mesa de centro y tele 30
+  cm al oeste; desayunador pegado a la tapa (`x` 3,97) y taburetes a 3,45.
+  Hecho con las funciones, en el navegador de la app (web publicada, versión
+  `3ffd96a`). Los muebles movidos se han quitado y vuelto a poner: cambian
+  de `id`.
+
 - **2026-10-12** · **Desayunador y dos taburetes en la casa de la web
   publicada** (el usuario: "ahora estoy en la casa de GitHub, me revisas
   las posiciones y tamaños y me pones el armario desayunador con dos
