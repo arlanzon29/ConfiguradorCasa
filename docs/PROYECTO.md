@@ -704,6 +704,16 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Vitrocerámica de 4 fuegos** en la familia Cocina (lo
+  pidió el usuario: 50 × 50). Forma nueva `hob` (placa negra con cuatro
+  aros; en el plano, cuatro círculos) y campo opcional **`lift`** en
+  `FurnitureType`: altura sobre el suelo a la que va colocada. La vitro lleva
+  `lift` 0,9 m y 5 cm de grueso (medidas inventadas), código provisional
+  `MOB-VITROCERAMICA`. **Sin encimera debajo queda flotando** a 0,9 m: la
+  encimera (tema 10 de pendientes) no existe todavía. Probado en el servidor
+  aparte (5185): colocada contra la pared norte, a 0,9 m, en 3D y en el
+  plano. Sin probar: foto en calidad y el límite al arrastrar con `lift`.
+
 - **2026-10-12** · **Granito gris perla** como material y **frigoríficos
   corregidos**. El usuario confirmó las alturas: normal 210 cm, pequeño
   180 cm (estaban al revés). Y pasó una textura, `gris_perla.jpg`, para ver

@@ -5,7 +5,7 @@ import { PLOT } from './house'
 // Con giro 0, la parte trasera del mueble (cabecero, respaldo, fondo del
 // armario) mira al norte del plano.
 
-export type FurnitureShape = 'table' | 'bed' | 'wardrobe' | 'sofa' | 'chair' | 'tv' | 'appliance'
+export type FurnitureShape = 'table' | 'bed' | 'wardrobe' | 'sofa' | 'chair' | 'tv' | 'appliance' | 'hob'
 
 // Familias del catálogo, en el orden en que se muestran. Para añadir una
 // (cocina, baño…) basta con declararla aquí y asignarla a sus piezas.
@@ -28,6 +28,8 @@ export interface FurnitureType {
   width: number
   depth: number
   height: number
+  /** Altura sobre el suelo a la que va colocada (una placa de cocina, sobre la encimera). */
+  lift?: number
 }
 
 export const FURNITURE: FurnitureType[] = [
@@ -43,6 +45,7 @@ export const FURNITURE: FurnitureType[] = [
   { id: 'armario', code: 'MOB-ARMARIO', family: 'dormitorio', name: 'Armario', shape: 'wardrobe', width: 1.8, depth: 0.6, height: 2.2 },
   { id: 'armario-medio', code: 'MOB-ARMARIO-MEDIO', family: 'dormitorio', name: 'Armario medio', shape: 'wardrobe', width: 0.9, depth: 0.6, height: 2.2 },
   { id: 'lavavajillas', code: 'MOB-LAVAVAJILLAS', family: 'cocina', name: 'Lavavajillas', shape: 'appliance', width: 0.6, depth: 0.6, height: 0.82 },
+  { id: 'vitroceramica', code: 'MOB-VITROCERAMICA', family: 'cocina', name: 'Vitrocerámica 4 fuegos', shape: 'hob', width: 0.5, depth: 0.5, height: 0.05, lift: 0.9 },
   { id: 'frigorifico', code: 'MOB-FRIGORIFICO', family: 'cocina', name: 'Frigorífico', shape: 'appliance', width: 0.6, depth: 0.6, height: 2.1 },
   { id: 'frigorifico-pequeno', code: 'MOB-FRIGORIFICO-PEQUENO', family: 'cocina', name: 'Frigorífico pequeño', shape: 'appliance', width: 0.6, depth: 0.6, height: 1.8 },
   { id: 'lavavajillas-pequeno', code: 'MOB-LAVAVAJILLAS-PEQUENO', family: 'cocina', name: 'Lavavajillas pequeño', shape: 'appliance', width: 0.6, depth: 0.45, height: 0.8 },

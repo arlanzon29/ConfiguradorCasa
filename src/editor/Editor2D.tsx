@@ -140,7 +140,13 @@ function FurnitureSymbol({ item }: { item: FurnitureItem }) {
       {(shape === 'sofa' || shape === 'chair') && (
         <rect className="furniture-detail" x={-w / 2} y={-d / 2} width={w} height={d * 0.25} />
       )}
-      {shape === 'wardrobe' && <line className="furniture-line" x1={0} y1={-d / 2} x2={0} y2={d / 2} />}
+      {shape === 'hob' &&
+        [-1, 1].flatMap((sx) =>
+          [-1, 1].map((sy) => (
+            <circle key={`${sx}${sy}`} className="furniture-line" cx={sx * w * 0.22} cy={sy * d * 0.22} r={w * 0.14} fill="none" />
+          )),
+        )}
+      {shape === 'wardrobe' &&<line className="furniture-line" x1={0} y1={-d / 2} x2={0} y2={d / 2} />}
       {/* El rótulo se mantiene derecho aunque la pieza esté girada. */}
       {w >= 0.8 && (
         <text className="furniture-label" transform={`rotate(${-item.rotation})`}>

@@ -67,6 +67,21 @@ function boxes({ shape, width: w, depth: d, height: h }: FurnitureType): Box[] {
         { position: [0, h - 0.1, d / 2 + 0.01], size: [w * 0.6, 0.025, 0.02], color: '#8a8d92' },
       ]
     }
+    case 'hob': {
+      // Placa de vidrio negro con cuatro fuegos (aros) en las esquinas.
+      const ring = (sx: number, sz: number): Box => ({
+        position: [sx * w * 0.22, h + 0.001, sz * d * 0.22],
+        size: [w * 0.3, 0.002, d * 0.3],
+        color: '#3a3a3f',
+      })
+      return [
+        { position: [0, h / 2, 0], size: [w, h, d], color: '#141416' },
+        ring(-1, -1),
+        ring(1, -1),
+        ring(-1, 1),
+        ring(1, 1),
+      ]
+    }
     case 'tv': {
       // Pantalla fina sobre un pie corto; la pantalla mira hacia delante (+z).
       const base = 0.04
@@ -100,7 +115,7 @@ export default function Furniture3D({ item, floorY, selected }: Props) {
   if (!type) return null
   return (
     // En el plano el giro es horario con y hacia abajo; en 3D eso es un giro negativo sobre y.
-    <group position={[item.x, floorY, item.y]} rotation-y={(-item.rotation * Math.PI) / 180}>
+    <group position={[item.x, floorY + (type.lift ?? 0), item.y]} rotation-y={(-item.rotation * Math.PI) / 180}>
       {boxes(type).map((box, i) => (
         <mesh key={i} position={box.position} castShadow receiveShadow>
           <boxGeometry args={box.size} />
