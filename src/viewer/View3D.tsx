@@ -1,10 +1,12 @@
 import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber'
+import { XR, XROrigin, createXRStore, useXR, useXRControllerLocomotion } from '@react-three/xr'
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import {
   BoxGeometry,
   CanvasTexture,
   Color,
   Float32BufferAttribute,
+  Group,
   PerspectiveCamera,
   RepeatWrapping,
   SRGBColorSpace,
@@ -417,6 +419,68 @@ function FirstPersonControls() {
   })
 
   return null
+}
+
+// Realidad virtual (WebXR): se entra desde el botón "Entrar en VR" y vale para las
+// Quest. Es solo para ver: sin ratones ni paneles, y con los mandos se camina
+// (stick izquierdo) y se gira a saltos (stick derecho). En localhost la propia
+// librería emula unas Quest 3 cuando el navegador no tiene VR.
+const xrStore = createXRStore({
+  // Solo se mira: sin rayos ni agarres, que no hay nada que tocar.
+  controller: { rayPointer: false, grabPointer: false },
+  hand: { rayPointer: false, grabPointer: false, touchPointer: false },
+  gaze: false,
+  transientPointer: false,
+})
+// Metros por segundo al andar con el stick en VR, y grados de cada giro a saltos.
+const VR_WALK_SPEED = 2
+const VR_TURN_DEGREES = 30
+
+/**
+ * El jugador en VR: su origen (los pies) se pone donde estaba la cámara normal y
+ * mirando hacia donde miraba; al salir, la cámara y el marcador del plano quedan
+ * donde lo dejó. La altura de los ojos la da el propio visor.
+ */
+function VRRig() {
+  const origin = useRef<Group>(null)
+  const gl = useThree((s) => s.gl)
+  const session = useXR((s) => s.session)
+  const last = useRef<{ x: number; z: number; yaw: number } | null>(null)
+  useXRControllerLocomotion(origin, { speed: VR_WALK_SPEED }, { type: 'snap', degrees: VR_TURN_DEGREES })
+
+  useEffect(() => {
+    const group = origin.current
+    if (!session || !group) return
+    stopCameraFlight()
+    const pose = useHouse.getState().cameraPose
+    group.position.set(pose?.position[0] ?? 0, SLAB, pose?.position[2] ?? 0)
+    group.rotation.set(0, pose?.yaw ?? 0, 0)
+    last.current = null
+    return () => {
+      const at = last.current
+      if (!at) return
+      useHouse.getState().setCameraPose({ position: [at.x, EYE_HEIGHT, at.z], yaw: at.yaw, pitch: 0 })
+    }
+  }, [session])
+
+  // Dónde está la cabeza en cada fotograma, para dejar la cámara ahí al salir.
+  const head = useRef({ position: new Vector3(), direction: new Vector3() })
+  useFrame(() => {
+    if (!session) return
+    const camera = gl.xr.getCamera()
+    camera.getWorldPosition(head.current.position)
+    camera.getWorldDirection(head.current.direction)
+    const { position, direction } = head.current
+    last.current = { x: position.x, z: position.z, yaw: Math.atan2(-direction.x, -direction.z) }
+  })
+
+  return <XROrigin ref={origin} />
+}
+
+/** La cámara de ratón y teclado, que en VR se apaga: la mueve el visor. */
+function DesktopControls() {
+  const inXR = useXR((s) => s.session != null)
+  return inXR ? null : <FirstPersonControls />
 }
 
 /**
@@ -1067,6 +1131,19 @@ export default function View3D() {
         ) : (
           <>
             <button onClick={startPhoto}>Foto en calidad</button>
+            <button
+              title="Ver la casa con unas gafas de realidad virtual (Quest)"
+              onClick={() => {
+                xrStore.enterVR().then(
+                  (session) => {
+                    if (!session) setSaved('Este navegador no permite VR: ábrelo en el de las Quest.')
+                  },
+                  () => setSaved('No se ha podido entrar en VR.'),
+                )
+              }}
+            >
+              Entrar en VR
+            </button>
             {hereIndex >= 0 && (
               <>
                 <button
@@ -1266,7 +1343,10 @@ export default function View3D() {
         ))}
       </group>
 
-      <FirstPersonControls />
+      <XR store={xrStore}>
+        <VRRig />
+        <DesktopControls />
+      </XR>
       {photo && (
         <PhotoTracer
           // Al repetir se empieza de cero aunque ya hubiera una foto terminada a la vista.

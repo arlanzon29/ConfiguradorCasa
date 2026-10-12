@@ -40,7 +40,7 @@ npm run build    # tsc --noEmit && vite build
 
 React 19 + TypeScript 7 + Vite 6. Estado con **zustand** 5 (`persist` en `localStorage`).
 3D con **three.js** 0.186 vía `@react-three/fiber` v9, y foto en calidad con
-`three-gpu-pathtracer` 0.0.27. El plano 2D es **SVG** puro, con el `viewBox` en metros.
+`three-gpu-pathtracer` 0.0.27. VR con `@react-three/xr` 6 (WebXR). El plano 2D es **SVG** puro, con el `viewBox` en metros.
 
 ## Conceptos del dominio (lo más importante)
 
@@ -365,6 +365,17 @@ No hay colisiones: se atraviesan paredes. Arriba a la izquierda de la vista:
   guarda en `localStorage` y se sincroniza entre ventanas. Las estancias son
   pequeñas y con el normal solo se ve una esquina.
 
+**Realidad virtual** (2026-10-12, `VRRig` en `View3D.tsx`): botón **"Entrar en
+VR"** junto a "Foto en calidad". WebXR con `@react-three/xr` 6; pensado para las
+**Meta Quest 3** del usuario, en el navegador de las gafas y con la web
+publicada (HTTPS). Entras donde estaba la cámara y mirando hacia donde miraba,
+con la altura de ojos que da el visor. Con los mandos: stick izquierdo
+camina (2 m/s) y stick derecho gira a saltos de 30°. Es **solo para ver**: sin
+paneles ni punteros. Al salir, la cámara y el marcador del plano quedan donde
+dejaste la cabeza. En VR se apaga la cámara de ratón y teclado
+(`DesktopControls`). La foto en calidad no existe en VR. En localhost, si el
+navegador no tiene WebXR, la librería emula unas Quest 3 (solo desarrollo).
+
 **Arriba del panel izquierdo**: Nuevo plano (crea un módulo vacío de 13 × 4,2 en (0, 0) y abre
 el modo Módulos), Guardar plano y Cargar plano (archivo `.json`).
 
@@ -613,6 +624,16 @@ que la textura "Madera de pino" cubre 2 × 2 m (supuesto, sin confirmar).
   la filtrada. Una foto repetida sale con las muestras elegidas en ese momento,
   no con las que tuvo.
 - El cono de la cámara en el plano 2D no cambia con el objetivo elegido.
+- VR: **no probado en unas gafas reales**; solo en el emulador de Quest 3 de
+  la librería, en el servidor aparte (5185): se entra, el origen se coloca donde
+  estaba la cámara con su giro, y al salir la cámara queda en la cabeza (mover
+  la cabeza 1 m en el emulador la movió 1 m en el plano). Sin probar: los
+  sticks (caminar y girar), los mandos y las manos, el rendimiento y la
+  comodidad (sin viñeta al andar, puede marear), ni que la web publicada ofrezca
+  la sesión en las Quest. No hay colisiones: se atraviesan las paredes. El
+  empaquetado incluye el emulador (unos 6 MB en trozos que solo se descargan en
+  localhost) porque la librería lo trae dentro. Sale en la consola de
+  desarrollo el aviso "Multiple instances of Three.js", que es del emulador.
 - Panel Propiedades: probado en el servidor aparte con eventos simulados (la
   pestaña estaba oculta), no con ratón y teclado reales, y sin captura de cómo
   queda a la vista. Mover una estancia escribiendo la medida reencaja los huecos
@@ -666,6 +687,15 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-12** · **Realidad virtual** (primera de las dos visualizaciones
+  nuevas que quiere el usuario, VR y AR; empezó por VR y la plataforma es la
+  Meta Quest 3). Botón "Entrar en VR" en la vista 3D; `@react-three/xr`
+  6.6.31 (compatible con three 0.186, fiber 9 y Node 20); `VRRig`,
+  `DesktopControls` y `xrStore` en `View3D.tsx`. Caminar con el stick,
+  giro a saltos, entrada y salida en la pose de la cámara. Solo ver. **Sin
+  probar en gafas**: ver limitaciones. Falta la **AR** (paso de cámara de las
+  Quest 3, `immersive-ar`), hablada y sin empezar.
 
 - **2026-10-12** · **Casa de ejemplo y botón "Cargar ejemplo"** (lo pidió el
   usuario: la casa de Daniel como ejemplo ya hecho que cualquiera pueda
