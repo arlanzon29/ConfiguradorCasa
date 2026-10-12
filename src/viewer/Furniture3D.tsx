@@ -58,6 +58,15 @@ function boxes({ shape, width: w, depth: d, height: h }: FurnitureType): Box[] {
         { position: [w / 2 - arm / 2, 0.3, back / 2], size: [arm, 0.6, d - back], color: FABRIC },
       ]
     }
+    case 'appliance': {
+      // Electrodoméstico de encastre: cuerpo blanco con el frente (+z) algo más oscuro y un tirador.
+      const front = 0.02
+      return [
+        { position: [0, h / 2, -front / 2], size: [w, h, d - front], color: WHITE },
+        { position: [0, h / 2, d / 2 - front / 2], size: [w - 0.02, h - 0.02, front], color: '#c9ccd0' },
+        { position: [0, h - 0.1, d / 2 + 0.01], size: [w * 0.6, 0.025, 0.02], color: '#8a8d92' },
+      ]
+    }
     case 'tv': {
       // Pantalla fina sobre un pie corto; la pantalla mira hacia delante (+z).
       const base = 0.04

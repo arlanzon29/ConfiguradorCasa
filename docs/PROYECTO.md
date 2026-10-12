@@ -704,6 +704,15 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Lavavajillas** y familia **Cocina** en el catálogo de
+  mobiliario (lo pidió el usuario con sus medidas): `lavavajillas` 60 × 60 ×
+  82 cm y `lavavajillas-pequeno` 60 × 45 × 80 cm (ancho × fondo × alto), de
+  forma nueva `appliance` (cuerpo blanco, frente gris y tirador). Códigos
+  provisionales `MOB-LAVAVAJILLAS` y `MOB-LAVAVAJILLAS-PEQUENO`. La familia
+  Cocina sale sola como pestaña del catálogo. Probado en el servidor aparte
+  (5185): los dos se colocan contra la pared norte con `ponerMueble`; sin
+  verlos a la vista en 3D.
+
 - **2026-10-12** · **Televisión** en el catálogo de mobiliario (lo pidió el
   usuario: "hace falta poder poner una tele"). Forma nueva `tv` en
   `furniture.ts` y `boxes()` de `Furniture3D.tsx`: pantalla fina sobre un pie
