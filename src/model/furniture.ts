@@ -43,6 +43,8 @@ export const FURNITURE: FurnitureType[] = [
   { id: 'armario', code: 'MOB-ARMARIO', family: 'dormitorio', name: 'Armario', shape: 'wardrobe', width: 1.8, depth: 0.6, height: 2.2 },
   { id: 'armario-medio', code: 'MOB-ARMARIO-MEDIO', family: 'dormitorio', name: 'Armario medio', shape: 'wardrobe', width: 0.9, depth: 0.6, height: 2.2 },
   { id: 'lavavajillas', code: 'MOB-LAVAVAJILLAS', family: 'cocina', name: 'Lavavajillas', shape: 'appliance', width: 0.6, depth: 0.6, height: 0.82 },
+  { id: 'frigorifico', code: 'MOB-FRIGORIFICO', family: 'cocina', name: 'Frigorífico', shape: 'appliance', width: 0.6, depth: 0.6, height: 1.8 },
+  { id: 'frigorifico-pequeno', code: 'MOB-FRIGORIFICO-PEQUENO', family: 'cocina', name: 'Frigorífico pequeño', shape: 'appliance', width: 0.6, depth: 0.6, height: 2.1 },
   { id: 'lavavajillas-pequeno', code: 'MOB-LAVAVAJILLAS-PEQUENO', family: 'cocina', name: 'Lavavajillas pequeño', shape: 'appliance', width: 0.6, depth: 0.45, height: 0.8 },
 ]
 

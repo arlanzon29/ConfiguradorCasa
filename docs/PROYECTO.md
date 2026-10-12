@@ -704,6 +704,14 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Frigoríficos** en la familia Cocina (lo pidió el
+  usuario con sus medidas): `frigorifico` 60 × 60 × 180 cm y
+  `frigorifico-pequeno` 60 × 60 × **210** cm, tal como los dijo (el
+  "pequeño" resulta más alto que el normal: **por confirmar con el
+  usuario**). Forma `appliance`, códigos provisionales `MOB-FRIGORIFICO` y
+  `MOB-FRIGORIFICO-PEQUENO`. Probado con `ponerMueble` en el servidor
+  aparte (5185); sin verlos en 3D.
+
 - **2026-10-12** · **Lavavajillas** y familia **Cocina** en el catálogo de
   mobiliario (lo pidió el usuario con sus medidas): `lavavajillas` 60 × 60 ×
   82 cm y `lavavajillas-pequeno` 60 × 45 × 80 cm (ancho × fondo × alto), de
