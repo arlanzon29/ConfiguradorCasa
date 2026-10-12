@@ -624,6 +624,15 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Paredes por funciones** (el usuario pidió pintar de
+  arena las paredes del salón de la casa de prueba): `pintarParedes`
+  (estancia, acabado y, si se quiere, `lado`) en `window.eurocasa`, con su
+  parte en la skill `crear-casas`; `casa()` da las `paredes` de cada
+  estancia. Probado en el servidor aparte (5183): las cuatro del salón en
+  arena, vistas en 3D, y los rechazos de un color y de un lado que no existen.
+  Antes, el suelo del baño en gris perla, con `ponerSuelo` y un color por su
+  nombre. Sin probar: `lado`, y una pared con material.
+
 - **2026-10-12** · **Suelos por funciones** (el usuario pidió madera de pino
   en el salón y la habitación de la casa de prueba): `ponerSuelo` (estancia,
   acabado por nombre, id o color, y `girado`) y `catalogoAcabados` en

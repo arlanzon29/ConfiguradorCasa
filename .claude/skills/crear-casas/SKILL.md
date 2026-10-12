@@ -59,6 +59,7 @@ su id; los huecos, por su id.
 | `quitarMueble` | `{ mueble }` | Por su id (los da `casa().muebles`) |
 | `catalogoAcabados()` | — | `materiales` (con textura; hoy solo `pino`, "Madera de pino") y `colores` de la paleta (Blanco roto, Blanco, Gris perla, Arena, Salvia, Azul grisáceo, Terracota, Antracita). Si preguntan qué opciones hay, léelas de aquí y cuéntalas |
 | `ponerSuelo` | `{ estancia, acabado, girado? }` | `acabado`: nombre o id de un material o color del catálogo, un color `#rrggbb`, o `sin acabado`. `girado`: la veta girada 90°. El suelo es por estancia; `casa()` da el `suelo` de cada una |
+| `pintarParedes` | `{ estancia, acabado, lado? }` | Las caras **interiores** de las paredes de esa estancia, con un color o un material (igual que en `ponerSuelo`, salvo `sin acabado`). Con `lado`, solo esa pared; sin él, las cuatro, y se pierden los colores propios que tuviera alguna. Una pared compartida tiene dos caras: pintar el salón no cambia la cara que da a la habitación. `casa()` da las `paredes` de cada estancia |
 
 Los muebles **no chocan** entre sí ni con las puertas: comprueba tú, con las
 medidas del catálogo y las posiciones de `casa()`, que no se pisan ni tapan
@@ -82,9 +83,8 @@ e.ponerHueco({ tipo: 'ventana', estancia: 'Habitación', lado: 'norte' })
 **Lo que todavía no tiene función** (se hace por la interfaz, o se prepara la
 función antes): mover o cambiar de medida una estancia (hoy: eliminarla y
 crearla otra vez, y se pierden sus huecos y muebles), canto de las bisagras, segundo módulo, mover o girar un mueble ya puesto
-(hoy: quitarlo y ponerlo otra vez), luces, acabados de paredes, techo y
-carpintería, fotos. El suelo solo se ve en la vista 3D y en la foto, no en el
-plano.
+(hoy: quitarlo y ponerlo otra vez), luces, acabados de techo y carpintería, rodapié, fotos. Suelos y paredes solo
+se ven en la vista 3D y en la foto, no en el plano.
 
 ## Cómo trabajar con el comercial
 

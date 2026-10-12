@@ -4,7 +4,7 @@
 // devuelven lo creado o el motivo por el que no se ha podido.
 
 import { PlacedModule, Shell, Side, fits, roundSize, validSize } from './model/house'
-import { BASE_FLOOR, MATERIALS, WALL_COLORS, floorOf } from './model/finishes'
+import { BASE_FLOOR, MATERIALS, WALL_COLORS, floorOf, interiorFinish } from './model/finishes'
 import { FURNITURE, FurnitureItem, Rotation } from './model/furniture'
 import { furnitureName, roomName, shellName } from './model/names'
 import { OPPOSITE, Opening, swingDoor, validOpeningSize, wallLine } from './model/openings'
@@ -40,6 +40,7 @@ function describeRoom(m: PlacedModule, shell?: Shell) {
     ancho: m.width,
     fondo: m.depth,
     suelo: floorOf(m) ?? 'sin acabado',
+    paredes: describeWalls(m).paredes,
   }
 }
 
@@ -403,9 +404,34 @@ function ponerSuelo(p: { estancia: string; acabado: string; girado?: boolean }) 
   return { estancia: roomName(state().modules, room.id), suelo: none ? 'sin acabado' : finish }
 }
 
+/**
+ * Pinta por dentro las paredes de una estancia con un color o un material (por
+ * nombre o id, o `#rrggbb`). Con `lado`, solo la de ese lado; sin él, todas, y
+ * se pierden los colores propios que tuviera alguna.
+ */
+function pintarParedes(p: { estancia: string; acabado: string; lado?: string }) {
+  const room = findRoom(p.estancia)
+  if (!room) return { error: `No hay ninguna estancia "${p.estancia}".` } as Fallo
+  const side = p.lado === undefined ? undefined : LADOS[p.lado]
+  if (p.lado !== undefined && !side) return { error: 'Lado desconocido.' } as Fallo
+  const finish = findFinish(p.acabado)
+  if (!finish) return { error: `No hay ningún acabado "${p.acabado}".` } as Fallo
+  state().setWallColor(room.id, finish, side)
+  return describeWalls(state().modules.find((m) => m.id === room.id)!)
+}
+
+/** El acabado de las cuatro caras interiores de una estancia. */
+function describeWalls(m: PlacedModule) {
+  const paredes = Object.fromEntries(
+    Object.entries(LADOS).map(([name, side]) => [name, interiorFinish(m, side)]),
+  )
+  return { estancia: roomName(state().modules, m.id), paredes }
+}
+
 const eurocasa = {
   catalogoAcabados,
   ponerSuelo,
+  pintarParedes,
   catalogoMuebles,
   ponerMueble,
   quitarMueble,
