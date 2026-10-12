@@ -97,8 +97,11 @@ EuroCasa. Cuando el usuario dé una regla suya, sustituye a la de aquí.
   estancia común (salón o distribuidor).
 - Al baño no se entra por un dormitorio ni a un dormitorio por el baño, salvo
   que lo pidan (suite).
-- Las puertas de dormitorios y baños **abren hacia dentro** de su estancia
-  (`abreHacia`); la de entrada, hacia dentro de la casa.
+- Las puertas de dormitorios y baños **abren hacia el salón** (o la estancia
+  común a la que dan): así lo quiso el usuario el 2026-10-12, en contra de lo
+  que puse yo (hacia dentro de su estancia). La de entrada, hacia dentro de la
+  casa. Una puerta recién puesta abre hacia la estancia nombrada en
+  `estancia`; con `abreHacia` se dice otra cosa.
 - Ventana de baño: pequeña y alta (0,6 × 0,6 m a 1,5 m del suelo).
 - Medidas orientativas, exteriores: dormitorio doble desde 10 m² con lado
   menor de 2,6 m; individual desde 6 m²; baño de 3 a 6 m² con lado menor de
