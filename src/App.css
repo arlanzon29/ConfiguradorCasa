@@ -817,6 +817,13 @@ button:disabled {
   pointer-events: none;
 }
 
+.app-version {
+  margin: -4px 0 8px;
+  font-size: 11px;
+  color: #7a8590;
+  user-select: all;
+}
+
 .mechanism-mark {
   stroke: #e11d48;
   stroke-width: 0.1;

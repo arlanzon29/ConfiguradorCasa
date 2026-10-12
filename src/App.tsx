@@ -130,6 +130,7 @@ export default function App() {
               ‹
             </button>
           </div>
+          <p className="app-version">{__APP_VERSION__}</p>
           <PlanFileButtons />
           <HouseTree />
         </aside>

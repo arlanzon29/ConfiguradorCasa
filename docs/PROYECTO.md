@@ -701,6 +701,14 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Versión visible** (el usuario no sabía si la AR no
+  funcionaba por la versión que cargaban las Quest). `__APP_VERSION__`
+  (`vite.config.ts`, declarada en `src/version.d.ts`): "v0.1.0 · commit ·
+  fecha UTC", con el commit de `GITHUB_SHA` en la publicación o de `git` en
+  local. Sale bajo el título del panel izquierdo (`.app-version`) y como última
+  línea del cartel de la VR y la AR. Para comprobar una compilación: el commit
+  de la versión debe ser el último de `main` en GitHub.
+
 - **2026-10-12** · **AR: maqueta lejos y botón lateral** (el usuario probó la
   AR en las Quest: la maqueta "sale lejísimos" y el botón lateral debía
   colocarla). Causa de lo primero: el origen de la sesión conservaba la

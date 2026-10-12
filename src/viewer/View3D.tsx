@@ -646,8 +646,9 @@ function VRRig({ ar }: { ar: boolean }) {
           'Gatillo o botón lateral: poner la maqueta',
           'Stick: girarla',
           'A o X: maqueta o tamaño real',
+          __APP_VERSION__,
         ])
-      : exitHint('Pulsa B o Y para salir', ['Stick: caminar y girar'])
+      : exitHint('Pulsa B o Y para salir', ['Stick: caminar y girar', __APP_VERSION__])
     camera.add(hint)
     const timer = setTimeout(() => camera.remove(hint), VR_HINT_MS)
     return () => {
