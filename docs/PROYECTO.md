@@ -704,6 +704,18 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Frigorífico con dos puertas y lavadoras** (lo pidió el
+  usuario: la puerta lateral con dos partes, frío y congelador, y una
+  lavadora con los tamaños del lavavajillas). Forma nueva `fridge`: dos
+  puertas, arriba el frío y abajo el congelador (un 32 % del alto), con
+  bisagras a la izquierda y tiradores verticales a la derecha (**supuesto**:
+  no dijo de qué lado; "puerta lateral" lo entendí así). Forma `washer` y dos
+  tipos, `lavadora` 60 × 60 × 82 y `lavadora-pequena` 60 × 45 × 80, códigos
+  provisionales `MOB-LAVADORA` y `MOB-LAVADORA-PEQUENA`. Probado en el
+  servidor aparte (5185) en 3D. Sin probar la foto en calidad. Aviso: los
+  frigoríficos ya estaban en la pestaña **Cocina** del catálogo, que no es
+  la que sale abierta (la primera es Salón).
+
 - **2026-10-12** · **Vitrocerámica más fina** (el usuario: "no tan alta, que
   sea fina y negra"): grueso de 5 a 2 cm y aros más oscuros. Lo interpreté
   como el grueso de la pieza; la altura de colocación (`lift`, 0,9 m) no se

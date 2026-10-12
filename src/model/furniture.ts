@@ -5,7 +5,7 @@ import { PLOT } from './house'
 // Con giro 0, la parte trasera del mueble (cabecero, respaldo, fondo del
 // armario) mira al norte del plano.
 
-export type FurnitureShape = 'table' | 'bed' | 'wardrobe' | 'sofa' | 'chair' | 'tv' | 'appliance' | 'hob'
+export type FurnitureShape = 'table' | 'bed' | 'wardrobe' | 'sofa' | 'chair' | 'tv' | 'appliance' | 'hob' | 'fridge' | 'washer'
 
 // Familias del catálogo, en el orden en que se muestran. Para añadir una
 // (cocina, baño…) basta con declararla aquí y asignarla a sus piezas.
@@ -46,9 +46,11 @@ export const FURNITURE: FurnitureType[] = [
   { id: 'armario-medio', code: 'MOB-ARMARIO-MEDIO', family: 'dormitorio', name: 'Armario medio', shape: 'wardrobe', width: 0.9, depth: 0.6, height: 2.2 },
   { id: 'lavavajillas', code: 'MOB-LAVAVAJILLAS', family: 'cocina', name: 'Lavavajillas', shape: 'appliance', width: 0.6, depth: 0.6, height: 0.82 },
   { id: 'vitroceramica', code: 'MOB-VITROCERAMICA', family: 'cocina', name: 'Vitrocerámica 4 fuegos', shape: 'hob', width: 0.5, depth: 0.5, height: 0.02, lift: 0.9 },
-  { id: 'frigorifico', code: 'MOB-FRIGORIFICO', family: 'cocina', name: 'Frigorífico', shape: 'appliance', width: 0.6, depth: 0.6, height: 2.1 },
-  { id: 'frigorifico-pequeno', code: 'MOB-FRIGORIFICO-PEQUENO', family: 'cocina', name: 'Frigorífico pequeño', shape: 'appliance', width: 0.6, depth: 0.6, height: 1.8 },
+  { id: 'frigorifico', code: 'MOB-FRIGORIFICO', family: 'cocina', name: 'Frigorífico', shape: 'fridge', width: 0.6, depth: 0.6, height: 2.1 },
+  { id: 'frigorifico-pequeno', code: 'MOB-FRIGORIFICO-PEQUENO', family: 'cocina', name: 'Frigorífico pequeño', shape: 'fridge', width: 0.6, depth: 0.6, height: 1.8 },
   { id: 'lavavajillas-pequeno', code: 'MOB-LAVAVAJILLAS-PEQUENO', family: 'cocina', name: 'Lavavajillas pequeño', shape: 'appliance', width: 0.6, depth: 0.45, height: 0.8 },
+  { id: 'lavadora', code: 'MOB-LAVADORA', family: 'cocina', name: 'Lavadora', shape: 'washer', width: 0.6, depth: 0.6, height: 0.82 },
+  { id: 'lavadora-pequena', code: 'MOB-LAVADORA-PEQUENA', family: 'cocina', name: 'Lavadora pequeña', shape: 'washer', width: 0.6, depth: 0.45, height: 0.8 },
 ]
 
 export const furnitureType = (id: string) => FURNITURE.find((f) => f.id === id)
