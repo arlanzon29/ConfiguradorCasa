@@ -5,7 +5,7 @@ import { PLOT } from './house'
 // Con giro 0, la parte trasera del mueble (cabecero, respaldo, fondo del
 // armario) mira al norte del plano.
 
-export type FurnitureShape = 'table' | 'bed' | 'wardrobe' | 'sofa' | 'chair' | 'tv' | 'appliance' | 'hob' | 'fridge' | 'washer' | 'oven' | 'sink' | 'cabinet-table'
+export type FurnitureShape = 'table' | 'bed' | 'wardrobe' | 'sofa' | 'chair' | 'tv' | 'appliance' | 'hob' | 'fridge' | 'washer' | 'oven' | 'sink' | 'cabinet-table' | 'stool'
 
 // Familias del catálogo, en el orden en que se muestran. Para añadir una
 // (cocina, baño…) basta con declararla aquí y asignarla a sus piezas.
@@ -55,6 +55,7 @@ export const FURNITURE: FurnitureType[] = [
   { id: 'horno', code: 'MOB-HORNO', family: 'cocina', name: 'Horno', shape: 'oven', width: 0.6, depth: 0.6, height: 0.82 },
   // Sin profundidad: se apoya sobre la encimera, con su base a 0,9 m (ajustable con la altura).
   { id: 'fregadero', code: 'MOB-FREGADERO', family: 'cocina', name: 'Fregadero', shape: 'sink', width: 0.4, depth: 0.45, height: 0.35, lift: 0.9 },
+  { id: 'taburete', code: 'MOB-TABURETE', family: 'cocina', name: 'Taburete', shape: 'stool', width: 0.35, depth: 0.35, height: 0.65 },
   { id: 'mesa-armarios', code: 'MOB-MESA-ARMARIOS', family: 'cocina', name: 'Mesa con armarios', shape: 'cabinet-table', width: 1.2, depth: 0.6, height: 0.8 },
 ]
 

@@ -12,6 +12,8 @@ interface Box {
   color: string
   /** Disco en vez de caja: `size` es [diámetro, diámetro, grueso] y el eje va a lo largo de z. */
   round?: boolean
+  /** Disco horizontal (eje en y): `size` es [diámetro, grueso, diámetro]. */
+  flat?: boolean
 }
 
 /** Cajas que componen un mueble; su parte trasera queda hacia -z. */
@@ -146,7 +148,27 @@ function boxes({ shape, width: w, depth: d, height: h }: FurnitureType): Box[] {
         { position: [0, kick + (h - top - kick) / 2, -inset], size: [w - 2 * inset, h - top - kick, d - 2 * inset - 0.02], color: WHITE },
         { position: [inner / 2 - panelW / 2, faceY, faceZ], size: [panelW, faceH, 0.02], color: '#dbd8d0' },
         { position: [doorX, faceY, faceZ], size: [doorW, faceH, 0.02], color: '#e6e3dc' },
-        { position: [doorX, h - top - 0.08, faceZ + 0.02], size: [0.2, 0.025, 0.025], color: '#8a8d92' },
+        // Tirador vertical, junto al canto de la puerta que da al paño fijo.
+        { position: [doorX + doorW / 2 - 0.05, h - top - 0.22, faceZ + 0.02], size: [0.025, 0.3, 0.025], color: '#8a8d92' },
+      ]
+    }
+    case 'stool': {
+      // Taburete sin respaldo: asiento redondo, cuatro patas y un aro-travesaño a media altura.
+      const seat = 0.04
+      const leg = 0.03
+      const off = w / 2 - 0.07
+      const legs = [-1, 1].flatMap((sx) =>
+        [-1, 1].map((sz): Box => ({
+          position: [sx * off, (h - seat) / 2, sz * off],
+          size: [leg, h - seat, leg],
+          color: WOOD,
+        })),
+      )
+      return [
+        { position: [0, h - seat / 2, 0], size: [w, seat, w], color: '#d9d2c3', flat: true },
+        ...legs,
+        { position: [0, 0.25, 0], size: [2 * off, 0.02, 0.02], color: WOOD },
+        { position: [0, 0.25, 0], size: [0.02, 0.02, 2 * off], color: WOOD },
       ]
     }
     case 'oven': {
@@ -218,7 +240,9 @@ export default function Furniture3D({ item, floorY, selected }: Props) {
     <group position={[item.x, floorY + liftOf(item), item.y]} rotation-y={(-item.rotation * Math.PI) / 180}>
       {boxes(type).map((box, i) => (
         <mesh key={i} position={box.position} rotation-x={box.round ? Math.PI / 2 : 0} castShadow receiveShadow>
-          {box.round ? (
+          {box.flat ? (
+            <cylinderGeometry args={[box.size[0] / 2, box.size[0] / 2, box.size[1], 32]} />
+          ) : box.round ? (
             <cylinderGeometry args={[box.size[0] / 2, box.size[0] / 2, box.size[2], 32]} />
           ) : (
             <boxGeometry args={box.size} />

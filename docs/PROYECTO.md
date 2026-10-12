@@ -705,6 +705,15 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Tirador vertical y taburetes** (el usuario: "el tirador en
+  vertical" y "hace falta crear unos taburetes"): el tirador de la mesa con
+  armarios pasa a una barra vertical junto al canto de la puerta; nuevo mueble
+  `taburete` (forma `stool`: asiento redondo, cuatro patas y travesaños), 0,35
+  × 0,35 × 0,65 m, familia Cocina, código provisional `MOB-TABURETE`; `Box`
+  de `Furniture3D.tsx` admite `flat` (disco horizontal). Probado en el
+  entorno de pruebas (5185) con dos junto al desayunador, y quitados después.
+  Medidas inventadas.
+
 - **2026-10-12** · **Desayunador: puerta hacia la cocina y de menos de media
   mesa** (el usuario: "la puerta mira hacia la cocina, pero solo puede ser de
   menos de mitad de armario para que se pueda abrir"): la forma
