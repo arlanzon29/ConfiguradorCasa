@@ -705,6 +705,13 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Desayunador en L** (el usuario: "se pone formando una
+  L"): en la cocina de prueba (5185) la mesa con armarios va perpendicular a
+  la hilera, en el extremo del armario, saliendo de la pared norte hacia el
+  sur, con las puertas hacia el lado de trabajo (este; lo supuse). Anotado en
+  `crear-cocinas`. Visto en 3D. Su tablero (0,8) queda 2 cm por debajo de la
+  encimera (0,82).
+
 - **2026-10-12** · **El "armario desayunador" es la mesa con armarios**
   (el usuario preguntó si estaba creado y contestó "esa mesa con
   armarios"): no hay pieza nueva; anotado en `crear-cocinas`. Sin voladizo ni

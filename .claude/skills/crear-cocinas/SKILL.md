@@ -110,6 +110,17 @@ provisionales, puestas por Claude hasta que él las confirme.
   la pared. Un "tablón que tapa el armario" sale como un **bloque macizo** que
   esconde las puertas; el usuario lo descartó.
 
+**Desayunador en L** (usuario: "se pone formando una L")
+- El armario desayunador (`mesa-armarios`) **va perpendicular a la hilera, en
+  el extremo del armario, formando una L**: pegado al lado del armario y
+  saliendo de la pared hacia el interior de la estancia, con su lado largo (1,2)
+  en el eje norte-sur. La prueba: `x` el borde izquierdo del armario menos 0,3,
+  `y` la del armario más 0,3, `espalda: 'oeste'`. Con eso las **puertas miran
+  al lado de trabajo** (este) y el lado de sentarse queda hacia fuera.
+  Interpretación mía del lado de las puertas; sin confirmar.
+- Su tablero queda a 0,80 y la encimera a 0,82: 2 cm de escalón. No se ha
+  tocado.
+
 **Ventana**
 - **Sobre la encimera** (provisional): `altura` 1,1 m y `alto` 1,0 m.
 
@@ -172,7 +183,8 @@ catálogo: si cambian, léelos de `catalogoMuebles()` en vez de escribirlos.
   tablón y no se resolvió; falta decidir si hace falta otra pieza (un frente
   fino delante) o si basta con las tapas laterales.
 - La ventana, algo a la izquierda del centro del conjunto fregadero + vitro.
-- Cocina en L, isla con la mesa de armarios y horno en la hilera.
+- Voladizo y barra a más altura del desayunador, taburetes, y la unión con la
+  encimera (escalón de 2 cm), el horno en la hilera.
 - Guardar la cocina de prueba como casa en `comercial/`.
 - Los códigos de artículo y el criterio de diseño de EuroCasa, que sustituyan a
   los provisionales.
