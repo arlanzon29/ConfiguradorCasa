@@ -705,6 +705,19 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Desayunador y dos taburetes en la casa de la web
+  publicada** (el usuario: "ahora estoy en la casa de GitHub, me revisas
+  las posiciones y tamaños y me pones el armario desayunador con dos
+  taburetes"). En la casa del Salón de 6,6 × 4,2 m de la web publicada
+  (versión `3ffd96a`): la mesa con armarios en L al oeste de la hilera
+  (`x` 4,04, `y` 0,75, `espalda: 'oeste'`) y dos taburetes en su cara oeste
+  (`x` 3,52, `y` 0,95 y 1,3). Hecho con las funciones, sin tocar el resto.
+  Revisión de lo que había: lavavajillas, armario y lavadora se pisan 2,5
+  cm; el armario ahora mide 0,8 y los otros 0,82; la encimera está a 0,81 m
+  (1 cm metida en los electrodomésticos); la tele mira a la pared norte y
+  está en el suelo, dentro de la mesa de centro. **Sin corregir**: pendiente
+  de que el usuario diga.
+
 - **2026-10-12** · **Tirador vertical y taburetes** (el usuario: "el tirador en
   vertical" y "hace falta crear unos taburetes"): el tirador de la mesa con
   armarios pasa a una barra vertical junto al canto de la puerta; nuevo mueble
