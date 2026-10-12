@@ -704,6 +704,12 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **WASD más lento** (el usuario: iba muy rápido):
+  `MOVE_SPEED` de 10 a 4 m/s (volando) y `WALK_SPEED` de 4 a 1,5 m/s (a pie)
+  en `View3D.tsx`. La rueda (1,5 m por paso) y el giro con el ratón no se
+  han tocado. Valores míos, sin probar con el teclado: si siguen rápidos o
+  lentos, se ajustan ahí.
+
 - **2026-10-12** · **Asas separadas en los frigoríficos** (lo pidió el
   usuario): el asa del frío cruzaba la junta y entraba en la puerta del
   congelador. Ahora cada puerta lleva la suya, entera dentro de su puerta y

@@ -256,8 +256,8 @@ function skirtingParts(modules: PlacedModule[], joints: Joints, openings: Openin
 }
 
 // Velocidad de desplazamiento con WASD, en m/s: volando y a pie.
-const MOVE_SPEED = 10
-const WALK_SPEED = 4
+const MOVE_SPEED = 4
+const WALK_SPEED = 1.5
 // Altura de los ojos a pie: 1,6 m sobre la losa.
 const EYE_HEIGHT = SLAB + 1.6
 const MIN_CAMERA_HEIGHT = 0.5
