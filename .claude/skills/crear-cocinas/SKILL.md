@@ -130,7 +130,8 @@ la puerta (sur) y la ventana (norte); sin más. Pasos hechos, en orden:
    altura.
 3. (usuario) **Encimera**: un tablero contra la pared norte, de gris perla
    (`acabado: 'gris-perla'`), de 1,35 m de ancho (del borde izquierdo del
-   armario al derecho de la lavadora; llega justo al frigorífico), **0,02 de
+   armario al derecho de la lavadora; llega justo al frigorífico; luego se
+   alargó 1 cm a cada lado para cubrir la tapa: ver el paso 5), **0,02 de
    alto** (el usuario: "la encimera es menos gruesa"; salió de 0,04), 0,6 de
    fondo y `altura` 0,80 (cara de arriba a 0,82). Fue `ponerTablero` con
    `posicion` 2,58 y `ancho` 1,35.
@@ -147,10 +148,13 @@ la puerta (sur) y la ventana (norte); sin más. Pasos hechos, en orden:
    descartó por el camino: pegarlos entre sí, y centrar el conjunto a lo ancho.
 
 5. (usuario) **Tapa lateral de madera en el extremo izquierdo**: un tablón de
-   `pino`, **de canto** (saliendo de la pared), 0,02 de grueso, **0,82 de alto**
-   (hasta la cara de arriba de la encimera), 0,6 de fondo, justo a la izquierda
-   del armario: `ponerTablero` con `ancho: 0.02`, `alto: 0.82`, `fondo: 0.6`,
-   `altura: 0`, `posicion` el borde izquierdo del armario menos 0,01.
+   `pino`, **de canto** (saliendo de la pared), 0,02 de grueso, **0,80 de alto**
+   (hasta donde empieza la encimera), 0,6 de fondo, justo a la izquierda del
+   armario: `ponerTablero` con `ancho: 0.02`, `alto: 0.8`, `fondo: 0.6`, `altura: 0`,
+   `posicion` el borde izquierdo del armario menos 0,01. **La encimera va encima
+   de la tapa** (usuario: "que quede encima del tablón"): se alarga 2 cm hacia
+   la izquierda para cubrirla, 1,36 de ancho en vez de 1,35, de la tapa al
+   frigorífico.
    El usuario primero pidió "tapar el armario con un tablón": salió un bloque
    macizo (0,45 × 0,8 × 0,61) que **escondía las puertas** y lo descartó ("la tapa
    al otro lado, la 1, y quita el bloque"). **Un tablero no puede ser una tapa

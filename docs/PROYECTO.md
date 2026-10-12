@@ -705,6 +705,12 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **La encimera, encima de la tapa** (el usuario: "la
+  encimera que quede encima del tablón"): la tapa lateral baja a 0,80 m y la
+  encimera, de 1,36 m, empieza en ella y llega justo al frigorífico, así que
+  la cubre. Entorno de pruebas (5185); anotado en `crear-cocinas`. Visto en
+  3D.
+
 - **2026-10-12** · **Tapa lateral en vez del bloque** (el usuario: "la tapa al
   otro lado", y tras preguntarle, "la 1, y quita el bloque macizo"): en la
   cocina de prueba (5185) se quita el bloque de pino que tapaba el armario y
