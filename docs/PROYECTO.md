@@ -639,6 +639,15 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Casa de prueba montada en la web publicada** (lo pidió
+  el usuario), con el navegador integrado de la app de escritorio: 28
+  llamadas a `window.eurocasa` en 15 ms y sin ningún error (módulo de
+  12 × 4 m, tres estancias, ocho huecos, nueve muebles, suelos y paredes), y
+  la cámara llevada a una esquina del salón, con captura del plano y de la
+  vista 3D. De paso quedaron probados los ajustes dentro de `ponerHueco`
+  (`ancho`, `alto`, `altura`, `abreHacia`). Sin probar ahí: la foto en
+  calidad y la extensión de Chrome.
+
 - **2026-10-12** · **La web ya está publicada.** El usuario activó Pages y un
   commit vacío lanzó la publicación, que esta vez terminó bien. Comprobado en
   la dirección pública: carga la aplicación, con el plano vacío, y
