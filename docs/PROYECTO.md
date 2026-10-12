@@ -705,6 +705,13 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Paso 2 de la cocina de prueba** (el usuario: "vamos a
+  poner un lavavajillas pequeño, una lavadora pequeña y un armario
+  pequeño"). En el entorno de pruebas (5185): armario de 45 cm junto al
+  frigorífico, lavadora pequeña y lavavajillas pequeño a su izquierda, contra
+  la pared norte. Anotado en el skill `crear-cocinas`. Los frentes de los
+  pequeños (0,45 de fondo) quedan 15 cm por detrás del armario. Visto en 3D.
+
 - **2026-10-12** · **Cerrar la puerta por funciones** (el usuario: "cierra la
   puerta que no veo", en la casa de la cocina): `cerrada` en `ponerHueco` y
   `cambiarHueco` (pone `closed`, lo del botón "Cerrar la puerta en 3D");

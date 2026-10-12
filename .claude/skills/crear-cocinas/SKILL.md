@@ -110,6 +110,12 @@ Entorno de pruebas (puerto 5185), casa nueva: `Salón` de 4 × 3 m con **solo**
 la puerta (sur) y la ventana (norte); sin más. Pasos hechos, en orden:
 
 1. Frigorífico pequeño (1,80 m) en la esquina noreste.
+2. (usuario) Lavavajillas pequeño, lavadora pequeña y armario pequeño: de
+   izquierda a derecha, en ese orden, hasta el frigorífico. Son `lavavajillas-pequeno`
+   (0,6 × 0,45), `lavadora-pequena` (0,6 × 0,45) y `armario-cocina` (0,45 × 0,6),
+   encadenados contra la pared norte. **Ojo**: los dos electrodomésticos pequeños
+   tienen 0,45 de fondo y el armario 0,6, así que los frentes no quedan al mismo
+   plano (hay un escalón de 15 cm en el armario). Sin encimera todavía.
 
 ## Pendiente
 
