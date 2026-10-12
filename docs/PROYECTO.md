@@ -353,6 +353,18 @@ Teclas: `R` gira lo seleccionado, `Supr` lo borra, `Esc` cancela la herramienta.
 
 ## Decisiones de diseño que hay que respetar
 
+- **Tres maneras de usar la aplicación** (lo dijo el usuario el 2026-10-12):
+  un usuario final, un comercial, y un comercial **desde Claude**. Para la
+  tercera, **Claude maneja el navegador**: abre la web y llama a las funciones
+  de `src/api.ts` (`window.eurocasa`) dentro de la página, guiado por la skill
+  `crear-casas`. **No hay servidor** ni se cuenta con él: quedan fuera, por
+  ahora, un conector (MCP), que exigiría llevar la casa a un servidor, y un
+  chat de Claude dentro de la web. También está descartado montar la casa
+  cargando un `.json` de golpe. Cada elemento nuevo lleva su función y su
+  parte de la skill en el mismo cambio. Consecuencias: Claude solo recibe
+  texto de la página (una foto se enseña en el visor, no en la conversación),
+  y cada comercial tiene su casa en su navegador.
+
 - **Esto no es un programa de modelado 3D** (lo dijo el usuario el 2026-10-11,
   al empezar con los tableros). Se añaden primitivas poco a poco y con las
   opciones justas; antes de dar más libertad a una pieza, hablarlo con él.
@@ -623,6 +635,13 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-12** · **Decidido por el usuario: sin servidor, Claude maneja el
+  navegador.** Anotado en "Decisiones de diseño". Pendiente de comprobar: que
+  funcione igual con la extensión de Chrome sobre la web publicada (todo lo
+  de hoy se hizo con el navegador integrado de la app de escritorio y el
+  servidor local), y preparar una versión de la skill para comerciales, sin
+  las notas de desarrollo (`localhost`, servidor de pruebas).
 
 - **2026-10-12** · **Ver una foto guardada por funciones** (el usuario pidió
   la foto asociada a la vista del salón): `verFoto` (por número o por
