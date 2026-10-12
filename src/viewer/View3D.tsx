@@ -7,7 +7,10 @@ import {
   Color,
   Float32BufferAttribute,
   Group,
+  Mesh,
+  MeshBasicMaterial,
   PerspectiveCamera,
+  PlaneGeometry,
   RepeatWrapping,
   SRGBColorSpace,
   TextureLoader,
@@ -435,6 +438,31 @@ const xrStore = createXRStore({
 // Metros por segundo al andar con el stick en VR, y grados de cada giro a saltos.
 const VR_WALK_SPEED = 2
 const VR_TURN_DEGREES = 30
+// Cuánto dura el aviso de cómo salir, en milisegundos.
+const VR_HINT_MS = 10000
+
+/** Un cartel pequeño, delante de los ojos y siempre encima, que dice cómo salir de la VR. */
+function exitHint() {
+  const canvas = document.createElement('canvas')
+  canvas.width = 512
+  canvas.height = 128
+  const ctx = canvas.getContext('2d')!
+  ctx.fillStyle = 'rgba(20, 24, 28, 0.82)'
+  ctx.fillRect(0, 0, 512, 128)
+  ctx.fillStyle = '#ffffff'
+  ctx.font = 'bold 40px sans-serif'
+  ctx.textAlign = 'center'
+  ctx.fillText('Pulsa B o Y para salir', 256, 56)
+  ctx.font = '28px sans-serif'
+  ctx.fillText('Stick: caminar y girar', 256, 100)
+  const mesh = new Mesh(
+    new PlaneGeometry(0.4, 0.1),
+    new MeshBasicMaterial({ map: new CanvasTexture(canvas), transparent: true, depthTest: false }),
+  )
+  mesh.position.set(0, -0.2, -0.8)
+  mesh.renderOrder = 999
+  return mesh
+}
 
 /**
  * El jugador en VR: su origen (los pies) se pone donde estaba la cámara normal y
@@ -463,10 +491,31 @@ function VRRig() {
     }
   }, [session])
 
+  // Un aviso pegado a la vista los primeros segundos: cómo salir.
+  useEffect(() => {
+    if (!session) return
+    const camera = gl.xr.getCamera()
+    const hint = exitHint()
+    camera.add(hint)
+    const timer = setTimeout(() => camera.remove(hint), VR_HINT_MS)
+    return () => {
+      clearTimeout(timer)
+      camera.remove(hint)
+      hint.geometry.dispose()
+      ;(hint.material as MeshBasicMaterial).map?.dispose()
+      hint.material.dispose()
+    }
+  }, [session, gl])
+
   // Dónde está la cabeza en cada fotograma, para dejar la cámara ahí al salir.
   const head = useRef({ position: new Vector3(), direction: new Vector3() })
+  const exitHeld = useRef(false)
   useFrame(() => {
     if (!session) return
+    // B / Y (el botón de arriba de cada mando) sale de la VR.
+    const pressed = Array.from(session.inputSources).some((s) => s.gamepad?.buttons[5]?.pressed)
+    if (pressed && !exitHeld.current) void session.end()
+    exitHeld.current = pressed
     const camera = gl.xr.getCamera()
     camera.getWorldPosition(head.current.position)
     camera.getWorldDirection(head.current.direction)

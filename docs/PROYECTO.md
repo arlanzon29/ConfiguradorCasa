@@ -370,8 +370,9 @@ VR"** junto a "Foto en calidad". WebXR con `@react-three/xr` 6; pensado para las
 **Meta Quest 3** del usuario, en el navegador de las gafas y con la web
 publicada (HTTPS). Entras donde estaba la cámara y mirando hacia donde miraba,
 con la altura de ojos que da el visor. Con los mandos: stick izquierdo
-camina (2 m/s) y stick derecho gira a saltos de 30°. Es **solo para ver**: sin
-paneles ni punteros. Al salir, la cámara y el marcador del plano quedan donde
+camina (2 m/s) y stick derecho gira a saltos de 30°. **B o Y (el botón de
+arriba de cada mando) sale de la VR**; los primeros 10 s hay un cartel delante
+de los ojos que lo dice. Es **solo para ver**: sin paneles ni punteros. Al salir, la cámara y el marcador del plano quedan donde
 dejaste la cabeza. En VR se apaga la cámara de ratón y teclado
 (`DesktopControls`). La foto en calidad no existe en VR. En localhost, si el
 navegador no tiene WebXR, la librería emula unas Quest 3 (solo desarrollo).
@@ -687,6 +688,12 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-12** · **Salir de la VR** (el usuario probó la VR en las Quest, "va
+  bien", pero no podía salir). B o Y sale de la sesión (`gamepad.buttons[5]` de
+  los mandos, en `VRRig`), y un cartel de 10 s dice cómo. Probado en el
+  emulador de Quest 3 (el botón B cierra la sesión); sin probar en gafas, ni
+  el aspecto del cartel. Las Quest también salen con el botón de Meta.
 
 - **2026-10-12** · **Realidad virtual** (primera de las dos visualizaciones
   nuevas que quiere el usuario, VR y AR; empezó por VR y la plataforma es la
