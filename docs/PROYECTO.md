@@ -647,7 +647,9 @@ Se anota aquí cada cosa que se hace, la más reciente arriba.
   uso recibe un POST de la página y escribe el archivo (descrito en la skill
   `crear-casas`). Comprobado: JSON válido, versión 2, 3 estancias y 5 fotos.
   Abrir la casa desde el archivo (sin fotos) funcionó en el servidor aparte
-  (5184). Sin probar: abrirla con fotos.
+  (5184). Abrirla con las 5 fotos también funcionó (el archivo se sirvió
+  con un servidor local de un solo uso y la página lo leyó con `fetch`; 2,7 MB
+  en una sola llamada a `subirCasa`).
 
 - **2026-10-12** · **Casas guardadas en `comercial/`** (lo pidió el usuario:
   una carpeta en su disco con las casas de los comerciales, fuera de GitHub,

@@ -111,6 +111,9 @@ el disco; el puente eres tú:
   Comprueba después el archivo (JSON válido y número de fotos).
 - **Por defecto, guarda con fotos** si la casa las tiene (decisión del
   usuario, 2026-10-12), salvo que pida lo contrario.
+- **Abrir con fotos**: tampoco lo pases por la conversación. Sirve el archivo
+  con un servidor de Node de un solo uso (GET, con CORS) y en la página:
+  `window.eurocasa.subirCasa(await (await fetch('http://127.0.0.1:<puerto>/')).text())`.
 - **Abrir**: lee el archivo con Read y pásalo a la página:
   `window.eurocasa.subirCasa(<texto del archivo como cadena JSON>)`.
 - **Listar**: mira qué hay en `comercial/` con Glob. Nombra los archivos con
