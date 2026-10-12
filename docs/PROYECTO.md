@@ -704,6 +704,10 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Anotado en `docs/PENDIENTES.md` (tema 18)**: dentro de
+  "Casa" en el árbol debe haber una carpeta "Módulos" con su "+" para añadir
+  un módulo nuevo. Solo anotado; sin tocar código.
+
 - **2026-10-12** · **AR: escalar con los dos mandos** (el usuario: lo de la
   maqueta lejos y la que no funcionaba era un problema de caché de las Quest,
   no del código; pidió poder ampliarla y reducirla con los dos mandos).

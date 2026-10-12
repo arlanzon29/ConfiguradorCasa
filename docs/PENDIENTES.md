@@ -22,6 +22,10 @@ está decidido ni empezado. Lo más reciente, arriba.
   pared (Puertas, Ventanas, Vinilos, Espejos, Tableros), cada una con su "+".
 - **Falta:** elegir vinilos, espejos y tableros pinchando en el plano, y probar
   todo con el ratón sobre un plano real.
+- **Pedido el 2026-10-12, sin hacer:** dentro de "Casa" en el árbol tiene que
+  haber una **carpeta "Módulos"** (como las de Paredes, Mobiliario y Luces en la
+  estancia), con su "+" para poder añadir un módulo nuevo desde el propio árbol.
+  Hoy los módulos cuelgan sueltos de "Casa" y añadirlos es de Propiedades.
 
 ### 17. Más geometría: primitivas (tableros)
 
