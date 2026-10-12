@@ -55,7 +55,7 @@ su id; los huecos, por su id.
 | `cambiarHueco` | `{ hueco, ancho?, alto?, altura?, abreHacia?, posicion? }` | `altura` es la del borde inferior sobre el suelo. `abreHacia`: nombre de la estancia hacia la que abre la puerta, o `fuera`. Al cambiar el ancho conserva el centro. `posicion` lo mueve a lo largo de su pared: metros hasta el **centro** del hueco desde el extremo oeste o norte del lado de **su** estancia (la `estancia` y el `lado` que da `casa().huecos`, que en una pared compartida puede ser la vecina; `desde` es ahí su borde inicial). Si no cabe entero ahí, falla y no se mueve |
 | `quitarHueco` | `{ hueco }` | Por su id |
 | `catalogoMuebles()` | — | Los muebles que hay, con `ancho`, `fondo` (de la espalda al frente) y `alto`. Hoy: `mesa-comedor`, `mesa-centro`, `silla`, `sofa`, `cama-doble` (1,6 × 2 m; la "cama de matrimonio"), `cama-individual`, `mesilla`, `armario` |
-| `ponerMueble` | `{ mueble, estancia, pared?, posicion? }` | `mueble`: id o nombre del catálogo. Con `pared` (`norte`, `sur`, `este`, `oeste`) va **de espaldas** a esa pared (cabecero, respaldo, fondo del armario), a ras de ella; `posicion` son los metros desde el extremo oeste o norte del lado hasta el **centro** del mueble (sin ella, centrado; si se sale, se arrima a la esquina). Sin `pared`, en el centro de la estancia. Falla si no cabe en esa postura |
+| `ponerMueble` | `{ mueble, estancia, pared?, posicion?, x?, y?, espalda? }` | `mueble`: id o nombre del catálogo. **Contra una pared**: con `pared` (`norte`, `sur`, `este`, `oeste`) va **de espaldas** a ella (cabecero, respaldo, fondo del armario), a ras; `posicion` son los metros desde el extremo oeste o norte del lado hasta el **centro** del mueble (sin ella, centrado; si se sale, se arrima a la esquina). **Suelto**: sin `pared`, su centro va a (`x`, `y`) desde la esquina de arriba a la izquierda de la estancia (sin ellos, al centro de ella), de espaldas a `espalda` (por defecto `norte`). Falla si no cabe o se mete en una pared |
 | `quitarMueble` | `{ mueble }` | Por su id (los da `casa().muebles`) |
 
 Los muebles **no chocan** entre sí ni con las puertas: comprueba tú, con las
@@ -116,6 +116,12 @@ EuroCasa. Cuando el usuario dé una regla suya, sustituye a la de aquí.
   1,6 m; salón con cocina desde 18 m².
 - La cama, con el cabecero contra una pared sin ventana ni puerta si la hay,
   y con paso a los dos lados si es doble (unos 0,6 m por lado).
+- Sillas alrededor de una mesa: el respaldo mira **hacia fuera** de la mesa
+  (la silla del lado norte lleva `espalda: 'norte'`), con su centro a unos
+  0,25 m del canto. En la mesa de comedor (1,6 × 0,9 m), cuatro sillas van
+  dos a cada lado largo, a ±0,4 m del centro.
+- Una puerta abatible barre un cuarto de círculo de su ancho hacia donde
+  abre: no pongas muebles ahí.
 - Antes de decir que un mueble cabe, mira las cuatro paredes: qué tramo queda
   libre de puertas, ventanas y otros muebles. Si casi cabe, piensa si correr
   una puerta lo arregla, y proponlo.

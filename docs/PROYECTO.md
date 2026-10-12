@@ -624,6 +624,17 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Muebles sueltos por funciones** (el usuario pidió
+  amueblar el salón de la casa de prueba: mesa de comedor en el centro con
+  cuatro sillas, sofá y mesilla). `ponerMueble` admite ahora `x`, `y` (el
+  centro del mueble, desde la esquina de su estancia) y `espalda` (hacia
+  dónde mira su parte trasera), para lo que no va contra una pared; en la
+  skill, cómo colocar sillas alrededor de una mesa. Probado en el servidor
+  aparte (5183), con captura del plano: la mesa en el centro, las cuatro
+  sillas con el respaldo hacia fuera, el sofá y la mesilla contra la pared
+  oeste, y el rechazo de una silla fuera de la estancia. Sin probar:
+  `espalda` este y oeste en un mueble suelto.
+
 - **2026-10-12** · **Mover y quitar huecos por funciones** (el usuario pidió
   la función para correr la puerta de la habitación y hacer sitio a un
   armario): `cambiarHueco` admite `posicion` (metros hasta el centro del

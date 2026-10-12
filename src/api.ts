@@ -300,21 +300,32 @@ const catalogoMuebles = () =>
  * Pone un mueble del catálogo en una estancia. Con `pared` va de espaldas a la
  * pared de ese lado, a ras, y `posicion` son los metros desde el extremo oeste
  * o norte del lado hasta el centro del mueble (sin ella, centrado). Sin
- * `pared`, en el centro de la estancia.
+ * `pared` va suelto: su centro en (`x`, `y`) desde la esquina de la estancia
+ * (sin ellos, en el centro de ella) y de espaldas a `espalda` (por defecto, al
+ * norte).
  */
-function ponerMueble(p: { mueble: string; estancia: string; pared?: string; posicion?: number }) {
+function ponerMueble(p: {
+  mueble: string
+  estancia: string
+  pared?: string
+  posicion?: number
+  x?: number
+  y?: number
+  espalda?: string
+}) {
   const key = p.mueble.trim().toLowerCase()
   const type = FURNITURE.find((t) => t.id === key || t.name.toLowerCase() === key)
   if (!type) return { error: `No hay ningún mueble "${p.mueble}" en el catálogo.` } as Fallo
   const room = findRoom(p.estancia)
   if (!room) return { error: `No hay ninguna estancia "${p.estancia}".` } as Fallo
   const side = p.pared === undefined ? undefined : LADOS[p.pared]
-  if (p.pared !== undefined && !side) return { error: 'Lado desconocido.' } as Fallo
+  const back = side ?? LADOS[p.espalda ?? 'norte']
+  if ((p.pared !== undefined && !side) || !back) return { error: 'Lado desconocido.' } as Fallo
 
   state().addFurniture(type.id, room.x + room.width / 2, room.y + room.depth / 2)
   const id = state().selectedFurnitureId!
   const find = () => state().furniture.find((f) => f.id === id)!
-  while (side && BACKS[find().rotation] !== side) state().rotateFurniture(id)
+  while (BACKS[find().rotation] !== back) state().rotateFurniture(id)
 
   // Las caras interiores de las paredes de la estancia, con el mueble ya girado.
   const box = furnitureBox(find(), state().modules, state().joints)!
@@ -332,6 +343,19 @@ function ponerMueble(p: { mueble: string; estancia: string; pared?: string; posi
     const along = Math.min(Math.max(wanted, low), high)
     const across = { n: box.north + half, s: box.south - half, w: box.west + half, e: box.east - half }[side]
     state().placeFurniture(id, horizontal ? along : across, horizontal ? across : along)
+  } else if (p.x !== undefined && p.y !== undefined) {
+    const [x, y] = [room.x + p.x, room.y + p.y]
+    // Un milímetro de holgura, por los decimales.
+    if (
+      x < box.west + box.halfX - 0.001 ||
+      x > box.east - box.halfX + 0.001 ||
+      y < box.north + box.halfY - 0.001 ||
+      y > box.south - box.halfY + 0.001
+    ) {
+      state().removeFurniture(id)
+      return { error: 'Ahí se sale de la estancia o se mete en una pared.' } as Fallo
+    }
+    state().placeFurniture(id, x, y)
   }
   return describeFurniture(find())
 }
