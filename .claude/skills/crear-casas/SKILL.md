@@ -60,7 +60,7 @@ su id; los huecos, por su id.
 | `catalogoAcabados()` | — | `materiales` (con textura; hoy solo `pino`, "Madera de pino") y `colores` de la paleta (Blanco roto, Blanco, Gris perla, Arena, Salvia, Azul grisáceo, Terracota, Antracita). Si preguntan qué opciones hay, léelas de aquí y cuéntalas |
 | `ponerSuelo` | `{ estancia, acabado, girado? }` | `acabado`: nombre o id de un material o color del catálogo, un color `#rrggbb`, o `sin acabado`. `girado`: la veta girada 90°. El suelo es por estancia; `casa()` da el `suelo` de cada una |
 | `pintarParedes` | `{ estancia, acabado, lado? }` | Las caras **interiores** de las paredes de esa estancia, con un color o un material (igual que en `ponerSuelo`, salvo `sin acabado`). Con `lado`, solo esa pared; sin él, las cuatro, y se pierden los colores propios que tuviera alguna. Una pared compartida tiene dos caras: pintar el salón no cambia la cara que da a la habitación. `casa()` da las `paredes` de cada estancia |
-| `llevarCamara` | `{ estancia, mirando? }` | Lleva la cámara de la vista 3D a esa estancia, de pie (ojos a 1,6 m), centrada en la pared contraria a `mirando` (`norte`, `sur`, `este`, `oeste`) y mirando hacia allí. Sin `mirando`, a lo largo del lado más largo. La cámara vuela, tarda algo más de un segundo: espera antes de capturar. Úsala para enseñar o comprobar a la vista lo que has cambiado en una estancia |
+| `llevarCamara` | `{ estancia, mirando?, desde? }` | Lleva la cámara de la vista 3D a esa estancia, de pie (ojos a 1,6 m). Con `desde` (`noroeste`, `noreste`, `suroeste`, `sureste`) se pone en esa **esquina** y mira en diagonal al centro: es la vista que mejor enseña una estancia. Con `mirando` (`norte`, `sur`, `este`, `oeste`), centrada en la pared contraria y mirando recto. Sin nada, recto a lo largo del lado más largo. La cámara vuela, tarda algo más de un segundo: espera antes de capturar. Úsala para enseñar o comprobar a la vista lo que has cambiado en una estancia |
 | `hacerFoto` | `{ muestras? }` | Empieza una **foto en calidad** de lo que ve la cámara (llévala antes con `llevarCamara`). `muestras`: 50, 100 o 200; sin decirlo, las que estén elegidas. Hace falta la vista 3D a la vista ("Vista 3D", "Plano + 3D" o la ventana `?vista=3d`). La primera foto tarda alrededor de un minuto en arrancar. **No la guarda**: al terminar, la página pregunta "¿Guardar la foto?" y lo decide quien la mira |
 
 Los muebles **no chocan** entre sí ni con las puertas: comprueba tú, con las
@@ -131,6 +131,13 @@ EuroCasa. Cuando el usuario dé una regla suya, sustituye a la de aquí.
   a lo largo y a ±0,3 m a lo ancho.
 - Una puerta abatible barre un cuarto de círculo de su ancho hacia donde
   abre: no pongas muebles ahí.
+- Para **enseñar una estancia** (o antes de una foto), la cámara va a una
+  esquina (`desde`), no centrada en una pared: en una estancia pequeña la
+  vista recta enseña sobre todo pared. Elige la esquina **más lejana del
+  mueble más alto** (un armario pegado a la cámara tapa media imagen) y, si
+  puede ser, la contraria a la puerta, para que se vea la entrada. Mira la
+  captura antes de darla por buena y, si no se entiende la estancia, prueba
+  otra esquina.
 - Antes de decir que un mueble cabe, mira las cuatro paredes: qué tramo queda
   libre de puertas, ventanas y otros muebles. Si casi cabe, piensa si correr
   una puerta lo arregla, y proponlo.

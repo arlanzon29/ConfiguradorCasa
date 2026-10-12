@@ -431,15 +431,36 @@ function describeWalls(m: PlacedModule) {
 // Altura de los ojos y distancia a la pared de detrás, en metros.
 const EYES = 1.6
 const BACK_OFF = 0.5
+const ESQUINAS: Record<string, { north: boolean; west: boolean }> = {
+  noroeste: { north: true, west: true },
+  noreste: { north: true, west: false },
+  suroeste: { north: false, west: true },
+  sureste: { north: false, west: false },
+}
 
 /**
  * Lleva la cámara de la vista 3D a una estancia, de pie y mirando hacia
  * `mirando` (norte, sur, este, oeste) desde la pared de enfrente, centrada.
- * Sin `mirando`, a lo largo del lado más largo, para abarcar más.
+ * Sin `mirando`, a lo largo del lado más largo, para abarcar más. Con `desde`
+ * (noroeste, noreste, suroeste, sureste) se pone en esa esquina y mira en
+ * diagonal al centro.
  */
-function llevarCamara(p: { estancia: string; mirando?: string }) {
+function llevarCamara(p: { estancia: string; mirando?: string; desde?: string }) {
   const room = findRoom(p.estancia)
   if (!room) return { error: `No hay ninguna estancia "${p.estancia}".` } as Fallo
+  if (p.desde !== undefined) {
+    // Desde una esquina, mirando en diagonal al centro de la estancia: la vista que más abarca.
+    const corner = ESQUINAS[p.desde]
+    if (!corner) return { error: 'Esquina desconocida: noroeste, noreste, suroeste o sureste.' } as Fallo
+    const x = corner.west ? room.x + BACK_OFF : room.x + room.width - BACK_OFF
+    const y = corner.north ? room.y + BACK_OFF : room.y + room.depth - BACK_OFF
+    state().flyCamera({
+      position: [x - PLOT.width / 2, EYES, y - PLOT.depth / 2],
+      yaw: Math.atan2(x - (room.x + room.width / 2), y - (room.y + room.depth / 2)),
+      pitch: 0,
+    })
+    return { estancia: roomName(state().modules, room.id), desde: p.desde }
+  }
   const side = p.mirando === undefined ? (room.width >= room.depth ? 'e' : 's') : LADOS[p.mirando]
   if (!side) return { error: 'Lado desconocido.' } as Fallo
   // De espaldas a la pared contraria a la que se mira.

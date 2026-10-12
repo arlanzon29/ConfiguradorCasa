@@ -624,6 +624,14 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Cámara desde una esquina**: `llevarCamara` admite
+  `desde` (noroeste, noreste, suroeste, sureste) y mira en diagonal al centro
+  de la estancia. El usuario no se hacía idea de la habitación con las vistas
+  rectas (no se veía el armario, o tapaba media imagen). En la skill
+  `crear-casas`, cómo elegir la esquina. Probado en el servidor aparte
+  (5183), con capturas: desde el noroeste y el noreste de la habitación, y el
+  rechazo de una esquina que no existe.
+
 - **2026-10-12** · **Foto en calidad por funciones** (el usuario pidió una
   foto de la habitación de la casa de prueba): `hacerFoto` (con `muestras`,
   si se quiere) en `window.eurocasa`, con su parte en la skill
