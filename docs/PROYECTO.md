@@ -669,8 +669,10 @@ Se anota aquí cada cosa que se hace, la más reciente arriba.
 
 - **2026-10-12** · **Casa de ejemplo y botón "Cargar ejemplo"** (lo pidió el
   usuario: la casa de Daniel como ejemplo ya hecho que cualquiera pueda
-  cargar). El archivo viaja con la web: `public/ejemplos/ejemplo1.json` (1,9 MB,
-  con sus 5 fotos; el usuario lo copió a mano y **va al repositorio público**).
+  cargar). El archivo viaja con la web: `public/ejemplos/ejemplo1.json` (8 KB,
+  **sin fotos**: el usuario pidió quitarlas; el primer commit las llevaba y
+  siguen en el historial de git; el usuario lo copió a mano y **va al
+  repositorio público**).
   No lleva datos personales dentro; el nombre de Daniel solo está en
   `comercial/`, que sigue fuera de git. Botón "Cargar ejemplo" bajo "Cargar
   plano" en `PlanFileButtons.tsx`: pide la ruta relativa `ejemplos/ejemplo1.json`
