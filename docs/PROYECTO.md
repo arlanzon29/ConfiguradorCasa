@@ -705,6 +705,23 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Tableros por funciones y cocina nueva en el entorno de
+  pruebas** (el usuario: "empezamos de nuevo otra casa para crear una
+  habitación y preparar la cocina", y "preparas las funciones"). En
+  `window.eurocasa`: `ponerTablero` (estancia, lado, ancho, alto, fondo,
+  posición del centro, altura del borde inferior y acabado) y
+  `quitarTablero`; `casa()` devuelve los `tableros`; en la skill
+  `crear-casas`. Con ellas se montó en el servidor aparte (5185) una casa
+  nueva, `Salón` de 4 × 3 m con puerta al sur y ventana al norte, y la cocina
+  contra la pared norte: lavavajillas, armario pequeño, lavadora y
+  frigorífico seguidos desde el este, la **encimera** (tablero de granito
+  gris perla de 0,04 a 0,82 m, 0,6 de fondo, sobre las tres primeras
+  piezas) y la vitro encima a 0,86 m. Visto en 3D. **Sin hacer**: el
+  tablero que tape los frentes (queda por confirmar con el usuario qué
+  quería; un tablero siempre cuelga de una pared, no puede quedar a 0,6 m
+  de ella paralelo a ella), el fregadero en esa casa y el archivo en
+  `comercial/`.
+
 - **2026-10-12** · **Deshacer y rehacer** (lo pidió el usuario tras mover una
   estancia por error y perder los huecos: "hazme el deshacer con Ctrl+Z").
   Nuevo `src/history.ts`: vigila las listas de la casa (`modules`,

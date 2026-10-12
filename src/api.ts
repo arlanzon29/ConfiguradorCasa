@@ -83,6 +83,7 @@ function casa() {
     huecos: state().openings.map(describeOpening),
     muebles: state().furniture.map(describeFurniture),
     mecanismos: describeMechanisms(),
+    tableros: describeBoards(),
     // Las fotos guardadas: desde dónde se sacó cada una, en coordenadas del plano.
     fotos: usePhotos.getState().photos.map((p, i) => {
       const x = roundSize(p.pose.position[0] + PLOT.width / 2)
@@ -449,6 +450,96 @@ function quitarMueble(p: { mueble: string }) {
   return casa()
 }
 
+/** Todos los tableros de la casa, tal como se cuentan. */
+function describeBoards() {
+  const { modules, joints } = state()
+  const walls = deriveWalls(modules, joints)
+  return modules.flatMap((room) =>
+    (Object.keys(LADOS) as string[]).flatMap((name) => {
+      const side = LADOS[name]
+      const { left } = wallFace(room, side, walls)
+      return (room.boards?.[side] ?? []).map((b) => {
+        const centre = b.x + b.width / 2
+        const posicion = side === 'n' || side === 'e' ? left + centre : sideLength(room, side) - left - centre
+        return {
+          id: b.id,
+          nombre: pieceName(room, 'board', side, b.id),
+          estancia: roomName(modules, room.id),
+          lado: name,
+          posicion: roundSize(posicion),
+          altura: roundSize(b.y),
+          ancho: roundSize(b.width),
+          alto: roundSize(b.height),
+          fondo: roundSize(b.depth),
+          acabado: b.finish,
+        }
+      })
+    }),
+  )
+}
+
+/**
+ * Pone un tablero en la cara interior de la pared de ese `lado`. `posicion`:
+ * metros desde el extremo oeste (norte y sur) o norte (este y oeste) del lado
+ * hasta su **centro**; sin ella, centrado. `altura`: del suelo a su borde
+ * **inferior**. `ancho` es a lo largo de la pared, `alto` en vertical y `fondo`
+ * lo que sale de ella; el grueso es la menor de las tres (una encimera: 1,65 de
+ * ancho, 0,04 de alto y 0,6 de fondo). `acabado`: nombre o id de un material o
+ * color, o `#rrggbb`.
+ */
+function ponerTablero(p: {
+  estancia: string
+  lado: string
+  ancho: number
+  alto: number
+  fondo: number
+  posicion?: number
+  altura?: number
+  acabado?: string
+}) {
+  const room = findRoom(p.estancia)
+  if (!room) return { error: `No hay ninguna estancia "${p.estancia}".` } as Fallo
+  const side = LADOS[p.lado]
+  if (!side) return { error: 'Lado desconocido.' } as Fallo
+  const finish = p.acabado === undefined ? undefined : findFinish(p.acabado)
+  if (p.acabado !== undefined && !finish) return { error: `No hay ningún acabado "${p.acabado}".` } as Fallo
+  const { modules, joints } = state()
+  const { left, length } = wallFace(room, side, deriveWalls(modules, joints))
+  const along = p.posicion ?? sideLength(room, side) / 2
+  const centre = side === 'n' || side === 'e' ? along - left : sideLength(room, side) - left - along
+  const x = roundSize(centre - p.ancho / 2)
+  if (x < -1e-6 || x + p.ancho > length + 1e-6) return { error: 'Se sale de la pared por un lado.' } as Fallo
+
+  const id = state().addBoard(room.id, side)
+  if (!id) return { error: 'No se ha podido poner el tablero.' } as Fallo
+  const problem = state().patchBoard(room.id, side, id, {
+    x: Math.max(0, x),
+    y: p.altura ?? 0,
+    width: p.ancho,
+    height: p.alto,
+    depth: p.fondo,
+    ...(finish && { finish }),
+  })
+  if (problem) {
+    state().removeBoard(room.id, side, id)
+    return { error: problem } as Fallo
+  }
+  return describeBoards().find((b) => b.id === id)!
+}
+
+/** Quita un tablero, por su id (los da `casa().tableros`). */
+function quitarTablero(p: { tablero: string }) {
+  for (const room of state().modules) {
+    for (const side of Object.values(LADOS)) {
+      if (room.boards?.[side]?.some((b) => b.id === p.tablero)) {
+        state().removeBoard(room.id, side, p.tablero)
+        return casa()
+      }
+    }
+  }
+  return { error: `No hay ningún tablero "${p.tablero}".` } as Fallo
+}
+
 /** Todos los interruptores y enchufes de la casa, tal como se cuentan. */
 function describeMechanisms() {
   const { modules, joints } = state()
@@ -739,6 +830,8 @@ const eurocasa = {
   ponerMueble,
   quitarMueble,
   cambiarMueble,
+  ponerTablero,
+  quitarTablero,
   deshacer,
   rehacer,
   catalogoMecanismos,
