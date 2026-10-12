@@ -705,6 +705,14 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Fregadero sobre el armario y vitro a su lado** (el
+  usuario: "el fregadero encima del armario pero separado de la pared", "y
+  la vitro al lado pero no pegado"): el fregadero vuelve a su sitio sobre el
+  armario, y la vitro queda a 10 cm a su derecha; los dos separados de la
+  pared (centrados en el fondo de la encimera). Anula el centrado a lo
+  ancho del paso anterior. Entorno de pruebas (5185); anotado en
+  `crear-cocinas`. Visto en 3D.
+
 - **2026-10-12** · **Fregadero y vitro centrados también en el fondo** (el
   usuario: "no centrado en el otro eje"): los dos a la `y` del centro de la
   encimera (0,45 m en la prueba), no pegados a la pared. Entorno de pruebas

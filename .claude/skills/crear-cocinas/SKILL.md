@@ -136,16 +136,15 @@ la puerta (sur) y la ventana (norte); sin más. Pasos hechos, en orden:
    `posicion` 2,58 y `ancho` 1,35.
 
 4. (usuario) **Fregadero y vitrocerámica sobre la encimera**, de espaldas a la
-   pared y a `altura` 0,82 (la cara de arriba de la encimera de 2 cm). Primero
-   se pusieron uno sobre el armario y otro sobre el lavavajillas, pegados; el
-   usuario pidió **separar la vitro un poco más y centrar los dos en la
-   encimera**. Queda: fregadero (0,4) y vitro (0,5) con **12 cm** entre ellos,
-   el conjunto (1,02 m) centrado en la encimera (1,35 m): 16,5 cm de sobra a
-   cada lado, y **también centrados en el fondo** (el usuario: "centrados en el
-   otro eje"): la `y` de los dos es la del centro de la encimera, la misma que la
-   de los muebles de debajo (0,45 en la prueba), con unos 7,5 cm de encimera
-   por delante y por detrás del fregadero. Se colocan sueltos con `x` e `y`
-   (`espalda: 'norte'`) calculando desde el centro de la encimera.
+   pared y a `altura` 0,82 (la cara de arriba de la encimera de 2 cm).
+   Resultado, tras varias idas y venidas del usuario:
+   - **Fregadero sobre el armario** (`x` del armario, 2,13 en la prueba).
+   - **Vitro a su lado derecho, sin pegarse**: 10 cm entre las dos piezas.
+   - **Los dos separados de la pared y centrados en el fondo de la
+     encimera**: `y` la del centro de la encimera (0,45 en la prueba), con
+     unos 5-7 cm de encimera por detrás y por delante.
+   Se colocan sueltos con `x` e `y` (`espalda: 'norte'`). Lo que el usuario
+   descartó por el camino: pegarlos entre sí, y centrar el conjunto a lo ancho.
 
 ## Pendiente
 
