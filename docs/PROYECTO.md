@@ -705,6 +705,16 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Skill `crear-cocinas`** (lo pidió el usuario: hacer la
+  cocina poco a poco y que el skill vaya mejorando). Nuevo
+  `.claude/skills/crear-cocinas/SKILL.md`, aparte de `crear-casas`: las
+  piezas de la familia Cocina con sus medidas, las reglas decididas
+  (marcadas "usuario" o provisionales), una receta para una hilera en la
+  pared norte y los límites de hoy. En el entorno de pruebas (5185) se
+  **limpió** la casa de la cocina: queda el salón de 4 × 3 m con solo la
+  puerta y la ventana, y se empezó por el frigorífico pequeño de 1,80 m en
+  la esquina noreste (paso 1, a petición del usuario).
+
 - **2026-10-12** · **Tableros por funciones y cocina nueva en el entorno de
   pruebas** (el usuario: "empezamos de nuevo otra casa para crear una
   habitación y preparar la cocina", y "preparas las funciones"). En
