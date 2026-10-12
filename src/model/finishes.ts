@@ -39,14 +39,18 @@ export const WALL_COLORS: { name: string; color: string }[] = [
   { name: 'Antracita', color: '#4a4f55' },
 ]
 
-/** Color de la pared del lado `side` de una estancia, vista desde dentro. */
-export const interiorColor = (room: PlacedModule | undefined, side: Side) =>
+/** Acabado (color o material) de la pared del lado `side` de una estancia, vista desde dentro. */
+export const interiorFinish = (room: PlacedModule | undefined, side: Side): Finish =>
   room?.sideColors?.[side] ?? room?.wallColor ?? DEFAULT_WALL_COLOR
+
+/** Color de esa misma cara: el liso, o el de muestra de su material. */
+export const interiorColor = (room: PlacedModule | undefined, side: Side) =>
+  resolveFinish(interiorFinish(room, side), DEFAULT_WALL_COLOR).color
 
 /**
  * Acabado de una superficie: un color liso (`#rrggbb`) o un material del
- * catálogo (su `id`). Es el mismo concepto para carpintería, suelos y paredes:
- * los suelos ya guardan el `id` de su material y las paredes, su color.
+ * catálogo (su `id`). Es el mismo concepto para carpintería, suelos y paredes
+ * (`PlacedModule.floor`, `wallColor` y `sideColors` guardan un acabado).
  */
 export type Finish = string
 
@@ -63,4 +67,9 @@ export function resolveFinish(finish: Finish | undefined, fallback: Finish): Omi
   return MATERIALS.find((m) => m.id === value) ?? { color: fallback }
 }
 
-export const floorFinish =(id?: string) => FLOORS.find((f) => f.id === id) ?? FLOORS[0]
+/** Suelo sin acabado: la losa vista. */
+export const BASE_FLOOR = FLOORS[0]
+
+/** Acabado del suelo de una estancia, o nada si no lo tiene ("base" es el de antes sin acabado). */
+export const floorOf = (room: PlacedModule): Finish | undefined =>
+  room.floor && room.floor !== BASE_FLOOR.id ? room.floor : undefined
