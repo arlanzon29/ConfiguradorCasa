@@ -705,6 +705,13 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Encimera de la cocina de prueba** (el usuario: "pon la
+  encimera que es un tablón de la pared, me lo pones de gris perla"): tablero
+  de granito gris perla, 1,35 × 0,04 × 0,6 m a 0,80 m, sobre el armario, el
+  lavavajillas y la lavadora, llegando al frigorífico. Con `ponerTablero`
+  en el entorno de pruebas (5185); anotado como paso 3 en `crear-cocinas`.
+  Visto en 3D.
+
 - **2026-10-12** · **El armario, al otro lado** (el usuario: "el armario va
   al otro lado"): en la cocina de prueba (5185) la hilera queda de izquierda a
   derecha como armario, lavavajillas pequeño, lavadora pequeña y

@@ -122,7 +122,12 @@ la puerta (sur) y la ventana (norte); sin más. Pasos hechos, en orden:
    `lavadora-pequena`, **los tres de 0,45 de ancho, 0,6 de fondo y 0,8 de
    alto**, encadenados contra la pared norte desde el frigorífico, que va
    en la esquina. Todos los frentes quedan en el mismo plano y a la misma
-   altura. Sin encimera todavía.
+   altura.
+3. (usuario) **Encimera**: un tablero contra la pared norte, de gris perla
+   (`acabado: 'gris-perla'`), de 1,35 m de ancho (del borde izquierdo del
+   armario al derecho de la lavadora; llega justo al frigorífico), 0,04 de
+   alto, 0,6 de fondo y `altura` 0,80 (cara de arriba a 0,84). Fue
+   `ponerTablero` con `posicion` 2,58 y `ancho` 1,35.
 
 ## Pendiente
 
