@@ -88,6 +88,8 @@ export function stopCameraFlight() {
  * menos grano y más espera.
  */
 export const PHOTO_SAMPLES = [50, 100, 200]
+/** Las que lleva una foto en calidad mientras no se elijan otras (el usuario: 100). */
+export const DEFAULT_PHOTO_SAMPLES = 100
 
 /** Evento de `window` con el que se pide una foto en calidad sin pulsar el botón (api.ts). */
 export const PHOTO_EVENT = 'eurocasa:foto'
@@ -632,7 +634,7 @@ export const useHouse = create<HouseState>()(
         setWalkMode: (walkMode) => set({ walkMode }),
         cameraFov: LENSES[0].fov,
         setCameraFov: (cameraFov) => set({ cameraFov }),
-        photoSamples: PHOTO_SAMPLES[PHOTO_SAMPLES.length - 1],
+        photoSamples: DEFAULT_PHOTO_SAMPLES,
         setPhotoSamples: (photoSamples) => set({ photoSamples }),
         planLayers: ALL_PLAN_LAYERS,
         setPlanLayer: (layer, on) => set((s) => ({ planLayers: { ...s.planLayers, [layer]: on } })),

@@ -353,7 +353,8 @@ No hay colisiones: se atraviesan paredes. Arriba a la izquierda de la vista:
   foto anterior?", "Sustituir la foto" y "No sustituir" (la anterior queda como
   estaba).
 - **Muestras**: 50, 100 o 200 (`PHOTO_SAMPLES` y `photoSamples` en `store.ts`),
-  botones junto al objetivo; donde arriba dice 200 es el número elegido. Se
+  botones junto al objetivo; **por defecto 100** (`DEFAULT_PHOTO_SAMPLES`, lo pidió
+  el usuario el 2026-10-12); donde arriba dice 200 es el número elegido. Se
   guarda en `localStorage` y se sincroniza entre ventanas. Se puede cambiar a
   mitad de foto: si se sube, sigue trazando.
 - **Filtro de ruido**: con la foto terminada, el recuadro de guardar trae
@@ -704,6 +705,12 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-12** · **Foto en calidad con 100 muestras por defecto** (el
+  usuario: "las fotos de calidad por defecto con 100"): `DEFAULT_PHOTO_SAMPLES`
+  en `store.ts` en lugar de la mayor de las tres. Quien ya tenga guardado otro
+  número en el navegador lo conserva; el cambio vale para planos nuevos y
+  navegadores sin ajuste. Se sigue pudiendo elegir 50, 100 o 200.
 
 - **2026-10-12** · **Fregadero y vitro en la casa de la web publicada** (el
   usuario: "me falta el fregadero y la vitro"): fregadero sobre el armario
