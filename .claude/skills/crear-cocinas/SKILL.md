@@ -75,6 +75,11 @@ provisionales, puestas por Claude hasta que él las confirme.
 - **No metas la vitro sobre una lavadora ni un lavavajillas** si hay otra
   opción: en la realidad va sobre el horno o un armario (provisional). En la
   primera prueba se puso sobre el armario de 45 cm.
+- **Al recolocar una encimera, no reutilices la `posicion` que devuelve
+  `ponerTablero`/`casa().tableros`**: va redondeada al centímetro y cada vuelta la
+  corre 1-2 cm (pasó: la encimera quedó 2 cm a la derecha y se metía en el
+  frigorífico). Recalcula el centro desde los muebles: `(izquierda + derecha) / 2`
+  con el borde izquierdo del primero y el derecho del último (`x ± ancho/2`).
 - **Un tablero no admite agujeros** (limitación): por eso el fregadero es plano.
 
 ## Receta: una hilera en la pared norte

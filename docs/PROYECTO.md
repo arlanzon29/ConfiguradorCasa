@@ -705,6 +705,14 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Encimera corregida de posición** (el usuario: "la
+  encimera está desplazada a la derecha"): al rehacerla más fina reutilicé la
+  `posicion` devuelta, ya redondeada, y la corrí 2 cm a la derecha, hasta
+  meterse en el frigorífico. Vuelta a colocar con el centro calculado desde
+  los muebles (2,575 m): queda a menos de medio centímetro de los de
+  abajo y a ras del frigorífico. Regla anotada en `crear-cocinas`. El
+  redondeo de `posicion` al centímetro en `ponerTablero` sigue ahí.
+
 - **2026-10-12** · **Encimera más fina** (el usuario: "la encimera es menos
   gruesa"): de 4 a **2 cm** de grueso, a 0,80 m (cara de arriba a 0,82).
   Rehecha con `quitarTablero` y `ponerTablero` en el entorno de pruebas
