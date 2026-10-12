@@ -705,6 +705,14 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Cerrar la puerta por funciones** (el usuario: "cierra la
+  puerta que no veo", en la casa de la cocina): `cerrada` en `ponerHueco` y
+  `cambiarHueco` (pone `closed`, lo del botón "Cerrar la puerta en 3D");
+  `casa().huecos` lo devuelve como `cerrada` en las puertas abatibles; en
+  la skill `crear-casas`. Probado en el servidor aparte (5185): la puerta
+  del salón sale cerrada en la vista 3D. El plano 2D la dibuja siempre
+  abierta.
+
 - **2026-10-12** · **Skill `crear-cocinas`** (lo pidió el usuario: hacer la
   cocina poco a poco y que el skill vaya mejorando). Nuevo
   `.claude/skills/crear-cocinas/SKILL.md`, aparte de `crear-casas`: las

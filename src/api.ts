@@ -168,6 +168,8 @@ interface Ajustes {
   altura?: number
   /** Nombre de la estancia hacia la que abre la puerta, o "fuera". */
   abreHacia?: string
+  /** Si la puerta abatible se ve cerrada en 3D y en la foto (si no, abierta a 90°). */
+  cerrada?: boolean
 }
 
 /** Un hueco tal como se cuenta: anclado a un lado de su estancia. */
@@ -188,6 +190,7 @@ function describeOpening(o: Opening) {
     altura: o.sill,
     ...(swingDoor(o) && {
       abreHacia: o.swing !== 'out' ? roomName(modules, o.moduleId) : otherId ? roomName(modules, otherId) : 'fuera',
+      cerrada: !!o.closed,
     }),
   }
 }
@@ -233,9 +236,9 @@ function ponerHueco(
     return { error: 'No cabe en esa pared, o pisa otro hueco.' } as Fallo
   }
   const id = state().selectedOpeningId!
-  const { ancho, alto, altura, abreHacia } = p
-  if ([ancho, alto, altura, abreHacia].some((v) => v !== undefined)) {
-    const changed = cambiarHueco({ hueco: id, ancho, alto, altura, abreHacia })
+  const { ancho, alto, altura, abreHacia, cerrada } = p
+  if ([ancho, alto, altura, abreHacia, cerrada].some((v) => v !== undefined)) {
+    const changed = cambiarHueco({ hueco: id, ancho, alto, altura, abreHacia, cerrada })
     if ('error' in changed) {
       state().removeOpening(id)
       return changed
@@ -299,6 +302,10 @@ function cambiarHueco(p: { hueco: string; posicion?: number } & Ajustes) {
     }
   }
   if (swing) state().setDoor(p.hueco, { swing })
+  if (p.cerrada !== undefined) {
+    if (!swingDoor(before)) return { error: 'Solo una puerta abatible se ve abierta o cerrada.' } as Fallo
+    state().setDoor(p.hueco, { closed: p.cerrada })
+  }
   return describeOpening(find()!)
 }
 
