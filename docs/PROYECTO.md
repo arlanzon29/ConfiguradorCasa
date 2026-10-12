@@ -624,6 +624,14 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Cámara por funciones** (el usuario preguntó si sabría
+  llevarla al baño): `llevarCamara` (estancia y, si se quiere, `mirando`) en
+  `window.eurocasa`, con su parte en la skill `crear-casas`. Usa el vuelo de
+  `flyCamera`, deja la cámara de pie a 1,6 m y a 0,5 m de la pared de detrás.
+  Probado en el servidor aparte (5183): al baño, mirando al este, con captura
+  de la vista 3D y del marcador en el plano. Sin probar: `mirando` dicho a
+  mano, y las otras tres direcciones.
+
 - **2026-10-12** · **Paredes por funciones** (el usuario pidió pintar de
   arena las paredes del salón de la casa de prueba): `pintarParedes`
   (estancia, acabado y, si se quiere, `lado`) en `window.eurocasa`, con su

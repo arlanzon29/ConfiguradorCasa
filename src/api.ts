@@ -3,7 +3,7 @@
 // Claude": pocas funciones, con parámetros en el idioma del comercial, que
 // devuelven lo creado o el motivo por el que no se ha podido.
 
-import { PlacedModule, Shell, Side, fits, roundSize, validSize } from './model/house'
+import { PLOT, PlacedModule, Shell, Side, fits, roundSize, validSize } from './model/house'
 import { BASE_FLOOR, MATERIALS, WALL_COLORS, floorOf, interiorFinish } from './model/finishes'
 import { FURNITURE, FurnitureItem, Rotation } from './model/furniture'
 import { furnitureName, roomName, shellName } from './model/names'
@@ -428,7 +428,34 @@ function describeWalls(m: PlacedModule) {
   return { estancia: roomName(state().modules, m.id), paredes }
 }
 
+// Altura de los ojos y distancia a la pared de detrás, en metros.
+const EYES = 1.6
+const BACK_OFF = 0.5
+
+/**
+ * Lleva la cámara de la vista 3D a una estancia, de pie y mirando hacia
+ * `mirando` (norte, sur, este, oeste) desde la pared de enfrente, centrada.
+ * Sin `mirando`, a lo largo del lado más largo, para abarcar más.
+ */
+function llevarCamara(p: { estancia: string; mirando?: string }) {
+  const room = findRoom(p.estancia)
+  if (!room) return { error: `No hay ninguna estancia "${p.estancia}".` } as Fallo
+  const side = p.mirando === undefined ? (room.width >= room.depth ? 'e' : 's') : LADOS[p.mirando]
+  if (!side) return { error: 'Lado desconocido.' } as Fallo
+  // De espaldas a la pared contraria a la que se mira.
+  const x = side === 'e' ? room.x + BACK_OFF : side === 'w' ? room.x + room.width - BACK_OFF : room.x + room.width / 2
+  const y = side === 's' ? room.y + BACK_OFF : side === 'n' ? room.y + room.depth - BACK_OFF : room.y + room.depth / 2
+  state().flyCamera({
+    // La escena tiene la parcela centrada en el origen; el giro 0 mira al norte y crece hacia el oeste.
+    position: [x - PLOT.width / 2, EYES, y - PLOT.depth / 2],
+    yaw: { n: 0, w: Math.PI / 2, s: Math.PI, e: -Math.PI / 2 }[side],
+    pitch: 0,
+  })
+  return { estancia: roomName(state().modules, room.id), mirando: lado(side) }
+}
+
 const eurocasa = {
+  llevarCamara,
   catalogoAcabados,
   ponerSuelo,
   pintarParedes,
