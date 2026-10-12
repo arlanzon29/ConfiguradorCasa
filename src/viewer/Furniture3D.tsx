@@ -10,6 +10,8 @@ interface Box {
   position: [number, number, number]
   size: [number, number, number]
   color: string
+  /** Disco en vez de caja: `size` es [diámetro, diámetro, grueso] y el eje va a lo largo de z. */
+  round?: boolean
 }
 
 /** Cajas que componen un mueble; su parte trasera queda hacia -z. */
@@ -96,7 +98,27 @@ function boxes({ shape, width: w, depth: d, height: h }: FurnitureType): Box[] {
         { position: [0, h / 2, -front / 2], size: [w, h, d - front], color: WHITE },
         { position: [0, h / 2, d / 2 - front / 2], size: [w - 0.02, h - 0.02, front], color: '#d6d8dc' },
         { position: [0, h - 0.07, d / 2 + 0.005], size: [w - 0.1, 0.07, 0.01], color: '#6b6e73' },
-        { position: [0, h * 0.42, d / 2 + 0.01], size: [eye, eye, 0.02], color: '#23262b' },
+        // Aro cromado y cristal oscuro: dos discos.
+        { position: [0, h * 0.42, d / 2 + 0.006], size: [eye + 0.07, eye + 0.07, 0.012], color: '#a8abb0', round: true },
+        { position: [0, h * 0.42, d / 2 + 0.014], size: [eye, eye, 0.012], color: '#23262b', round: true },
+      ]
+    }
+    case 'oven': {
+      // Horno: panel de mandos arriba con tres mandos, tirador y ventana de cristal oscuro.
+      const front = 0.02
+      const knob = 0.035
+      return [
+        { position: [0, h / 2, -front / 2], size: [w, h, d - front], color: WHITE },
+        { position: [0, h / 2, d / 2 - front / 2], size: [w - 0.02, h - 0.02, front], color: '#d6d8dc' },
+        { position: [0, h - 0.08, d / 2 + 0.005], size: [w - 0.1, 0.1, 0.01], color: '#2b2d31' },
+        ...[-0.18, 0, 0.18].map((x): Box => ({
+          position: [x, h - 0.08, d / 2 + 0.02],
+          size: [knob * 2, knob * 2, 0.02],
+          color: '#9a9da2',
+          round: true,
+        })),
+        { position: [0, h - 0.2, d / 2 + 0.03], size: [w - 0.16, 0.025, 0.025], color: '#8a8d92' },
+        { position: [0, h * 0.4, d / 2 + 0.006], size: [w - 0.14, h * 0.5, 0.012], color: '#17171a' },
       ]
     }
     case 'hob': {
@@ -149,8 +171,12 @@ export default function Furniture3D({ item, floorY, selected }: Props) {
     // En el plano el giro es horario con y hacia abajo; en 3D eso es un giro negativo sobre y.
     <group position={[item.x, floorY + liftOf(item), item.y]} rotation-y={(-item.rotation * Math.PI) / 180}>
       {boxes(type).map((box, i) => (
-        <mesh key={i} position={box.position} castShadow receiveShadow>
-          <boxGeometry args={box.size} />
+        <mesh key={i} position={box.position} rotation-x={box.round ? Math.PI / 2 : 0} castShadow receiveShadow>
+          {box.round ? (
+            <cylinderGeometry args={[box.size[0] / 2, box.size[0] / 2, box.size[2], 32]} />
+          ) : (
+            <boxGeometry args={box.size} />
+          )}
           <meshStandardMaterial color={box.color} emissive={selected ? '#d9480f' : '#000000'} emissiveIntensity={0.25} />
         </mesh>
       ))}

@@ -5,7 +5,7 @@ import { PLOT } from './house'
 // Con giro 0, la parte trasera del mueble (cabecero, respaldo, fondo del
 // armario) mira al norte del plano.
 
-export type FurnitureShape = 'table' | 'bed' | 'wardrobe' | 'sofa' | 'chair' | 'tv' | 'appliance' | 'hob' | 'fridge' | 'washer'
+export type FurnitureShape = 'table' | 'bed' | 'wardrobe' | 'sofa' | 'chair' | 'tv' | 'appliance' | 'hob' | 'fridge' | 'washer' | 'oven'
 
 // Familias del catálogo, en el orden en que se muestran. Para añadir una
 // (cocina, baño…) basta con declararla aquí y asignarla a sus piezas.
@@ -52,6 +52,7 @@ export const FURNITURE: FurnitureType[] = [
   { id: 'armario-cocina', code: 'MOB-ARMARIO-COCINA', family: 'cocina', name: 'Armario pequeño de cocina', shape: 'wardrobe', width: 0.45, depth: 0.6, height: 0.82 },
   { id: 'lavadora', code: 'MOB-LAVADORA', family: 'cocina', name: 'Lavadora', shape: 'washer', width: 0.6, depth: 0.6, height: 0.82 },
   { id: 'lavadora-pequena', code: 'MOB-LAVADORA-PEQUENA', family: 'cocina', name: 'Lavadora pequeña', shape: 'washer', width: 0.6, depth: 0.45, height: 0.8 },
+  { id: 'horno', code: 'MOB-HORNO', family: 'cocina', name: 'Horno', shape: 'oven', width: 0.6, depth: 0.6, height: 0.82 },
 ]
 
 export const furnitureType = (id: string) => FURNITURE.find((f) => f.id === id)

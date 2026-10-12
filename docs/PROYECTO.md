@@ -704,6 +704,16 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Ojo de buey redondo y horno** (lo pidió el usuario: la
+  parte negra de la lavadora parecía un horno, y un horno con las medidas del
+  lavavajillas). `Box` de `Furniture3D.tsx` admite `round` (un disco, con el
+  eje a lo largo de z): la lavadora lleva un aro cromado y el cristal oscuro,
+  redondos. Forma nueva `oven` y tipo `horno`, 60 × 60 × 82 cm (las del
+  lavavajillas **normal**; el pequeño no tiene horno), código provisional
+  `MOB-HORNO`: panel de mandos con tres mandos redondos, tirador y ventana.
+  Visto en el servidor aparte (5185) en 3D, junto a la lavadora y el
+  lavavajillas. El plano 2D los dibuja como una caja.
+
 - **2026-10-12** · **Altura de un mueble sobre el suelo** (opción A, elegida
   por el usuario, para poner la tele sobre una mesilla). Campo `elevation` en
   `FurnitureItem` y `liftOf` en `furniture.ts` (la del mueble, y si no la de
