@@ -90,6 +90,24 @@ crearla otra vez, y se pierden sus huecos y muebles), canto de las bisagras, seg
 filtro y objetivo. Suelos y paredes solo
 se ven en la vista 3D y en la foto, no en el plano.
 
+## Casas guardadas: la carpeta `comercial/`
+
+Las casas de los comerciales son archivos de plano `.json` en `comercial/` (en
+la raíz del proyecto, **fuera de git**: no se sube a GitHub). La página no lee
+el disco; el puente eres tú:
+
+| Función | Parámetros | Notas |
+|---|---|---|
+| `bajarCasa` | `{ fotos? }` | Devuelve el **texto** del plano, el mismo que "Guardar plano". Sin fotos por defecto (pesan ~300 KB cada una) |
+| `subirCasa` | `texto` | Sustituye la casa (y sus fotos) por la del texto. Devuelve `casa()` o `{ error }` si no es un plano. **Borra la casa actual**: confirma antes si hay algo que perder |
+
+- **Guardar**: `JSON.stringify(await window.eurocasa.bajarCasa())` en la
+  página y escribe ese texto en `comercial/<nombre>.json` con Write.
+- **Abrir**: lee el archivo con Read y pásalo a la página:
+  `window.eurocasa.subirCasa(<texto del archivo como cadena JSON>)`.
+- **Listar**: mira qué hay en `comercial/` con Glob. Nombra los archivos con
+  letras minúsculas y guiones (`casa-garcia.json`).
+
 ## Cómo trabajar con el comercial
 
 - **Si la petición tiene más de una lectura, pregunta antes de montar.** "La

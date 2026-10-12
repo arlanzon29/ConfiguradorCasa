@@ -639,6 +639,18 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Casas guardadas en `comercial/`** (lo pidió el usuario:
+  una carpeta en su disco con las casas de los comerciales, fuera de GitHub,
+  y que Claude pueda subir y bajar casas). `bajarCasa` (devuelve el texto del
+  plano, sin fotos salvo `fotos: true`) y `subirCasa(texto)` en
+  `window.eurocasa`; la carpeta está en `.gitignore`. El puente lo hace
+  Claude: lee o escribe el `.json` en el disco y lo pasa por la página (la
+  skill `crear-casas` lo explica). Probado en el servidor aparte (5184):
+  bajar una casa (salón, puerta, sofá; 1,2 KB), vaciar y subirla de nuevo
+  sin diferencias, y el rechazo de un texto que no es un plano. Sin
+  probar: con fotos (`fotos: true`) ni leyendo un archivo real de
+  `comercial/`.
+
 - **2026-10-12** · **Cierre de la sesión del uso "desde Claude".** El usuario
   guardó la foto del salón en la web publicada y la pidió en la
   conversación: `verFoto` abre el visor y se le manda una **captura** (la

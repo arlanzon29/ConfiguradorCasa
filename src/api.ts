@@ -9,7 +9,8 @@ import { FURNITURE, FurnitureItem, Rotation } from './model/furniture'
 import { furnitureName, roomName, shellName } from './model/names'
 import { OPPOSITE, Opening, swingDoor, validOpeningSize, wallLine } from './model/openings'
 import { deriveWalls, wallOf } from './model/walls'
-import { usePhotos } from './photos'
+import { Plan, parsePhotos, parsePlan, serializePlan } from './model/planFile'
+import { exportPhotos, importPhotos, usePhotos } from './photos'
 import { CameraPose, PHOTO_EVENT, PHOTO_SAMPLES, furnitureBox, useHouse } from './store'
 
 type Fallo = { error: string }
@@ -547,7 +548,31 @@ function verFoto(p: { foto?: number; estancia?: string }) {
   return { foto: at + 1, de: photos.length }
 }
 
+/**
+ * Devuelve la casa como el texto de un archivo de plano (el mismo que "Guardar
+ * plano"), para que Claude lo guarde en la carpeta `comercial/`. Sin fotos, que
+ * pesan; con `fotos: true`, dentro del texto.
+ */
+async function bajarCasa(p: { fotos?: boolean } = {}) {
+  return serializePlan(state(), p.fotos ? await exportPhotos() : [])
+}
+
+/**
+ * Sustituye la casa por la de un archivo de plano (su texto). Si no es un plano
+ * de este configurador, no toca nada y dice por qué.
+ */
+async function subirCasa(texto: string) {
+  const plan: Plan | null = parsePlan(texto)
+  if (!plan) return { error: 'Ese texto no es un plano de este configurador.' } as Fallo
+  const photos = await importPhotos(parsePhotos(texto))
+  state().loadPlan(plan)
+  await usePhotos.getState().replaceAll(photos)
+  return casa()
+}
+
 const eurocasa = {
+  bajarCasa,
+  subirCasa,
   verFoto,
   hacerFoto,
   llevarCamara,
