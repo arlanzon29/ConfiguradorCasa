@@ -117,9 +117,11 @@ EuroCasa. Cuando el usuario dé una regla suya, sustituye a la de aquí.
 - La cama, con el cabecero contra una pared sin ventana ni puerta si la hay,
   y con paso a los dos lados si es doble (unos 0,6 m por lado).
 - Sillas alrededor de una mesa: el respaldo mira **hacia fuera** de la mesa
-  (la silla del lado norte lleva `espalda: 'norte'`), con su centro a unos
-  0,25 m del canto. En la mesa de comedor (1,6 × 0,9 m), cuatro sillas van
-  dos a cada lado largo, a ±0,4 m del centro.
+  (la silla del lado norte lleva `espalda: 'norte'`) y van **metidas bajo la
+  mesa** (lo pidió el usuario el 2026-10-12): su centro 0,15 m por dentro del
+  canto, de modo que solo asoma el respaldo. En la mesa de comedor
+  (1,6 × 0,9 m), cuatro sillas van dos a cada lado largo, a ±0,4 m del centro
+  a lo largo y a ±0,3 m a lo ancho.
 - Una puerta abatible barre un cuarto de círculo de su ancho hacia donde
   abre: no pongas muebles ahí.
 - Antes de decir que un mueble cabe, mira las cuatro paredes: qué tramo queda
