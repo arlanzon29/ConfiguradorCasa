@@ -705,6 +705,12 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Fregadero y vitro en la casa de la web publicada** (el
+  usuario: "me falta el fregadero y la vitro"): fregadero sobre el armario
+  (`x` 5,12) y vitro sobre el lavavajillas (`x` 4,59), los dos a `altura`
+  0,84 (cara de arriba de la encimera) y centrados en su fondo (`y` 0,45), a
+  8 cm entre ellos. El fregadero queda bajo la ventana norte. Visto en 3D.
+
 - **2026-10-12** · **Correcciones de la casa de la web publicada** (el
   usuario: "aplica todas las correcciones"): hilera de la cocina sin solapes
   (lavavajillas `x` 4,59, armario 5,12, lavadora 5,65, frigorífico 6,25; la
