@@ -5,8 +5,8 @@
 
 import { PlacedModule, Shell, Side, fits, roundSize, validSize } from './model/house'
 import { roomName, shellName } from './model/names'
-import { OPPOSITE, wallLine } from './model/openings'
-import { deriveWalls } from './model/walls'
+import { OPPOSITE, Opening, swingDoor, validOpeningSize, wallLine } from './model/openings'
+import { deriveWalls, wallOf } from './model/walls'
 import { usePhotos } from './photos'
 import { useHouse } from './store'
 
@@ -54,6 +54,7 @@ function casa() {
       estancias: modules.filter((m) => m.shellId === s.id).map((m) => describeRoom(m, s)),
     })),
     estanciasSueltas: modules.filter((m) => !m.shellId).map((m) => describeRoom(m)),
+    huecos: state().openings.map(describeOpening),
   }
 }
 
@@ -120,20 +121,54 @@ function eliminarEstancia(p: { estancia: string }) {
 
 const TIPOS = { puerta: 'door', corredera: 'sliding', ventana: 'window' } as const
 const LADOS: Record<string, Side> = { norte: 'n', sur: 's', este: 'e', oeste: 'w' }
+const lado = (side: Side) => Object.keys(LADOS).find((k) => LADOS[k] === side)!
+
+/** Lo que se puede ajustar de un hueco; medidas en metros, `altura` sobre el suelo. */
+interface Ajustes {
+  ancho?: number
+  alto?: number
+  altura?: number
+  /** Nombre de la estancia hacia la que abre la puerta, o "fuera". */
+  abreHacia?: string
+}
+
+/** Un hueco tal como se cuenta: anclado a un lado de su estancia. */
+function describeOpening(o: Opening) {
+  const { modules, joints } = state()
+  const wall = wallOf(o, modules, deriveWalls(modules, joints))
+  const otherId = wall?.shared ? (wall.moduleId === o.moduleId ? wall.otherId : wall.moduleId) : undefined
+  return {
+    id: o.id,
+    tipo: o.kind === 'window' ? 'ventana' : swingDoor(o) ? 'puerta' : 'corredera',
+    estancia: roomName(modules, o.moduleId),
+    lado: lado(o.side),
+    ...(otherId && { con: roomName(modules, otherId) }),
+    desde: o.offset,
+    ancho: o.width,
+    alto: o.height,
+    altura: o.sill,
+    ...(swingDoor(o) && {
+      abreHacia: o.swing !== 'out' ? roomName(modules, o.moduleId) : otherId ? roomName(modules, otherId) : 'fuera',
+    }),
+  }
+}
 
 /**
  * Pone una puerta, una corredera o una ventana en la pared de un lado de una
  * estancia. Con `con`, en el tramo que comparte con esa otra estancia. Con
  * `posicion` (metros desde el extremo oeste o norte del lado hasta el centro
- * del hueco) va ahí; sin ella, centrado en el tramo más largo.
+ * del hueco) va ahí; sin ella, centrado en el tramo más largo. Admite además
+ * los ajustes de `cambiarHueco`.
  */
-function ponerHueco(p: {
-  tipo: keyof typeof TIPOS
-  estancia: string
-  lado: string
-  con?: string
-  posicion?: number
-}) {
+function ponerHueco(
+  p: {
+    tipo: keyof typeof TIPOS
+    estancia: string
+    lado: string
+    con?: string
+    posicion?: number
+  } & Ajustes,
+) {
   const room = findRoom(p.estancia)
   if (!room) return { error: `No hay ninguna estancia "${p.estancia}".` } as Fallo
   const side = LADOS[p.lado]
@@ -158,19 +193,73 @@ function ponerHueco(p: {
   if (!state().addOpening(TIPOS[p.tipo], wall.key, at ?? (wall.from + wall.to) / 2)) {
     return { error: 'No cabe en esa pared, o pisa otro hueco.' } as Fallo
   }
-  const made = state().openings.find((o) => o.id === state().selectedOpeningId)!
-  // El hueco se ancla a la estancia de la que sale la pared, que puede ser la vecina.
-  const anchor = wallLine(modules.find((m) => m.id === made.moduleId)!, made.side)
-  return {
-    id: made.id,
-    tipo: p.tipo,
-    pared: wall.shared ? `${roomName(modules, wall.moduleId)} | ${roomName(modules, wall.otherId!)}` : 'exterior',
-    desde: roundSize(anchor.start + made.offset - line.start),
-    ancho: made.width,
+  const id = state().selectedOpeningId!
+  const { ancho, alto, altura, abreHacia } = p
+  if ([ancho, alto, altura, abreHacia].some((v) => v !== undefined)) {
+    const changed = cambiarHueco({ hueco: id, ancho, alto, altura, abreHacia })
+    if ('error' in changed) {
+      state().removeOpening(id)
+      return changed
+    }
   }
+  return describeOpening(state().openings.find((o) => o.id === id)!)
 }
 
-const eurocasa = { casa, nuevoPlano, medirModulo, crearEstancia, eliminarEstancia, ponerHueco }
+/**
+ * Cambia un hueco ya puesto (`hueco` es su id): medidas, altura sobre el suelo
+ * y, en una puerta abatible, hacia qué estancia abre ("fuera" en una exterior).
+ * Al cambiar el ancho conserva su centro.
+ */
+function cambiarHueco(p: { hueco: string } & Ajustes) {
+  const find = () => state().openings.find((o) => o.id === p.hueco)
+  const before = find()
+  if (!before) return { error: `No hay ningún hueco "${p.hueco}".` } as Fallo
+  const { modules, joints } = state()
+
+  let swing: Opening['swing']
+  if (p.abreHacia !== undefined) {
+    if (!swingDoor(before)) return { error: 'Solo una puerta abatible abre hacia un lado.' } as Fallo
+    const wall = wallOf(before, modules, deriveWalls(modules, joints))
+    const otherId = wall?.shared
+      ? wall.moduleId === before.moduleId
+        ? wall.otherId
+        : wall.moduleId
+      : undefined
+    const target = p.abreHacia === 'fuera' ? undefined : findRoom(p.abreHacia)
+    if (target?.id === before.moduleId) swing = 'in'
+    else if (target ? target.id === otherId : !otherId) swing = 'out'
+    else return { error: `Esa puerta no da a "${p.abreHacia}".` } as Fallo
+  }
+
+  const width = p.ancho ?? before.width
+  const height = p.alto ?? before.height
+  const sill = p.altura ?? before.sill
+  if (!validOpeningSize({ width, height, sill })) return { error: 'Medidas no válidas para un hueco.' } as Fallo
+  // Bajar el alto antes de subir la altura, o al revés: el orden que quepa en la pared.
+  const resize = () => state().resizeOpening(p.hueco, width, height)
+  const resized = resize()
+  state().setOpeningSill(p.hueco, sill)
+  if (!resized && !resize()) {
+    state().setOpeningSill(p.hueco, before.sill)
+    return { error: 'Con esas medidas no cabe en su pared, o pisa otro hueco.' } as Fallo
+  }
+  if (width !== before.width) {
+    const start = wallLine(modules.find((m) => m.id === before.moduleId)!, before.side).start
+    state().moveOpening(p.hueco, start + before.offset + (before.width - width) / 2)
+  }
+  if (swing) state().setDoor(p.hueco, { swing })
+  return describeOpening(find()!)
+}
+
+const eurocasa = {
+  casa,
+  nuevoPlano,
+  medirModulo,
+  crearEstancia,
+  eliminarEstancia,
+  ponerHueco,
+  cambiarHueco,
+}
 
 declare global {
   interface Window {

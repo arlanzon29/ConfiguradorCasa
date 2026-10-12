@@ -184,6 +184,7 @@ src/
     denoise.ts      filtro de ruido de la foto, guiado por la geometría
 public/texturas/suelos/          imágenes de suelo
 public/texturas/vinilos/         dibujos de los vinilos (SVG con fondo transparente)
+.claude/skills/crear-casas/      skill que enseña a Claude a montar casas con las funciones de `api.ts`
 planos/                          planos guardados a mano (copias de seguridad)
 fotos/                           fotos de referencia que pasa el usuario (exteriores e interiores)
 ```
@@ -622,6 +623,22 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-12** · **Skill `crear-casas`** y función **`cambiarHueco`**. El
+  usuario fijó la forma de trabajar el uso "desde Claude": ir creando
+  funciones para cada elemento y, a la vez, preparar la skill que enseña a
+  usarlas. La skill está en `.claude/skills/crear-casas/SKILL.md`: dónde se
+  trabaja, las funciones, cómo tratar con el comercial (preguntar si la
+  petición tiene varias lecturas, no añadir estancias sin pedirlo, decir qué
+  se ha decidido) y un criterio de diseño **provisional, puesto por Claude**,
+  a falta del de EuroCasa. `cambiarHueco` cambia ancho, alto y altura de un
+  hueco y hacia qué estancia abre una puerta (`abreHacia`, por nombre, o
+  "fuera"); `ponerHueco` admite lo mismo, y `casa()` devuelve también los
+  `huecos`. Probado en el servidor aparte (5183): las puertas de habitación y
+  baño pasan a abrir hacia dentro, la ventana del baño queda en 0,6 × 0,6 m a
+  1,5 m conservando su centro, y los rechazos (una puerta que no da a esa
+  estancia, medidas que no caben en el alto de pared). Sin probar: los
+  ajustes dentro de `ponerHueco`, y la skill usada desde una sesión nueva.
 
 - **2026-10-12** · Sexta función en `window.eurocasa`: **`ponerHueco`** (el
   usuario pidió puertas y ventanas en la casa de prueba; hacerlo con una
