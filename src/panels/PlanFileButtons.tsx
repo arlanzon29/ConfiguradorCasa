@@ -3,7 +3,10 @@ import { Plan, parsePhotos, parsePlan, serializePlan } from '../model/planFile'
 import { exportPhotos, importPhotos, usePhotos } from '../photos'
 import { useHouse } from '../store'
 
-/** Empezar un plano nuevo, guardarlo en un archivo y cargarlo desde uno. */
+// Sin barra inicial: la web puede colgar de una subcarpeta (GitHub Pages).
+const EXAMPLE_URL = 'ejemplos/ejemplo1.json'
+
+/** Empezar un plano nuevo, guardarlo en un archivo y cargarlo desde uno, o cargar el ejemplo. */
 export default function PlanFileButtons() {
   const loadPlan = useHouse((s) => s.loadPlan)
   const newPlan = useHouse((s) => s.newPlan)
@@ -55,8 +58,7 @@ export default function PlanFileButtons() {
     setNotice('')
   }
 
-  const load = async (file: File) => {
-    const text = await file.text()
+  const loadText = async (text: string, what: string) => {
     const plan: Plan | null = parsePlan(text)
     if (!plan) {
       setPending(null)
@@ -64,10 +66,24 @@ export default function PlanFileButtons() {
       return
     }
     const photos = await importPhotos(parsePhotos(text))
-    replacePlan('Cargar este archivo sustituirá el plano actual y sus fotos.', () => {
+    replacePlan(`Cargar ${what} sustituirá el plano actual y sus fotos.`, () => {
       loadPlan(plan)
       void replacePhotos(photos)
     })
+  }
+
+  const load = async (file: File) => loadText(await file.text(), 'este archivo')
+
+  /** La casa de ejemplo que viaja con la web (public/ejemplos). */
+  const loadExample = async () => {
+    setNotice('')
+    try {
+      const response = await fetch(EXAMPLE_URL)
+      if (!response.ok) throw new Error(String(response.status))
+      await loadText(await response.text(), 'el ejemplo')
+    } catch {
+      setNotice('No se ha podido cargar el ejemplo.')
+    }
   }
 
   return (
@@ -82,6 +98,9 @@ export default function PlanFileButtons() {
       </button>
       <button onClick={() => void save()}>Guardar plano</button>
       <button onClick={() => fileInput.current?.click()}>Cargar plano</button>
+      <button className="full" onClick={() => void loadExample()}>
+        Cargar ejemplo
+      </button>
       <input
         ref={fileInput}
         type="file"

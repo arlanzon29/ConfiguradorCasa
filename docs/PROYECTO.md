@@ -667,6 +667,18 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Casa de ejemplo y botón "Cargar ejemplo"** (lo pidió el
+  usuario: la casa de Daniel como ejemplo ya hecho que cualquiera pueda
+  cargar). El archivo viaja con la web: `public/ejemplos/ejemplo1.json` (1,9 MB,
+  con sus 5 fotos; el usuario lo copió a mano y **va al repositorio público**).
+  No lleva datos personales dentro; el nombre de Daniel solo está en
+  `comercial/`, que sigue fuera de git. Botón "Cargar ejemplo" bajo "Cargar
+  plano" en `PlanFileButtons.tsx`: pide la ruta relativa `ejemplos/ejemplo1.json`
+  (vale en GitHub Pages) y, si hay casa, pregunta antes de sustituirla. Para
+  cambiar el ejemplo, sustituir ese archivo. Probado en el servidor aparte
+  (5185): carga la casa (3 estancias, 6 huecos, 12 muebles, 3 mecanismos y 5
+  fotos) y la pregunta de sustituir. Sin probar en la web publicada.
+
 - **2026-10-12** · **"Ver foto N" en la vista 3D** (lo pidió el usuario: la
   vista ya detectaba que la cámara estaba en el sitio de una foto y ofrecía
   repetirla, pero no verla). Botón junto a "Repetir foto N" en `View3D.tsx`
