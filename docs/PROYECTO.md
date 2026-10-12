@@ -711,7 +711,7 @@ Se anota aquí cada cosa que se hace, la más reciente arriba.
   oscura y grifo detrás. **Sin profundidad** (el usuario: "lo mejor es no
   hacerlo profundo"): se apoya sobre la encimera y no necesita agujero en el
   tablón; el hueco en el tablero queda descartado por ahora. Medidas mías (el
-  usuario no las dijo): 80 × 50 cm, un seno, sin escurridor. Se coloca con su
+  usuario no las dijo): 50 × 45 cm, una sola pila (antes 80 × 50: "más pequeño, es una sola pila"), sin escurridor. Se coloca con su
   base a 0,9 m (`lift`); con la casilla de altura se pone a la del tablón.
   Visto en 3D en el servidor aparte (5185).
 
