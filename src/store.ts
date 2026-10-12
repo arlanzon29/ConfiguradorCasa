@@ -202,6 +202,8 @@ interface HouseState {
   ) => void
   setFloor: (id: string, floor: string) => void
   turnFloor: (id: string) => void
+  /** Cambia el acabado del techo de una estancia o si lleva techo en la foto. */
+  setCeiling: (id: string, patch: { ceiling?: string; noCeiling?: boolean }) => void
   /** Color de las paredes de una estancia por dentro. */
   /**
    * Con `side`, pinta solo la pared de ese lado (o le quita su color propio si
@@ -1018,6 +1020,9 @@ export const useHouse = create<HouseState>()(
               m.id === id ? { ...m, floorTurned: !m.floorTurned } : m,
             ),
           })),
+
+        setCeiling: (id, patch) =>
+          set((s) => ({ modules: s.modules.map((m) => (m.id === id ? { ...m, ...patch } : m)) })),
 
         setWallColor: (id, color, side) =>
           set((s) => ({

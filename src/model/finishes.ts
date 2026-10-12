@@ -67,6 +67,9 @@ export function resolveFinish(finish: Finish | undefined, fallback: Finish): Omi
   return MATERIALS.find((m) => m.id === value) ?? { color: fallback }
 }
 
+/** Techo, mientras no se elija otro. */
+export const DEFAULT_CEILING: Finish = '#ffffff'
+
 /** Suelo sin acabado: la losa vista. */
 export const BASE_FLOOR = FLOORS[0]
 

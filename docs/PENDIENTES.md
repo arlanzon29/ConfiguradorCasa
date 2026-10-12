@@ -307,9 +307,9 @@ el imán a paredes y el objetivo de la cámara.
 - Ahora el techo solo existe mientras dura la foto en calidad, siempre blanco, y no
   se puede elegir nada. En la vista 3D normal no hay techo (lo pidió el usuario en
   su día).
-- Queda por hablar: si el interruptor afecta a la vista normal, a la foto o a las
-  dos; si el color es uno para toda la casa o por estancia; y dónde se configura
-  (lo natural sería el modo Acabados, junto al suelo y las paredes).
+- **Hecho el 2026-10-12**, como lo propuse y el usuario aceptó: por estancia,
+  casilla "Con techo en la foto en calidad" y acabado (color o material) en
+  Propiedades de la estancia. La vista normal sigue sin techo.
 
 ### 3. Paisajes tras las ventanas
 

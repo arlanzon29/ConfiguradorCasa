@@ -66,6 +66,10 @@ export interface PlacedModule {
   floor?: string
   /** Suelo girado 90°, para elegir la dirección de las lamas. */
   floorTurned?: boolean
+  /** Acabado del techo (finishes.ts); si falta, DEFAULT_CEILING. */
+  ceiling?: string
+  /** Sin techo en la foto en calidad. En la vista normal nunca hay techo. */
+  noCeiling?: boolean
   /** Color de las caras de pared que dan a esta estancia. */
   wallColor?: string
   /** Color propio de la pared de un lado, por dentro; si falta, vale wallColor. */

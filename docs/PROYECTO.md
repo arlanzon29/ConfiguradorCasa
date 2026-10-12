@@ -82,6 +82,10 @@ Otros elementos:
   acabado; `interiorFinish`). Una pared con material lleva su textura en una
   lámina a 0,5 mm de la cara (`WallSkin` en `View3D.tsx`), porque la caja va
   coloreada por vértice.
+- **Techo** (2026-10-12): por estancia, acabado (`ceiling`, por defecto
+  blanco) y si lo lleva (`noCeiling`). **Solo existe en la foto en calidad**;
+  la vista normal sigue sin techo. `Ceiling` en `View3D.tsx`, `setCeiling` en
+  `store.ts`, apartado "Techo" en `RoomFinishes`.
 - **Acabados**: suelo por estancia y pared por estancia o por lado
   (`wallColor`, `sideColors`), los dos con `FinishPicker`. Solo se ven en 3D.
 - **Vinilo** (`Vinyl` en `vinyls.ts`): una imagen con fondo transparente pegada
@@ -267,7 +271,7 @@ Casa
 |---|---|---|
 | Casa | — | Añadir módulo horizontal o vertical. Se ve toda la parcela |
 | Módulo | distancia al borde izquierdo y superior de la parcela; ancho y fondo; girar, eliminar | Añadir estancia (catálogo y medida personalizada) y el resumen |
-| Estancia | distancia al borde de su módulo; ancho y fondo; girar, eliminar | Suelo, color de todas sus paredes, "Añadir luz" (foco de techo) y el catálogo de **mobiliario** con el icono de imán |
+| Estancia | distancia al borde de su módulo; ancho y fondo; girar, eliminar | Suelo, techo (si lo lleva en la foto y su acabado), acabado de todas sus paredes, "Añadir luz" (foco de techo) y el catálogo de **mobiliario** con el icono de imán |
 | Foco | distancia a la izquierda y arriba, "Centrar en la estancia", potencia (%), tono, color de emisión, eliminar | — |
 | Pared | grosor (cm); rodapié (alto y color); quitar/poner | Añadir hueco (puerta, corredera, ventana); en una compartida, de qué estancia es **la cara** que se viste; color de esa cara, y añadir vinilo, espejo o tablero |
 | Vinilo, espejo o tablero | posición, medidas y lo propio de cada uno (giro y proporción; postura, fondo y acabado), eliminar | — |
@@ -601,6 +605,12 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-12** · **Techo configurable** (tema 4; el usuario aceptó mi
+  propuesta): por estancia, con casilla para quitarlo de la foto y acabado
+  (color o material). Probado en la nube: el panel con una estancia de techo
+  de madera. Sin probar: una foto en calidad con techo de color, de madera o
+  sin techo.
 
 - **2026-10-12** · **Mismo acabado en suelos y paredes** (tema 16; lo pidió el
   usuario, que descartó el resto del tema). El suelo admite color liso y las

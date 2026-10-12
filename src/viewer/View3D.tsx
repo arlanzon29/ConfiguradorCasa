@@ -16,6 +16,7 @@ import {
   DEFAULT_WALL_COLOR,
   Finish,
   BASE_FLOOR,
+  DEFAULT_CEILING,
   FloorFinish,
   floorOf,
   interiorFinish,
@@ -37,7 +38,7 @@ import PhotoTracer from './PhotoTracer'
 
 // Grosor de la losa, en metros.
 const SLAB = 0.2
-// Grosor, en metros, del techo provisional de la foto en calidad.
+// Grosor, en metros, del techo de la foto en calidad.
 const CEILING = 0.1
 // Lo que alumbra un foco al 100 %: lo mismo que el panel de luz provisional que
 // hubo antes de los focos, para que la estancia con el suyo se vea igual. Inventado.
@@ -780,6 +781,25 @@ function VinylSheetPlane({ sheet, walls }: { sheet: VinylSheet; walls: Wall[] })
   )
 }
 
+/** Techo de una estancia, solo durante la foto: una losa con su acabado. */
+function Ceiling({ room }: { room: PlacedModule }) {
+  const finish = resolveFinish(room.ceiling, DEFAULT_CEILING)
+  const position: [number, number, number] = [0, SLAB + WALL_HEIGHT + CEILING / 2, 0]
+  const size: [number, number, number] = [room.width, CEILING, room.depth]
+  const plain = (
+    <mesh position={position}>
+      <boxGeometry args={size} />
+      <meshStandardMaterial color={finish.color} />
+    </mesh>
+  )
+  if (!finish.texture) return plain
+  return (
+    <Suspense fallback={plain}>
+      <TexturedBox position={position} size={size} url={finish.texture} scale={finish.size ?? [1, 1]} />
+    </Suspense>
+  )
+}
+
 /** Acabado del suelo de una estancia: una lámina sobre la losa, con la textura a escala real. */
 function Floor({ room }: { room: PlacedModule }) {
   const finish = resolveFinish(floorOf(room), BASE_FLOOR.color)
@@ -1050,12 +1070,7 @@ export default function View3D() {
                 color={m.id === selectedId && !photo ? '#b9cdb4' : '#c9b79a'}
               />
             </mesh>
-            {photo && (
-              <mesh position-y={SLAB + WALL_HEIGHT + CEILING / 2}>
-                <boxGeometry args={[m.width, CEILING, m.depth]} />
-                <meshStandardMaterial color="#ffffff" />
-              </mesh>
-            )}
+            {photo && !m.noCeiling && <Ceiling room={m} />}
             {/* Focos del techo: la pieza se ve siempre; alumbran solo en la foto. */}
             {(m.lights ?? []).map((l) => (
               <group
