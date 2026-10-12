@@ -639,6 +639,25 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Cierre de la sesión del uso "desde Claude".** El usuario
+  guardó la foto del salón en la web publicada y la pidió en la
+  conversación: `verFoto` abre el visor y se le manda una **captura** (la
+  página solo devuelve texto; el original, con "Descargar"). Visto: la foto
+  toma el tamaño de la vista 3D, y con Plano + 3D en una ventana estrecha
+  sale vertical y pequeña; para una foto apaisada, "Vista 3D" sola o "3D en
+  otra ventana". Queda así `window.eurocasa`, con 17 funciones, todas en la
+  skill `crear-casas`: `casa`, `nuevoPlano`, `medirModulo`, `crearEstancia`,
+  `eliminarEstancia`, `ponerHueco`, `cambiarHueco`, `quitarHueco`,
+  `catalogoMuebles`, `ponerMueble`, `quitarMueble`, `catalogoAcabados`,
+  `ponerSuelo`, `pintarParedes`, `llevarCamara`, `hacerFoto` y `verFoto`.
+  **Sin función todavía**: mover o cambiar de medida una estancia, mover o
+  girar un mueble, segundo módulo, luces, techo, acabado de la carpintería,
+  rodapié, vinilos, espejos y tableros, guardar una foto y elegir su filtro
+  u objetivo, y guardar o cargar el plano. **Pendiente**: probarlo con la
+  extensión de Chrome, una versión de la skill para comerciales, el criterio
+  de diseño de EuroCasa en lugar del mío, y muebles de baño y cocina en el
+  catálogo.
+
 - **2026-10-12** · **Casa de prueba montada en la web publicada** (lo pidió
   el usuario), con el navegador integrado de la app de escritorio: 28
   llamadas a `window.eurocasa` en 15 ms y sin ningún error (módulo de
