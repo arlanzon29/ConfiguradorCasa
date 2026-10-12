@@ -1,6 +1,6 @@
 import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber'
 import { XR, XROrigin, createXRStore, useXR, useXRControllerLocomotion } from '@react-three/xr'
-import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import {
   BoxGeometry,
   CanvasTexture,
@@ -11,6 +11,7 @@ import {
   MeshBasicMaterial,
   PerspectiveCamera,
   PlaneGeometry,
+  Quaternion,
   RepeatWrapping,
   SRGBColorSpace,
   TextureLoader,
@@ -442,21 +443,23 @@ const VR_TURN_DEGREES = 30
 const VR_HINT_MS = 10000
 
 /** Un cartel pequeño, delante de los ojos y siempre encima, que dice cómo salir de la VR. */
-function exitHint() {
+function exitHint(title: string, lines: string[]) {
+  const height = 64 + lines.length * 44
   const canvas = document.createElement('canvas')
-  canvas.width = 512
-  canvas.height = 128
+  canvas.width = 640
+  canvas.height = height
   const ctx = canvas.getContext('2d')!
   ctx.fillStyle = 'rgba(20, 24, 28, 0.82)'
-  ctx.fillRect(0, 0, 512, 128)
+  ctx.fillRect(0, 0, 640, height)
   ctx.fillStyle = '#ffffff'
   ctx.font = 'bold 40px sans-serif'
   ctx.textAlign = 'center'
-  ctx.fillText('Pulsa B o Y para salir', 256, 56)
+  ctx.fillText(title, 320, 52)
   ctx.font = '28px sans-serif'
-  ctx.fillText('Stick: caminar y girar', 256, 100)
+  lines.forEach((line, i) => ctx.fillText(line, 320, 100 + i * 44))
+  const width = 0.5
   const mesh = new Mesh(
-    new PlaneGeometry(0.4, 0.1),
+    new PlaneGeometry(width, (width * height) / 640),
     new MeshBasicMaterial({ map: new CanvasTexture(canvas), transparent: true, depthTest: false }),
   )
   mesh.position.set(0, -0.2, -0.8)
@@ -464,21 +467,176 @@ function exitHint() {
   return mesh
 }
 
+// Realidad aumentada con el paso de cámara de las Quest 3. La casa se ve como una
+// maqueta sobre una mesa virtual translúcida, a 1:20, delante de ti. Se maneja
+// como la bandeja de la prueba `sala-ar` (D:\IA\Macedonia\games\sala-ar):
+//  · gatillo mantenido: la mesa sigue al mando, justo debajo, y gira hacia donde apunta;
+//  · agarre con la mano sobre la mesa: la lleva sin girarla;
+//  · stick a izquierda o derecha: la gira poco a poco;
+//  · A o X: cambia entre maqueta (1:20) y tamaño real (1:1).
+const AR_SCALE = 1 / 20
+const AR_TABLE_HEIGHT = 0.75
+const AR_TABLE_MARGIN = 0.06
+const AR_TURN_SPEED = 1.5
+
+/**
+ * La mesa de la maqueta: lleva dentro la casa, escalada, y se mueve y gira con
+ * los mandos. Fuera de la AR no hace nada (todo queda a tamaño real y sin mover).
+ */
+function ARTable({
+  enabled,
+  size,
+  children,
+}: {
+  enabled: boolean
+  size: [number, number]
+  children: React.ReactNode
+}) {
+  const outer = useRef<Group>(null)
+  const inner = useRef<Group>(null)
+  const plate = useRef<Mesh>(null)
+  const gl = useThree((s) => s.gl)
+  // Está fuera de <XR>: la sesión se pregunta al renderizador en cada fotograma.
+  const table = useRef({
+    pos: new Vector3(),
+    yaw: 0,
+    scale: AR_SCALE,
+    ready: false,
+    carry: null as null | { hand: string; offset: Vector3 },
+  })
+  // Estado de los botones fotograma a fotograma, para detectar la pulsación (no la mantenida).
+  const held = useRef(new Map<string, boolean>())
+  const tmp = useRef({
+    head: new Vector3(),
+    dir: new Vector3(),
+    hand: new Vector3(),
+    fwd: new Vector3(),
+    quat: new Quaternion(),
+  })
+
+  useEffect(() => {
+    table.current.ready = false
+    table.current.carry = null
+    held.current.clear()
+  }, [enabled])
+
+  useFrame((_, delta, frame) => {
+    const o = outer.current
+    const i = inner.current
+    const p = plate.current
+    if (!o || !i || !p) return
+    const session = gl.xr.getSession()
+    if (!enabled || !session || !frame) {
+      o.position.set(0, 0, 0)
+      o.rotation.set(0, 0, 0)
+      i.scale.setScalar(1)
+      p.visible = false
+      return
+    }
+    const t = table.current
+    const v = tmp.current
+    const space = gl.xr.getReferenceSpace()
+
+    // Al empezar, delante de ti, a la altura de una mesa y de cara.
+    if (!t.ready) {
+      // La pose real de la cabeza, del visor: la cámara de la escena aún no la tiene en el primer fotograma.
+      const viewer = space ? frame.getViewerPose(space) : undefined
+      if (!viewer) return
+      const { position: at, orientation: q } = viewer.transform
+      v.head.set(at.x, at.y, at.z)
+      v.dir.set(0, 0, -1).applyQuaternion(v.quat.set(q.x, q.y, q.z, q.w))
+      v.dir.y = 0
+      if (v.dir.lengthSq() < 1e-4) v.dir.set(0, 0, -1)
+      v.dir.normalize()
+      t.pos.set(v.head.x + v.dir.x * 0.8, AR_TABLE_HEIGHT, v.head.z + v.dir.z * 0.8)
+      t.yaw = Math.atan2(-v.dir.x, -v.dir.z)
+      t.scale = AR_SCALE
+      t.ready = true
+    }
+
+    const half = [(size[0] * t.scale) / 2, (size[1] * t.scale) / 2]
+    let toggle = false
+    for (const source of session.inputSources) {
+      const pad = source.gamepad
+      if (!pad || !space) continue
+      const pose = frame.getPose(source.targetRaySpace, space)
+      if (!pose) continue
+      const { position: at, orientation: q } = pose.transform
+      v.hand.set(at.x, at.y, at.z)
+      v.fwd.set(0, 0, -1).applyQuaternion(v.quat.set(q.x, q.y, q.z, q.w))
+      const hand = source.handedness
+      const trigger = !!pad.buttons[0]?.pressed
+      const squeeze = !!pad.buttons[1]?.pressed
+      const press = !!pad.buttons[4]?.pressed
+      const wasSqueeze = held.current.get(hand + 'squeeze') ?? false
+      const wasPress = held.current.get(hand + 'press') ?? false
+      held.current.set(hand + 'squeeze', squeeze)
+      held.current.set(hand + 'press', press)
+      if (press && !wasPress) toggle = true
+
+      if (trigger) {
+        // La mesa va justo debajo del mando y mira hacia donde apunta.
+        t.pos.set(v.hand.x, Math.max(v.hand.y - 0.03, 0), v.hand.z)
+        if (Math.hypot(v.fwd.x, v.fwd.z) > 0.2) t.yaw = Math.atan2(-v.fwd.x, -v.fwd.z)
+        t.carry = null
+        continue
+      }
+      const stick = pad.axes[2] ?? 0
+      if (Math.abs(stick) > 0.3) t.yaw += -stick * AR_TURN_SPEED * delta
+
+      if (squeeze && !wasSqueeze) {
+        // Con la mano sobre la mesa (un poco más allá de su borde), se la lleva.
+        const local = v.hand.clone().sub(t.pos).applyAxisAngle(new Vector3(0, 1, 0), -t.yaw)
+        const near =
+          Math.abs(local.x) < half[0] + AR_TABLE_MARGIN + 0.08 &&
+          Math.abs(local.z) < half[1] + AR_TABLE_MARGIN + 0.08 &&
+          Math.abs(local.y) < 0.15
+        if (near) t.carry = { hand, offset: t.pos.clone().sub(v.hand) }
+      }
+      if (!squeeze && t.carry?.hand === hand) t.carry = null
+      if (t.carry?.hand === hand) t.pos.copy(v.hand).add(t.carry.offset)
+    }
+    if (toggle) t.scale = t.scale === AR_SCALE ? 1 : AR_SCALE
+
+    o.position.copy(t.pos)
+    o.rotation.set(0, t.yaw, 0)
+    i.scale.setScalar(t.scale)
+    p.visible = true
+    p.scale.set(size[0] * t.scale + AR_TABLE_MARGIN * 2, 1, size[1] * t.scale + AR_TABLE_MARGIN * 2)
+  })
+
+  return (
+    <group ref={outer}>
+      {/* La mesa: una tabla fina y translúcida bajo la maqueta. */}
+      <mesh ref={plate} visible={false} position-y={-0.01}>
+        <boxGeometry args={[1, 0.02, 1]} />
+        <meshStandardMaterial color="#9fd4ff" transparent opacity={0.55} />
+      </mesh>
+      <group ref={inner}>{children}</group>
+    </group>
+  )
+}
+
 /**
  * El jugador en VR: su origen (los pies) se pone donde estaba la cámara normal y
  * mirando hacia donde miraba; al salir, la cámara y el marcador del plano quedan
  * donde lo dejó. La altura de los ojos la da el propio visor.
  */
-function VRRig() {
+function VRRig({ ar }: { ar: boolean }) {
   const origin = useRef<Group>(null)
   const gl = useThree((s) => s.gl)
   const session = useXR((s) => s.session)
   const last = useRef<{ x: number; z: number; yaw: number } | null>(null)
-  useXRControllerLocomotion(origin, { speed: VR_WALK_SPEED }, { type: 'snap', degrees: VR_TURN_DEGREES })
+  // En AR el mundo es la habitación real: ni se mueve el origen ni se camina con el stick.
+  useXRControllerLocomotion(
+    origin,
+    ar ? false : { speed: VR_WALK_SPEED },
+    ar ? false : { type: 'snap', degrees: VR_TURN_DEGREES },
+  )
 
   useEffect(() => {
     const group = origin.current
-    if (!session || !group) return
+    if (!session || !group || ar) return
     stopCameraFlight()
     const pose = useHouse.getState().cameraPose
     group.position.set(pose?.position[0] ?? 0, SLAB, pose?.position[2] ?? 0)
@@ -489,13 +647,19 @@ function VRRig() {
       if (!at) return
       useHouse.getState().setCameraPose({ position: [at.x, EYE_HEIGHT, at.z], yaw: at.yaw, pitch: 0 })
     }
-  }, [session])
+  }, [session, ar])
 
   // Un aviso pegado a la vista los primeros segundos: cómo salir.
   useEffect(() => {
     if (!session) return
     const camera = gl.xr.getCamera()
-    const hint = exitHint()
+    const hint = ar
+      ? exitHint('Pulsa B o Y para salir', [
+          'Gatillo: poner la maqueta donde apuntas',
+          'Agarre cerca: llevarla · Stick: girarla',
+          'A o X: maqueta o tamaño real',
+        ])
+      : exitHint('Pulsa B o Y para salir', ['Stick: caminar y girar'])
     camera.add(hint)
     const timer = setTimeout(() => camera.remove(hint), VR_HINT_MS)
     return () => {
@@ -505,7 +669,7 @@ function VRRig() {
       ;(hint.material as MeshBasicMaterial).map?.dispose()
       hint.material.dispose()
     }
-  }, [session, gl])
+  }, [session, gl, ar])
 
   // Dónde está la cabeza en cada fotograma, para dejar la cámara ahí al salir.
   const head = useRef({ position: new Vector3(), direction: new Vector3() })
@@ -516,6 +680,8 @@ function VRRig() {
     const pressed = Array.from(session.inputSources).some((s) => s.gamepad?.buttons[5]?.pressed)
     if (pressed && !exitHeld.current) void session.end()
     exitHeld.current = pressed
+    // En AR no se toca la cámara de la vista normal: la cabeza no está en la casa.
+    if (ar) return
     const camera = gl.xr.getCamera()
     camera.getWorldPosition(head.current.position)
     camera.getWorldDirection(head.current.direction)
@@ -1059,6 +1225,22 @@ export default function View3D() {
   const joints = useHouse((s) => s.joints)
   const furniture = useHouse((s) => s.furniture)
   const selectedFurnitureId = useHouse((s) => s.selectedFurnitureId)
+  // Realidad aumentada: de qué manera se entró y si hay una sesión en marcha.
+  const [xrMode, setXrMode] = useState<'vr' | 'ar'>('vr')
+  const xrSession = useSyncExternalStore(
+    (listener) => xrStore.subscribe(listener),
+    () => xrStore.getState().session,
+  )
+  const ar = xrSession != null && xrMode === 'ar'
+  // Lo que ocupa la casa en la parcela: su centro y sus medidas, para la maqueta.
+  const footprint = useMemo(() => {
+    if (modules.length === 0) return { cx: PLOT.width / 2, cy: PLOT.depth / 2, w: 1, d: 1 }
+    const x0 = Math.min(...modules.map((m) => m.x))
+    const y0 = Math.min(...modules.map((m) => m.y))
+    const x1 = Math.max(...modules.map((m) => m.x + m.width))
+    const y1 = Math.max(...modules.map((m) => m.y + m.depth))
+    return { cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, w: x1 - x0, d: y1 - y0 }
+  }, [modules])
   const parts = useMemo(
     () => wallParts(modules, joints, openings, FACADE_COLOR),
     [modules, joints, openings],
@@ -1183,6 +1365,7 @@ export default function View3D() {
             <button
               title="Ver la casa con unas gafas de realidad virtual (Quest)"
               onClick={() => {
+                setXrMode('vr')
                 xrStore.enterVR().then(
                   (session) => {
                     if (!session) setSaved('Este navegador no permite VR: ábrelo en el de las Quest.')
@@ -1192,6 +1375,20 @@ export default function View3D() {
               }}
             >
               Entrar en VR
+            </button>
+            <button
+              title="Ver la casa como una maqueta sobre tu mesa, con el paso de cámara de las Quest 3"
+              onClick={() => {
+                setXrMode('ar')
+                xrStore.enterAR().then(
+                  (session) => {
+                    if (!session) setSaved('Este navegador no permite AR: ábrelo en el de las Quest 3.')
+                  },
+                  () => setSaved('No se ha podido entrar en AR.'),
+                )
+              }}
+            >
+              Entrar en AR
             </button>
             {hereIndex >= 0 && (
               <>
@@ -1275,12 +1472,13 @@ export default function View3D() {
         </div>
       )}
     <Canvas shadows camera={{ position: [20, 22, 34], fov: 45 }}>
-      <color attach="background" args={['#e6edf1']} />
+      {/* En AR no hay fondo: se ve la habitación real. */}
+      {!ar && <color attach="background" args={['#e6edf1']} />}
       <ambientLight intensity={0.8} />
       <directionalLight
         position={[14, 26, 10]}
         intensity={1.8}
-        castShadow
+        castShadow={!ar}
         shadow-mapSize={[2048, 2048]}
         shadow-camera-left={-22}
         shadow-camera-right={22}
@@ -1289,15 +1487,21 @@ export default function View3D() {
       />
 
       {/* El plano (x, y) pasa a ser el suelo (x, z), con la parcela centrada en el origen. */}
-      <group position={[-PLOT.width / 2, 0, -PLOT.depth / 2]}>
-        <mesh
-          rotation-x={-Math.PI / 2}
-          position={[PLOT.width / 2, 0, PLOT.depth / 2]}
-          receiveShadow
-        >
-          <planeGeometry args={[PLOT.width, PLOT.depth]} />
-          <meshStandardMaterial color="#b7c7a3" />
-        </mesh>
+      {/* En AR la casa va sobre su mesa, centrada en ella y sin el césped de la parcela. */}
+      <ARTable enabled={ar} size={[footprint.w, footprint.d]}>
+      <group
+        position={ar ? [-footprint.cx, 0, -footprint.cy] : [-PLOT.width / 2, 0, -PLOT.depth / 2]}
+      >
+        {!ar && (
+          <mesh
+            rotation-x={-Math.PI / 2}
+            position={[PLOT.width / 2, 0, PLOT.depth / 2]}
+            receiveShadow
+          >
+            <planeGeometry args={[PLOT.width, PLOT.depth]} />
+            <meshStandardMaterial color="#b7c7a3" />
+          </mesh>
+        )}
 
         {modules.map((m) => (
           <group key={m.id} position={[m.x + m.width / 2, 0, m.y + m.depth / 2]}>
@@ -1391,9 +1595,10 @@ export default function View3D() {
           </mesh>
         ))}
       </group>
+      </ARTable>
 
       <XR store={xrStore}>
-        <VRRig />
+        <VRRig ar={ar} />
         <DesktopControls />
       </XR>
       {photo && (

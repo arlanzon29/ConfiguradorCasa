@@ -377,6 +377,17 @@ dejaste la cabeza. En VR se apaga la cámara de ratón y teclado
 (`DesktopControls`). La foto en calidad no existe en VR. En localhost, si el
 navegador no tiene WebXR, la librería emula unas Quest 3 (solo desarrollo).
 
+**Realidad aumentada** (2026-10-12, `ARTable` en `View3D.tsx`): botón **"Entrar en
+AR"**, para las Quest 3 (`immersive-ar`, con el paso de cámara). La casa sale
+como una **maqueta a 1:20 sobre una mesa translúcida**, centrada en su mesa y
+sin el césped de la parcela, a 0,8 m delante de ti y a 0,75 m del suelo. Se
+maneja como la bandeja de la prueba `D:\IA\Macedonia\games\sala-ar`
+(ahí lo tenía resuelto el usuario): **gatillo mantenido**, la mesa sigue al mando
+(justo debajo) y gira hacia donde apunta; **agarre con la mano sobre ella**, la
+lleva sin girarla; **stick** izquierda o derecha, la gira poco a poco; **A o X**,
+cambia entre maqueta y tamaño real (1:1); **B o Y** sale. Sin sombras ni fondo.
+Solo con mandos: las manos (pellizco) no están.
+
 **Arriba del panel izquierdo**: Nuevo plano (crea un módulo vacío de 13 × 4,2 en (0, 0) y abre
 el modo Módulos), Guardar plano y Cargar plano (archivo `.json`).
 
@@ -688,6 +699,17 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-12** · **Realidad aumentada** (la segunda visualización; el usuario
+  quería situar la mesa y su ángulo con un agarrador, y remitió a su prueba
+  `D:\IA\Macedonia\games\sala-ar`, que leí y adapté). Botón "Entrar en AR";
+  `ARTable` en `View3D.tsx` con gatillo, agarre, stick y A/X; el fondo, la
+  parcela y las sombras se quitan en AR; `VRRig` recibe `ar` y no toca la
+  cámara de la vista normal ni camina. Probado en el emulador de Quest 3
+  (el servidor aparte, 5185): la mesa nace delante de la cabeza, el gatillo
+  la lleva debajo del mando y A cambia la escala. **Sin probar en gafas**: el
+  paso de cámara, el agarre y el stick, ni el giro hacia donde apunta (el
+  emulador apuntaba siempre al norte).
 
 - **2026-10-12** · **Salir de la VR** (el usuario probó la VR en las Quest, "va
   bien", pero no podía salir). B o Y sale de la sesión (`gamepad.buttons[5]` de
