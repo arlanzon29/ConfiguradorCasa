@@ -20,7 +20,7 @@ export const FLOORS: FloorFinish[] = [
     id: 'pino',
     name: 'Madera de pino',
     color: '#a9834f',
-    texture: '/texturas/suelos/madera-pino.jpg',
+    texture: 'texturas/suelos/madera-pino.jpg',
     size: [2, 2],
   },
 ]

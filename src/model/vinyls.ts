@@ -36,12 +36,12 @@ export interface VinylType {
 // Dibujos de prueba, hechos para el configurador. Para añadir uno: la imagen en
 // public/texturas/vinilos/ y una línea aquí.
 export const VINYLS: VinylType[] = [
-  { id: 'nube', name: 'Nube', image: '/texturas/vinilos/nube.svg', width: 0.8, height: 0.5 },
-  { id: 'luna', name: 'Luna', image: '/texturas/vinilos/luna.svg', width: 0.6, height: 0.6 },
-  { id: 'estrellas', name: 'Estrellas', image: '/texturas/vinilos/estrellas.svg', width: 1, height: 0.6 },
-  { id: 'globo', name: 'Globo', image: '/texturas/vinilos/globo.svg', width: 0.6, height: 0.9 },
-  { id: 'arcoiris', name: 'Arcoíris', image: '/texturas/vinilos/arcoiris.svg', width: 1, height: 0.6 },
-  { id: 'montanas', name: 'Montañas', image: '/texturas/vinilos/montanas.svg', width: 2, height: 0.8 },
+  { id: 'nube', name: 'Nube', image: 'texturas/vinilos/nube.svg', width: 0.8, height: 0.5 },
+  { id: 'luna', name: 'Luna', image: 'texturas/vinilos/luna.svg', width: 0.6, height: 0.6 },
+  { id: 'estrellas', name: 'Estrellas', image: 'texturas/vinilos/estrellas.svg', width: 1, height: 0.6 },
+  { id: 'globo', name: 'Globo', image: 'texturas/vinilos/globo.svg', width: 0.6, height: 0.9 },
+  { id: 'arcoiris', name: 'Arcoíris', image: 'texturas/vinilos/arcoiris.svg', width: 1, height: 0.6 },
+  { id: 'montanas', name: 'Montañas', image: 'texturas/vinilos/montanas.svg', width: 2, height: 0.8 },
 ]
 
 export const vinylType = (id: string) => VINYLS.find((t) => t.id === id)

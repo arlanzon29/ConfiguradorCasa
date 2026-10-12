@@ -15,6 +15,13 @@ npm run build    # tsc --noEmit && vite build
 ```
 
 - Vista 3D sola (para otra ventana): `http://localhost:5173/?vista=3d`
+- **Publicada en GitHub Pages** (desde el 2026-10-12):
+  `https://arlanzon29.github.io/ConfiguradorCasa/`. La compila y publica sola
+  `.github/workflows/pages.yml` cada vez que algo entra en `main`. Por eso
+  `base: './'` en `vite.config.ts` y las rutas de imágenes **sin barra
+  inicial** (`texturas/...`, no `/texturas/...`): la web cuelga de una
+  subcarpeta. El plano y las fotos de cada visitante se quedan en su
+  navegador, como en local.
 - Comprobación mínima tras cualquier cambio: `npx tsc --noEmit`. No hay tests ni linter.
 - Node del equipo: 20.11.1. Por eso **Vite 6** y `@vitejs/plugin-react` 4: Vite 7
   y 8 y el plugin 5 y 6 exigen Node 20.19 o 22.12. Para subirlos hay que
@@ -425,7 +432,8 @@ Teclas: `R` gira lo seleccionado, `Supr` lo borra, `Esc` cancela la herramienta.
   en `public/texturas/vinilos/` + una línea en `VINYLS` (`vinyls.ts`) con las
   medidas en metros con las que se coloca.
 - **Suelo**: imagen repetible (~1024 px) en `public/texturas/suelos/` + una línea en
-  `FLOORS` (`finishes.ts`) con `name`, `color`, `texture`, `size` en metros.
+  `FLOORS` (`finishes.ts`) con `name`, `color`, `texture` (sin barra inicial),
+  `size` en metros.
 - **Color de pared**: una línea en `WALL_COLORS`.
 - **Puerta/ventana**: una línea en `OPENING_CATALOG` (`openings.ts`).
 - **Mueble**: una línea en `FURNITURE` (`furniture.ts`) con su `family` y `shape`.
@@ -605,6 +613,12 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-12** · **Publicación en GitHub Pages** (lo pidió el usuario):
+  `.github/workflows/pages.yml`, `base: './'` y rutas de texturas relativas.
+  Probado sirviendo `dist` bajo `/ConfiguradorCasa/` en la nube: carga, se
+  ven las texturas de suelo y paredes. Sin probar la foto en calidad
+  publicada.
 
 - **2026-10-12** · **Fuera las rayas finas** en las juntas de las paredes (se
   veían sobre todo junto a puertas y ventanas): las caras de las juntas se
