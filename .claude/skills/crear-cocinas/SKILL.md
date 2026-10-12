@@ -115,9 +115,11 @@ provisionales, puestas por Claude hasta que él las confirme.
   el extremo del armario, formando una L**: pegado al lado del armario y
   saliendo de la pared hacia el interior de la estancia, con su lado largo (1,2)
   en el eje norte-sur. La prueba: `x` el borde izquierdo del armario menos 0,3,
-  `y` la del armario más 0,3, `espalda: 'oeste'`. Con eso las **puertas miran
-  al lado de trabajo** (este) y el lado de sentarse queda hacia fuera.
-  Interpretación mía del lado de las puertas; sin confirmar.
+  `y` la del armario más 0,3, **`espalda: 'este'`**. Con eso la **puerta y su
+  tirador miran hacia fuera de la L**, hacia el salón (el usuario: "el tirador
+  está mal, hay que ponerlo en la otra puerta… solo hay una puerta": quería la
+  puerta en la otra cara, no dos puertas). Primero estuvo con `espalda: 'oeste'`,
+  hacia el lado de trabajo, y se giró 180°.
 - Su tablero queda a 0,80 y la encimera a 0,82: 2 cm de escalón. No se ha
   tocado.
 

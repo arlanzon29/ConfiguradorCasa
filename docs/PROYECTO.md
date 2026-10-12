@@ -705,6 +705,14 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Puerta del desayunador en la otra cara** (el usuario: "el
+  tirador está mal, hay que ponerlo en la otra puerta" y, al preguntarle
+  cuál, "solo hay una puerta"): lo entendí como que la puerta, que es una
+  sola, tiene que ir por la otra cara. El desayunador gira 180°
+  (`espalda: 'este'`): ahora puerta y tirador miran hacia el salón, fuera de
+  la L. Entorno de pruebas (5185); anotado en `crear-cocinas`. Visto en 3D.
+  Lectura mía: si no era eso, queda por aclarar.
+
 - **2026-10-12** · **Desayunador en L** (el usuario: "se pone formando una
   L"): en la cocina de prueba (5185) la mesa con armarios va perpendicular a
   la hilera, en el extremo del armario, saliendo de la pared norte hacia el
