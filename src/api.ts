@@ -3,8 +3,10 @@
 // Claude": pocas funciones, con parámetros en el idioma del comercial, que
 // devuelven lo creado o el motivo por el que no se ha podido.
 
-import { PlacedModule, Shell, fits, roundSize, validSize } from './model/house'
+import { PlacedModule, Shell, Side, fits, roundSize, validSize } from './model/house'
 import { roomName, shellName } from './model/names'
+import { OPPOSITE, wallLine } from './model/openings'
+import { deriveWalls } from './model/walls'
 import { usePhotos } from './photos'
 import { useHouse } from './store'
 
@@ -116,7 +118,59 @@ function eliminarEstancia(p: { estancia: string }) {
   return casa()
 }
 
-const eurocasa = { casa, nuevoPlano, medirModulo, crearEstancia, eliminarEstancia }
+const TIPOS = { puerta: 'door', corredera: 'sliding', ventana: 'window' } as const
+const LADOS: Record<string, Side> = { norte: 'n', sur: 's', este: 'e', oeste: 'w' }
+
+/**
+ * Pone una puerta, una corredera o una ventana en la pared de un lado de una
+ * estancia. Con `con`, en el tramo que comparte con esa otra estancia. Con
+ * `posicion` (metros desde el extremo oeste o norte del lado hasta el centro
+ * del hueco) va ahí; sin ella, centrado en el tramo más largo.
+ */
+function ponerHueco(p: {
+  tipo: keyof typeof TIPOS
+  estancia: string
+  lado: string
+  con?: string
+  posicion?: number
+}) {
+  const room = findRoom(p.estancia)
+  if (!room) return { error: `No hay ninguna estancia "${p.estancia}".` } as Fallo
+  const side = LADOS[p.lado]
+  if (!side || !TIPOS[p.tipo]) return { error: 'Tipo o lado desconocido.' } as Fallo
+  const other = p.con ? findRoom(p.con) : undefined
+  if (p.con && !other) return { error: `No hay ninguna estancia "${p.con}".` } as Fallo
+
+  const { modules, joints } = state()
+  const line = wallLine(room, side)
+  const at = p.posicion === undefined ? undefined : line.start + p.posicion
+  // Los tramos de ese lado: los que salen de la estancia y los de la vecina que dan a ella.
+  const wall = deriveWalls(modules, joints)
+    .filter(
+      (w) =>
+        ((w.moduleId === room.id && w.side === side) ||
+          (w.otherId === room.id && w.side === OPPOSITE[side])) &&
+        (!other || w.moduleId === other.id || w.otherId === other.id) &&
+        (at === undefined || (at >= w.from && at <= w.to)),
+    )
+    .sort((a, b) => b.to - b.from - (a.to - a.from))[0]
+  if (!wall) return { error: 'No hay pared ahí.' } as Fallo
+  if (!state().addOpening(TIPOS[p.tipo], wall.key, at ?? (wall.from + wall.to) / 2)) {
+    return { error: 'No cabe en esa pared, o pisa otro hueco.' } as Fallo
+  }
+  const made = state().openings.find((o) => o.id === state().selectedOpeningId)!
+  // El hueco se ancla a la estancia de la que sale la pared, que puede ser la vecina.
+  const anchor = wallLine(modules.find((m) => m.id === made.moduleId)!, made.side)
+  return {
+    id: made.id,
+    tipo: p.tipo,
+    pared: wall.shared ? `${roomName(modules, wall.moduleId)} | ${roomName(modules, wall.otherId!)}` : 'exterior',
+    desde: roundSize(anchor.start + made.offset - line.start),
+    ancho: made.width,
+  }
+}
+
+const eurocasa = { casa, nuevoPlano, medirModulo, crearEstancia, eliminarEstancia, ponerHueco }
 
 declare global {
   interface Window {

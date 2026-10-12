@@ -623,6 +623,18 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · Sexta función en `window.eurocasa`: **`ponerHueco`** (el
+  usuario pidió puertas y ventanas en la casa de prueba; hacerlo con una
+  función y no por la interfaz lo decidí yo). Recibe `tipo` (puerta,
+  corredera o ventana), `estancia`, `lado` (norte, sur, este, oeste) y, si se
+  quiere, `con` (la estancia vecina, para la pared compartida) y `posicion`
+  (metros desde el extremo oeste o norte del lado hasta el centro del hueco;
+  sin ella, centrado). Probado en el servidor aparte (5183) en una casa de
+  12 × 4 con salón, habitación y baño: ocho huecos, dos de ellos en paredes
+  compartidas, y los rechazos de uno que pisa a otro y de una estancia que no
+  existe. Sin funciones todavía: medidas del hueco, hacia dónde abre una
+  puerta, mover o cambiar de medida una estancia, muebles y segundo módulo.
+
 - **2026-10-12** · **Funciones para manejar la casa sin la interfaz**, primera
   prueba del uso "comercial desde Claude". El usuario dijo que la aplicación
   se usará de tres maneras: usuario final, comercial y comercial desde Claude.
