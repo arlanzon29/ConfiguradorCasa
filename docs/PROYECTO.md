@@ -705,6 +705,11 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Encimera recortada a 1,35 m** (el usuario preguntó si
+  la había ajustado: no, solo lo había propuesto): vuelta a 1,35 × 0,02 × 0,6
+  m a 0,80, a ras del armario por la izquierda y del frigorífico por la
+  derecha, sin sobresalir. Entorno de pruebas (5185).
+
 - **2026-10-12** · **Skill `crear-cocinas` reescrito** (el usuario: "así podría
   quedar, anota en el skill cómo hemos trabajado") y **tapa lateral
   quitada** ("quita este último tablón"). El skill pasa a tener: cómo hemos

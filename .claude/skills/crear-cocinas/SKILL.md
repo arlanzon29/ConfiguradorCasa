@@ -90,8 +90,8 @@ provisionales, puestas por Claude hasta que él las confirme.
   inferior a **0,80** y la cara de arriba a **0,82**.
 - **La encimera va del borde del armario al frigorífico**, por encima de las
   tres piezas de debajo. (En la prueba llegó a cubrir una tapa lateral, que el
-  usuario quitó después; la encimera se quedó con sus 1,36 m, unos 1,5 cm
-  salida por la izquierda: recórtala a 1,35 si quieres que quede a ras.)
+  usuario quitó; la encimera se recortó entonces de 1,36 a **1,35 m** para
+  que quede a ras del armario por la izquierda y del frigorífico por la derecha.)
 - **Fregadero y vitro, encima de la encimera** a `altura` 0,82, **separados de
   la pared y centrados en su fondo** (usuario; `y` la del centro de la
   encimera, 0,45 en la prueba). El fregadero **sobre el armario**; la vitro a
