@@ -624,6 +624,17 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Muebles por funciones** (el usuario pidió una cama de
+  matrimonio en la habitación de la casa de prueba): `catalogoMuebles`,
+  `ponerMueble` y `quitarMueble` en `window.eurocasa`, y su parte en la skill
+  `crear-casas`. `ponerMueble` recibe el mueble (id o nombre), la estancia y,
+  si se quiere, la `pared` contra la que va de espaldas, a ras de su cara
+  interior, y la `posicion` a lo largo de ella; `casa()` devuelve también los
+  `muebles`. Probado en el servidor aparte (5183): la cama doble contra la
+  pared sur de una habitación de 4,4 × 2,4 m, y el rechazo de una cama que no
+  cabe en el baño. Sin probar: `quitarMueble`, un mueble sin `pared`, las
+  paredes este y oeste, y `posicion` fuera de la pared.
+
 - **2026-10-12** · **Skill `crear-casas`** y función **`cambiarHueco`**. El
   usuario fijó la forma de trabajar el uso "desde Claude": ir creando
   funciones para cada elemento y, a la vez, preparar la skill que enseña a

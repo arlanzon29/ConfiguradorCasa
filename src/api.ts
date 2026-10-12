@@ -4,11 +4,12 @@
 // devuelven lo creado o el motivo por el que no se ha podido.
 
 import { PlacedModule, Shell, Side, fits, roundSize, validSize } from './model/house'
-import { roomName, shellName } from './model/names'
+import { FURNITURE, FurnitureItem, Rotation } from './model/furniture'
+import { furnitureName, roomName, shellName } from './model/names'
 import { OPPOSITE, Opening, swingDoor, validOpeningSize, wallLine } from './model/openings'
 import { deriveWalls, wallOf } from './model/walls'
 import { usePhotos } from './photos'
-import { useHouse } from './store'
+import { furnitureBox, useHouse } from './store'
 
 type Fallo = { error: string }
 
@@ -55,6 +56,7 @@ function casa() {
     })),
     estanciasSueltas: modules.filter((m) => !m.shellId).map((m) => describeRoom(m)),
     huecos: state().openings.map(describeOpening),
+    muebles: state().furniture.map(describeFurniture),
   }
 }
 
@@ -122,6 +124,8 @@ function eliminarEstancia(p: { estancia: string }) {
 const TIPOS = { puerta: 'door', corredera: 'sliding', ventana: 'window' } as const
 const LADOS: Record<string, Side> = { norte: 'n', sur: 's', este: 'e', oeste: 'w' }
 const lado = (side: Side) => Object.keys(LADOS).find((k) => LADOS[k] === side)!
+// Con giro 0 la parte trasera de un mueble mira al norte; cada giro, 90° en sentido horario.
+const BACKS: Record<Rotation, Side> = { 0: 'n', 90: 'e', 180: 's', 270: 'w' }
 
 /** Lo que se puede ajustar de un hueco; medidas en metros, `altura` sobre el suelo. */
 interface Ajustes {
@@ -251,7 +255,79 @@ function cambiarHueco(p: { hueco: string } & Ajustes) {
   return describeOpening(find()!)
 }
 
+/** Un mueble tal como se cuenta: su centro, desde la esquina de su estancia. */
+function describeFurniture(f: FurnitureItem) {
+  const { modules } = state()
+  const room = modules.find((m) => m.id === f.roomId)
+  return {
+    id: f.id,
+    mueble: f.typeId,
+    nombre: furnitureName(f),
+    ...(room && { estancia: roomName(modules, room.id) }),
+    x: roundSize(f.x - (room?.x ?? 0)),
+    y: roundSize(f.y - (room?.y ?? 0)),
+    // Hacia dónde mira su parte trasera (cabecero, respaldo, fondo del armario).
+    espalda: lado(BACKS[f.rotation]),
+  }
+}
+
+/** El catálogo de muebles, con sus medidas: `fondo` es de la espalda al frente. */
+const catalogoMuebles = () =>
+  FURNITURE.map((t) => ({ mueble: t.id, nombre: t.name, ancho: t.width, fondo: t.depth, alto: t.height }))
+
+/**
+ * Pone un mueble del catálogo en una estancia. Con `pared` va de espaldas a la
+ * pared de ese lado, a ras, y `posicion` son los metros desde el extremo oeste
+ * o norte del lado hasta el centro del mueble (sin ella, centrado). Sin
+ * `pared`, en el centro de la estancia.
+ */
+function ponerMueble(p: { mueble: string; estancia: string; pared?: string; posicion?: number }) {
+  const key = p.mueble.trim().toLowerCase()
+  const type = FURNITURE.find((t) => t.id === key || t.name.toLowerCase() === key)
+  if (!type) return { error: `No hay ningún mueble "${p.mueble}" en el catálogo.` } as Fallo
+  const room = findRoom(p.estancia)
+  if (!room) return { error: `No hay ninguna estancia "${p.estancia}".` } as Fallo
+  const side = p.pared === undefined ? undefined : LADOS[p.pared]
+  if (p.pared !== undefined && !side) return { error: 'Lado desconocido.' } as Fallo
+
+  state().addFurniture(type.id, room.x + room.width / 2, room.y + room.depth / 2)
+  const id = state().selectedFurnitureId!
+  const find = () => state().furniture.find((f) => f.id === id)!
+  while (side && BACKS[find().rotation] !== side) state().rotateFurniture(id)
+
+  // Las caras interiores de las paredes de la estancia, con el mueble ya girado.
+  const box = furnitureBox(find(), state().modules, state().joints)!
+  if (box.east - box.west < box.halfX * 2 || box.south - box.north < box.halfY * 2) {
+    state().removeFurniture(id)
+    return { error: 'Ese mueble no cabe en esa estancia en esa postura.' } as Fallo
+  }
+  if (side) {
+    const horizontal = side === 'n' || side === 's'
+    const [low, high, half] = horizontal
+      ? [box.west + box.halfX, box.east - box.halfX, box.halfY]
+      : [box.north + box.halfY, box.south - box.halfY, box.halfX]
+    const wanted =
+      p.posicion === undefined ? (low + high) / 2 : wallLine(room, side).start + p.posicion
+    const along = Math.min(Math.max(wanted, low), high)
+    const across = { n: box.north + half, s: box.south - half, w: box.west + half, e: box.east - half }[side]
+    state().placeFurniture(id, horizontal ? along : across, horizontal ? across : along)
+  }
+  return describeFurniture(find())
+}
+
+/** Quita un mueble, por su id. */
+function quitarMueble(p: { mueble: string }) {
+  if (!state().furniture.some((f) => f.id === p.mueble)) {
+    return { error: `No hay ningún mueble "${p.mueble}".` } as Fallo
+  }
+  state().removeFurniture(p.mueble)
+  return casa()
+}
+
 const eurocasa = {
+  catalogoMuebles,
+  ponerMueble,
+  quitarMueble,
   casa,
   nuevoPlano,
   medirModulo,

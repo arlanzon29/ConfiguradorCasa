@@ -53,6 +53,13 @@ su id; los huecos, por su id.
 | `eliminarEstancia` | `{ estancia }` | Se lleva sus huecos y muebles |
 | `ponerHueco` | `{ tipo, estancia, lado, con?, posicion?, ancho?, alto?, altura?, abreHacia? }` | `tipo`: `puerta` (0,9 m), `corredera` (2,4 m) o `ventana` (1,2 × 1,2 m a 0,9 m del suelo). `lado`: `norte`, `sur`, `este`, `oeste`. `con`: la estancia vecina, para la pared compartida. `posicion`: metros desde el extremo oeste (lados norte y sur) o norte (lados este y oeste) del lado hasta el **centro** del hueco; sin ella, centrado |
 | `cambiarHueco` | `{ hueco, ancho?, alto?, altura?, abreHacia? }` | `altura` es la del borde inferior sobre el suelo. `abreHacia`: nombre de la estancia hacia la que abre la puerta, o `fuera`. Al cambiar el ancho conserva el centro |
+| `catalogoMuebles()` | — | Los muebles que hay, con `ancho`, `fondo` (de la espalda al frente) y `alto`. Hoy: `mesa-comedor`, `mesa-centro`, `silla`, `sofa`, `cama-doble` (1,6 × 2 m; la "cama de matrimonio"), `cama-individual`, `mesilla`, `armario` |
+| `ponerMueble` | `{ mueble, estancia, pared?, posicion? }` | `mueble`: id o nombre del catálogo. Con `pared` (`norte`, `sur`, `este`, `oeste`) va **de espaldas** a esa pared (cabecero, respaldo, fondo del armario), a ras de ella; `posicion` son los metros desde el extremo oeste o norte del lado hasta el **centro** del mueble (sin ella, centrado; si se sale, se arrima a la esquina). Sin `pared`, en el centro de la estancia. Falla si no cabe en esa postura |
+| `quitarMueble` | `{ mueble }` | Por su id (los da `casa().muebles`) |
+
+Los muebles **no chocan** entre sí ni con las puertas: comprueba tú, con las
+medidas del catálogo y las posiciones de `casa()`, que no se pisan ni tapan
+una puerta.
 
 Un hueco necesita 0,2 m libres hasta cada extremo de su pared y no puede pisar
 a otro. Alto de pared: 2,7 m.
@@ -71,8 +78,9 @@ e.ponerHueco({ tipo: 'ventana', estancia: 'Habitación', lado: 'norte' })
 
 **Lo que todavía no tiene función** (se hace por la interfaz, o se prepara la
 función antes): mover o cambiar de medida una estancia (hoy: eliminarla y
-crearla otra vez, y se pierden sus huecos), quitar o mover un hueco, canto de
-las bisagras, segundo módulo, muebles, luces, acabados, fotos.
+crearla otra vez, y se pierden sus huecos y muebles), quitar o mover un hueco,
+canto de las bisagras, segundo módulo, mover o girar un mueble ya puesto
+(hoy: quitarlo y ponerlo otra vez), luces, acabados, fotos.
 
 ## Cómo trabajar con el comercial
 
@@ -106,4 +114,6 @@ EuroCasa. Cuando el usuario dé una regla suya, sustituye a la de aquí.
 - Medidas orientativas, exteriores: dormitorio doble desde 10 m² con lado
   menor de 2,6 m; individual desde 6 m²; baño de 3 a 6 m² con lado menor de
   1,6 m; salón con cocina desde 18 m².
+- La cama, con el cabecero contra una pared sin ventana ni puerta si la hay,
+  y con paso a los dos lados si es doble (unos 0,6 m por lado).
 - Si no se sabe cuál es la fachada principal, pregunta; no la supongas.
