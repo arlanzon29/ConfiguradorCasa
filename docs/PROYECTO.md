@@ -704,6 +704,17 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Granito gris perla** como material y **frigoríficos
+  corregidos**. El usuario confirmó las alturas: normal 210 cm, pequeño
+  180 cm (estaban al revés). Y pasó una textura, `gris_perla.jpg`, para ver
+  cómo queda: copiada a `public/texturas/suelos/gris-perla.jpg` y añadida a
+  `FLOORS` (`finishes.ts`) como `gris-perla`, "Granito gris perla", código
+  provisional `ACA-MAT-GRIS-PERLA`; al ser textura, sale en todos los
+  selectores de acabado (suelo, paredes, techo, carpintería, tableros). Cubre
+  1,3 × 0,69 m (la imagen entera; **supuesto**, sin dato real). Probada en
+  el suelo de una cocina en el servidor aparte (5185), en la vista 3D. Sin
+  probar: en paredes, en un tablero y en la foto en calidad.
+
 - **2026-10-12** · **Frigoríficos** en la familia Cocina (lo pidió el
   usuario con sus medidas): `frigorifico` 60 × 60 × 180 cm y
   `frigorifico-pequeno` 60 × 60 × **210** cm, tal como los dijo (el

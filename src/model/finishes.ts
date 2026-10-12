@@ -27,6 +27,14 @@ export const FLOORS: FloorFinish[] = [
     texture: 'texturas/suelos/madera-pino.jpg',
     size: [2, 2],
   },
+  {
+    id: 'gris-perla',
+    code: 'ACA-MAT-GRIS-PERLA',
+    name: 'Granito gris perla',
+    color: '#b9b7b0',
+    texture: 'texturas/suelos/gris-perla.jpg',
+    size: [1.3, 0.69],
+  },
 ]
 
 export const DEFAULT_WALL_COLOR = '#f2efe8'
