@@ -5,9 +5,9 @@
 
 import { PLOT, PlacedModule, Shell, Side, fits, roundSize, validSize } from './model/house'
 import { BASE_FLOOR, MATERIALS, WALL_COLORS, floorOf, interiorFinish } from './model/finishes'
-import { FURNITURE, FurnitureItem, Rotation } from './model/furniture'
+import { FURNITURE, FurnitureItem, Rotation, furnitureType } from './model/furniture'
 import { furnitureName, roomName, shellName } from './model/names'
-import { OPPOSITE, Opening, swingDoor, validOpeningSize, wallLine } from './model/openings'
+import { OPPOSITE, Opening, openingCode, swingDoor, validOpeningSize, wallLine } from './model/openings'
 import { deriveWalls, wallOf } from './model/walls'
 import { Plan, parsePhotos, parsePlan, serializePlan } from './model/planFile'
 import { exportPhotos, importPhotos, usePhotos } from './photos'
@@ -172,6 +172,7 @@ function describeOpening(o: Opening) {
   const otherId = wall?.shared ? (wall.moduleId === o.moduleId ? wall.otherId : wall.moduleId) : undefined
   return {
     id: o.id,
+    codigo: openingCode(o),
     tipo: o.kind === 'window' ? 'ventana' : swingDoor(o) ? 'puerta' : 'corredera',
     estancia: roomName(modules, o.moduleId),
     lado: lado(o.side),
@@ -311,6 +312,7 @@ function describeFurniture(f: FurnitureItem) {
   const room = modules.find((m) => m.id === f.roomId)
   return {
     id: f.id,
+    codigo: furnitureType(f.typeId)?.code,
     mueble: f.typeId,
     nombre: furnitureName(f),
     ...(room && { estancia: roomName(modules, room.id) }),
@@ -323,7 +325,7 @@ function describeFurniture(f: FurnitureItem) {
 
 /** El catálogo de muebles, con sus medidas: `fondo` es de la espalda al frente. */
 const catalogoMuebles = () =>
-  FURNITURE.map((t) => ({ mueble: t.id, nombre: t.name, ancho: t.width, fondo: t.depth, alto: t.height }))
+  FURNITURE.map((t) => ({ mueble: t.id, codigo: t.code, nombre: t.name, ancho: t.width, fondo: t.depth, alto: t.height }))
 
 /**
  * Pone un mueble del catálogo en una estancia. Con `pared` va de espaldas a la
@@ -400,8 +402,8 @@ function quitarMueble(p: { mueble: string }) {
 
 /** Los acabados que hay: materiales (con textura) y colores de la paleta. */
 const catalogoAcabados = () => ({
-  materiales: MATERIALS.map((m) => ({ acabado: m.id, nombre: m.name })),
-  colores: WALL_COLORS.map((c) => ({ acabado: c.color, nombre: c.name })),
+  materiales: MATERIALS.map((m) => ({ acabado: m.id, codigo: m.code, nombre: m.name })),
+  colores: WALL_COLORS.map((c) => ({ acabado: c.color, codigo: c.code, nombre: c.name })),
 })
 
 /** Un acabado dicho por su nombre, su id o un color `#rrggbb`; undefined si no existe. */

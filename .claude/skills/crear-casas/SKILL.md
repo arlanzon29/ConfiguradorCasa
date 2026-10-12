@@ -90,6 +90,15 @@ crearla otra vez, y se pierden sus huecos y muebles), canto de las bisagras, seg
 filtro y objetivo. Suelos y paredes solo
 se ven en la vista 3D y en la foto, no en el plano.
 
+## Códigos de artículo
+
+Cada elemento de catálogo lleva un `codigo` (campo `code` en el código), para
+asociarlo a la base de costes de `comercial/`, que **la web no conoce**. Salen
+en `catalogoMuebles`, `catalogoAcabados` y, por instancia, en `casa().muebles`
+y `casa().huecos`. Lo que no es catálogo (módulo, paredes, rodapié, techo,
+focos, tablero, espejo) tiene su código en `src/model/articles.ts`. **Todos son
+inventados por Claude**, a falta de los de EuroCasa: no los des por reales.
+
 ## Casas guardadas: la carpeta `comercial/`
 
 Las casas de los comerciales son archivos de plano `.json` en `comercial/` (en

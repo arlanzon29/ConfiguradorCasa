@@ -149,7 +149,7 @@ function wallParts(
       const neutral = DEFAULT_WALL_COLOR
       const skins: WallSkin[] = []
       // `toward` es 1 en la cara sur o este de la caja y -1 en la norte u oeste.
-      const skin = (finish: Omit<FloorFinish, 'id' | 'name'> | undefined, toward: 1 | -1) => {
+      const skin = (finish: Omit<FloorFinish, 'id' | 'name' | 'code'> | undefined, toward: 1 | -1) => {
         if (!finish?.texture) return
         const out = axis + toward * (across / 2 + SKIN_GAP)
         // La lámina mira hacia +z sin girar; según el giro, su eje u va a favor

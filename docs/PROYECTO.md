@@ -639,6 +639,20 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Código de artículo en cada elemento** (lo pidió el
+  usuario: el coste **no estará en la web**, sino en la carpeta `comercial/`,
+  y cada elemento necesita un código para asociarse a esa base de costes).
+  Campo `code` en los tipos de catálogo (`FurnitureType`, `OpeningType`,
+  `FloorFinish`, `WALL_COLORS`, `VinylType`), `openingCode` y `finishCode`
+  para lo que se coloca, y `model/articles.ts` con los de lo que no es
+  catálogo (módulo, pared exterior y compartida, suelo, techo, rodapié, foco,
+  tablero, espejo). `window.eurocasa` los devuelve como `codigo`. **Los
+  códigos los inventé yo** (el usuario lo pidió así) y son provisionales.
+  Probado en el servidor aparte (5184): catálogos y casa de Daniel con sus
+  códigos; `tsc`. **Sin hacer**: la medición de la casa (cantidades por
+  código), la tabla de costes en `comercial/` y mostrar el código en
+  Propiedades.
+
 - **2026-10-12** · **Casa de Daniel Rodriguez Martinez guardada en
   `comercial/`**, con sus 5 fotos dentro (2,7 MB). Se dio cuenta de que la
   primera versión iba sin fotos (`bajarCasa` las deja fuera por defecto) y el

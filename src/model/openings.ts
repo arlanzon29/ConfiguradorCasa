@@ -10,6 +10,8 @@ export type OpeningKind = 'door' | 'window'
 
 export interface OpeningType {
   id: string
+  /** Código de artículo, para asociarlo a la base de costes (fuera de la web). */
+  code: string
   kind: OpeningKind
   name: string
   width: number
@@ -18,10 +20,21 @@ export interface OpeningType {
 }
 
 export const OPENING_CATALOG: OpeningType[] = [
-  { id: 'door', kind: 'door', name: 'Puerta 0,9 m', width: 0.9, height: 2.1, sill: 0 },
-  { id: 'sliding', kind: 'door', name: 'Corredera 2,4 m', width: 2.4, height: 2.1, sill: 0 },
-  { id: 'window', kind: 'window', name: 'Ventana 1,2 × 1,2 m', width: 1.2, height: 1.2, sill: 0.9 },
+  // Códigos provisionales, a falta de los de EuroCasa.
+  { id: 'door', code: 'HUE-PUERTA', kind: 'door', name: 'Puerta 0,9 m', width: 0.9, height: 2.1, sill: 0 },
+  { id: 'sliding', code: 'HUE-CORREDERA', kind: 'door', name: 'Corredera 2,4 m', width: 2.4, height: 2.1, sill: 0 },
+  { id: 'window', code: 'HUE-VENTANA', kind: 'window', name: 'Ventana 1,2 × 1,2 m', width: 1.2, height: 1.2, sill: 0.9 },
 ]
+
+/**
+ * Código de artículo de un hueco puesto: depende de su clase y, en las puertas,
+ * de si es abatible o corredera (por su ancho). Las medidas van aparte, en la
+ * cantidad que se mide.
+ */
+export function openingCode(o: Pick<Opening, 'kind' | 'width'>) {
+  const id = o.kind === 'window' ? 'window' : swingDoor(o) ? 'door' : 'sliding'
+  return OPENING_CATALOG.find((t) => t.id === id)!.code
+}
 
 export interface Opening {
   id: string
