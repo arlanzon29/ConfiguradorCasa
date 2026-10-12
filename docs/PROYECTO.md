@@ -377,7 +377,7 @@ dejaste la cabeza. En VR se apaga la cámara de ratón y teclado
 (`DesktopControls`). La foto en calidad no existe en VR. En localhost, si el
 navegador no tiene WebXR, la librería emula unas Quest 3 (solo desarrollo).
 
-**Realidad aumentada** (2026-10-12, `ARTable` en `View3D.tsx`): botón **"Entrar en
+**Realidad aumentada** (2026-10-12, `ARTable` en `View3D.tsx`): botón **"Maqueta
 AR"**, para las Quest 3 (`immersive-ar`, con el paso de cámara). La casa sale
 como una **maqueta a 1:20 sobre una mesa translúcida**, centrada en su mesa y
 sin el césped de la parcela, a 0,8 m delante de ti y a 0,75 m del suelo. Se
@@ -702,7 +702,8 @@ Se anota aquí cada cosa que se hace, la más reciente arriba.
 
 - **2026-10-12** · **Realidad aumentada** (la segunda visualización; el usuario
   quería situar la mesa y su ángulo con un agarrador, y remitió a su prueba
-  `D:\IA\Macedonia\games\sala-ar`, que leí y adapté). Botón "Entrar en AR";
+  `D:\IA\Macedonia\games\sala-ar`, que leí y adapté). Botón "Maqueta AR" (antes "Entrar en AR", a petición del
+  usuario);
   `ARTable` en `View3D.tsx` con gatillo, agarre, stick y A/X; el fondo, la
   parcela y las sombras se quitan en AR; `VRRig` recibe `ar` y no toca la
   cámara de la vista normal ni camina. Probado en el emulador de Quest 3

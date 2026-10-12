@@ -1388,7 +1388,7 @@ export default function View3D() {
                 )
               }}
             >
-              Entrar en AR
+              Maqueta AR
             </button>
             {hereIndex >= 0 && (
               <>
