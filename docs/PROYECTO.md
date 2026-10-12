@@ -705,6 +705,11 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **El "armario desayunador" es la mesa con armarios**
+  (el usuario preguntó si estaba creado y contestó "esa mesa con
+  armarios"): no hay pieza nueva; anotado en `crear-cocinas`. Sin voladizo ni
+  taburetes, y de 0,8 m de alto.
+
 - **2026-10-12** · **Encimera recortada a 1,35 m** (el usuario preguntó si
   la había ajustado: no, solo lo había propuesto): vuelta a 1,35 × 0,02 × 0,6
   m a 0,80, a ras del armario por la izquierda y del frigorífico por la

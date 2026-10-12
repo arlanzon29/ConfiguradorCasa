@@ -58,7 +58,7 @@ Medidas en metros, ancho × fondo × alto. Los códigos son provisionales.
 | `frigorifico` | 0,6 × 0,6 × 2,1 | Congelador pequeño **arriba**, frío abajo (usuario); asas separadas; bisagras a la izquierda (supuesto) |
 | `frigorifico-pequeno` | 0,6 × 0,6 × 1,8 | Igual |
 | `armario-cocina` | 0,45 × 0,6 × 0,8 | Dos puertas. 80 de alto como los pequeños, para una encimera a ras (usuario) |
-| `mesa-armarios` | 1,2 × 0,6 × 0,8 | Mesa de trabajo con **una sola puerta al medio**, dos paños fijos y el tirador horizontal (usuario) |
+| `mesa-armarios` | 1,2 × 0,6 × 0,8 | Mesa de trabajo con **una sola puerta al medio**, dos paños fijos y el tirador horizontal (usuario). **Es el "armario desayunador"** (usuario: "esa mesa con armarios"); si le piden otro nombre o más alto, se cambia en el catálogo |
 | `fregadero` | 0,4 × 0,45 | **Una sola pila, sin profundidad**: se apoya sobre la encimera (el usuario descartó el agujero) |
 | `vitroceramica` | 0,5 × 0,5 × 0,02 | 4 fuegos, fina y negra (usuario). Lleva su altura propia (0,9 m): ponle la de la encimera |
 
