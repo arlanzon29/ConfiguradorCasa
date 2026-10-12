@@ -1,5 +1,6 @@
 import {
   BASE_FLOOR,
+  DEFAULT_CEILING,
   DEFAULT_WALL_COLOR,
   Finish,
   MATERIALS,
@@ -71,6 +72,7 @@ export function RoomFinishes({ room }: { room: PlacedModule }) {
   const setFloor = useHouse((s) => s.setFloor)
   const turnFloor = useHouse((s) => s.turnFloor)
   const setWallColor = useHouse((s) => s.setWallColor)
+  const setCeiling = useHouse((s) => s.setCeiling)
   const floor = floorOf(room)
 
   return (
@@ -84,6 +86,24 @@ export function RoomFinishes({ room }: { room: PlacedModule }) {
           )}
           {floor && <button onClick={() => setFloor(room.id, BASE_FLOOR.id)}>Quitar el acabado</button>}
         </div>
+      </section>
+      <section>
+        <h2>Techo</h2>
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={!room.noCeiling}
+            onChange={(e) => setCeiling(room.id, { noCeiling: !e.target.checked })}
+          />
+          Con techo en la foto en calidad
+        </label>
+        {!room.noCeiling && (
+          <FinishPicker
+            value={room.ceiling ?? DEFAULT_CEILING}
+            onChange={(f) => setCeiling(room.id, { ceiling: f })}
+          />
+        )}
+        <p className="muted spaced">En la vista 3D normal no hay techo, para ver desde arriba.</p>
       </section>
       <section>
         <h2>Acabado de todas sus paredes</h2>
