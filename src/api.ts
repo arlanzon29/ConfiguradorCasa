@@ -13,6 +13,7 @@ import { OPPOSITE, Opening, openingCode, swingDoor, validOpeningSize, wallLine }
 import { deriveWalls, wallOf } from './model/walls'
 import { Plan, parsePhotos, parsePlan, serializePlan } from './model/planFile'
 import { exportPhotos, importPhotos, usePhotos } from './photos'
+import { redo, undo } from './history'
 import { CameraPose, PHOTO_EVENT, PHOTO_SAMPLES, furnitureBox, useHouse } from './store'
 
 type Fallo = { error: string }
@@ -429,6 +430,16 @@ function cambiarMueble(p: { mueble: string; altura?: number }) {
   return describeFurniture(state().furniture.find((f) => f.id === p.mueble)!)
 }
 
+/** Deshace el último cambio del plano (como Ctrl+Z). Las fotos no se deshacen. */
+function deshacer() {
+  return undo() ? casa() : ({ error: 'No hay nada que deshacer.' } as Fallo)
+}
+
+/** Repite lo último que se deshizo (como Ctrl+Y). */
+function rehacer() {
+  return redo() ? casa() : ({ error: 'No hay nada que rehacer.' } as Fallo)
+}
+
 /** Quita un mueble, por su id. */
 function quitarMueble(p: { mueble: string }) {
   if (!state().furniture.some((f) => f.id === p.mueble)) {
@@ -728,6 +739,8 @@ const eurocasa = {
   ponerMueble,
   quitarMueble,
   cambiarMueble,
+  deshacer,
+  rehacer,
   catalogoMecanismos,
   ponerMecanismo,
   quitarMecanismo,

@@ -395,7 +395,8 @@ Solo con mandos: las manos (pellizco) no están.
 **Arriba del panel izquierdo**: Nuevo plano (crea un módulo vacío de 13 × 4,2 en (0, 0) y abre
 el modo Módulos), Guardar plano y Cargar plano (archivo `.json`).
 
-Teclas: `R` gira lo seleccionado, `Supr` lo borra, `Esc` cancela la herramienta.
+Teclas: `R` gira lo seleccionado, `Supr` lo borra, `Esc` cancela la herramienta,
+`Ctrl+Z` deshace y `Ctrl+Y` (o `Ctrl+Mayús+Z`) rehace.
 
 ## Decisiones de diseño que hay que respetar
 
@@ -703,6 +704,24 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-12** · **Deshacer y rehacer** (lo pidió el usuario tras mover una
+  estancia por error y perder los huecos: "hazme el deshacer con Ctrl+Z").
+  Nuevo `src/history.ts`: vigila las listas de la casa (`modules`,
+  `shells`, `openings`, `joints`, `furniture`) y guarda la anterior en
+  una pila de hasta 100 pasos; los cambios seguidos (menos de 0,5 s, o un
+  arrastre entero) cuentan como uno. **Ctrl+Z** deshace, **Ctrl+Y** o
+  **Ctrl+Mayús+Z** rehace (no con el foco en una casilla: ahí vale el
+  deshacer del navegador), y hay botones **Deshacer** y **Rehacer** arriba
+  del panel izquierdo. En `window.eurocasa`, `deshacer()` y `rehacer()`.
+  Lo que escribe otra ventana no cuenta como paso (`historyGate` en
+  `store.ts`). **No cubre** las fotos (IndexedDB), la cámara ni las opciones
+  de vista: "Nuevo plano" y "Cargar plano" se deshacen en la casa, pero las
+  fotos que borraron no vuelven. La pila se pierde al recargar la página.
+  Probado en el servidor aparte (5185): quitar un hueco y deshacer lo
+  devuelve, un segundo paso quita el sofá, rehacer, el tope ("No hay nada que
+  deshacer") y las teclas Ctrl+Z, Ctrl+Y y Ctrl+Mayús+Z. Sin probar con el
+  ratón: arrastrar una estancia y deshacer.
 
 - **2026-10-12** · **Mesa con armarios: una sola puerta al medio** (el
   usuario: "solo puede haber una puerta al medio"; luego "me falta el

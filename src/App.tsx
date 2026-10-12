@@ -1,4 +1,5 @@
 import { Suspense, lazy, useEffect, useState } from 'react'
+import { redo, undo } from './history'
 import Editor2D from './editor/Editor2D'
 import HouseTree from './panels/HouseTree'
 import PhotoViewer from './panels/PhotoViewer'
@@ -51,6 +52,21 @@ export default function App() {
     const onKey = (e: KeyboardEvent) => {
       // Al escribir medidas, R y Retroceso no deben girar ni borrar nada.
       if (e.target instanceof HTMLInputElement) return
+      // Ctrl+Z deshace; Ctrl+Y o Ctrl+Mayús+Z rehace.
+      if ((e.ctrlKey || e.metaKey) && !e.altKey) {
+        const key = e.key.toLowerCase()
+        if (key === 'z') {
+          e.preventDefault()
+          if (e.shiftKey) redo()
+          else undo()
+          return
+        }
+        if (key === 'y') {
+          e.preventDefault()
+          redo()
+          return
+        }
+      }
       const s = useHouse.getState()
       if (e.key === 'Escape') s.setTool(null)
       // La estancia solo se gira y borra si es ella lo elegido, no una pared suya.

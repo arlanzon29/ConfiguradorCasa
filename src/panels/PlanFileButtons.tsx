@@ -2,12 +2,15 @@ import { useRef, useState } from 'react'
 import { Plan, parsePhotos, parsePlan, serializePlan } from '../model/planFile'
 import { exportPhotos, importPhotos, usePhotos } from '../photos'
 import { useHouse } from '../store'
+import { redo, undo, useHistory } from '../history'
 
 // Sin barra inicial: la web puede colgar de una subcarpeta (GitHub Pages).
 const EXAMPLE_URL = 'ejemplos/ejemplo1.json'
 
 /** Empezar un plano nuevo, guardarlo en un archivo y cargarlo desde uno, o cargar el ejemplo. */
 export default function PlanFileButtons() {
+  const undos = useHistory((s) => s.undos)
+  const redos = useHistory((s) => s.redos)
   const loadPlan = useHouse((s) => s.loadPlan)
   const newPlan = useHouse((s) => s.newPlan)
   const replacePhotos = usePhotos((s) => s.replaceAll)
@@ -88,6 +91,12 @@ export default function PlanFileButtons() {
 
   return (
     <div className="plan-file">
+      <button disabled={undos === 0} onClick={() => undo()} title="Ctrl+Z">
+        Deshacer
+      </button>
+      <button disabled={redos === 0} onClick={() => redo()} title="Ctrl+Y">
+        Rehacer
+      </button>
       <button
         className="full"
         onClick={() =>

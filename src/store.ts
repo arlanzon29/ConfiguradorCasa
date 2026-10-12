@@ -455,6 +455,9 @@ const NO_SELECTION: Selection = {
   selectedShellId: null,
 }
 
+/** Lo lee history.ts: true mientras se vuelve a leer el estado que escribió otra ventana. */
+export const historyGate = { external: false }
+
 export const useHouse = create<HouseState>()(
   persist(
     (set, get) => {
@@ -1371,5 +1374,11 @@ export const useHouse = create<HouseState>()(
 // pestaña guarda el estado, esta lo vuelve a leer. El evento `storage` no se
 // dispara en la pestaña que escribe, así que no hay bucle.
 window.addEventListener('storage', (e) => {
-  if (e.key === useHouse.persist.getOptions().name) useHouse.persist.rehydrate()
+  if (e.key !== useHouse.persist.getOptions().name) return
+  // Lo que llega de otra ventana no es un paso de deshacer de esta (history.ts).
+  historyGate.external = true
+  useHouse.persist.rehydrate()
+  void Promise.resolve().then(() => {
+    historyGate.external = false
+  })
 })
