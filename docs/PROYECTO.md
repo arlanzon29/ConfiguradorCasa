@@ -704,6 +704,13 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Armario pequeño de cocina** (el usuario: "de 60 de
+  profundo y 45x45, para ponerlo al lado del lavavajillas"): `armario-cocina`,
+  familia Cocina, 45 cm de ancho × 60 de fondo × 45 de alto, código
+  provisional `MOB-ARMARIO-COCINA`, forma `wardrobe` (dos puertas). **El
+  "45 × 45" lo entendí como ancho y alto: por confirmar.** Solo `tsc`; sin
+  verlo a la vista.
+
 - **2026-10-12** · **Congelador arriba** en los frigoríficos (el usuario: "el
   congelado pequeño va en la parte superior"). Forma `fridge`: congelador
   arriba, un 25 % del alto, y el frío debajo; los tiradores se ajustan.

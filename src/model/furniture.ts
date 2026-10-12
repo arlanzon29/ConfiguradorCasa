@@ -49,6 +49,7 @@ export const FURNITURE: FurnitureType[] = [
   { id: 'frigorifico', code: 'MOB-FRIGORIFICO', family: 'cocina', name: 'Frigorífico', shape: 'fridge', width: 0.6, depth: 0.6, height: 2.1 },
   { id: 'frigorifico-pequeno', code: 'MOB-FRIGORIFICO-PEQUENO', family: 'cocina', name: 'Frigorífico pequeño', shape: 'fridge', width: 0.6, depth: 0.6, height: 1.8 },
   { id: 'lavavajillas-pequeno', code: 'MOB-LAVAVAJILLAS-PEQUENO', family: 'cocina', name: 'Lavavajillas pequeño', shape: 'appliance', width: 0.6, depth: 0.45, height: 0.8 },
+  { id: 'armario-cocina', code: 'MOB-ARMARIO-COCINA', family: 'cocina', name: 'Armario pequeño de cocina', shape: 'wardrobe', width: 0.45, depth: 0.6, height: 0.45 },
   { id: 'lavadora', code: 'MOB-LAVADORA', family: 'cocina', name: 'Lavadora', shape: 'washer', width: 0.6, depth: 0.6, height: 0.82 },
   { id: 'lavadora-pequena', code: 'MOB-LAVADORA-PEQUENA', family: 'cocina', name: 'Lavadora pequeña', shape: 'washer', width: 0.6, depth: 0.45, height: 0.8 },
 ]
