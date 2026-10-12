@@ -704,6 +704,17 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Televisión** en el catálogo de mobiliario (lo pidió el
+  usuario: "hace falta poder poner una tele"). Forma nueva `tv` en
+  `furniture.ts` y `boxes()` de `Furniture3D.tsx`: pantalla fina sobre un pie
+  corto, 1,2 × 0,25 × 0,75 m, familia salón, código provisional
+  `MOB-TELEVISION`. **Es una tele de pie** (sobre el suelo, que se puede
+  llevar contra la pared); colgada de la pared o sobre un mueble no existe
+  todavía, porque los muebles no tienen altura propia. Probado en el servidor
+  aparte (5185): se coloca por `ponerMueble` contra la pared norte y sale en
+  el árbol y en la vista 3D (elegida, resaltada); sin ver la pantalla de
+  frente. Medidas inventadas.
+
 - **2026-10-12** · **Armario medio** en el catálogo de mobiliario (lo pidió el
   usuario: un armario que sea la mitad del actual): `armario-medio`, 0,9 × 0,6
   × 2,2 m, familia dormitorio, código provisional `MOB-ARMARIO-MEDIO`. El

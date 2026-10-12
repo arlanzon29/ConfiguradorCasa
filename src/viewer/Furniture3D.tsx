@@ -58,6 +58,15 @@ function boxes({ shape, width: w, depth: d, height: h }: FurnitureType): Box[] {
         { position: [w / 2 - arm / 2, 0.3, back / 2], size: [arm, 0.6, d - back], color: FABRIC },
       ]
     }
+    case 'tv': {
+      // Pantalla fina sobre un pie corto; la pantalla mira hacia delante (+z).
+      const base = 0.04
+      const screen = 0.04
+      return [
+        { position: [0, base / 2, 0], size: [w * 0.4, base, d], color: '#2b2b2e' },
+        { position: [0, (base + h) / 2, -d / 2 + screen / 2 + 0.05], size: [w, h - base, screen], color: '#17171a' },
+      ]
+    }
     case 'wardrobe': {
       const gap = 0.01
       return [

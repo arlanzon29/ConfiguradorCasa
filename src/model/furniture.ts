@@ -5,7 +5,7 @@ import { PLOT } from './house'
 // Con giro 0, la parte trasera del mueble (cabecero, respaldo, fondo del
 // armario) mira al norte del plano.
 
-export type FurnitureShape = 'table' | 'bed' | 'wardrobe' | 'sofa' | 'chair'
+export type FurnitureShape = 'table' | 'bed' | 'wardrobe' | 'sofa' | 'chair' | 'tv'
 
 // Familias del catálogo, en el orden en que se muestran. Para añadir una
 // (cocina, baño…) basta con declararla aquí y asignarla a sus piezas.
@@ -33,6 +33,7 @@ export const FURNITURE: FurnitureType[] = [
   // Los códigos son provisionales, a falta de los de EuroCasa.
   { id: 'mesa-comedor', code: 'MOB-MESA-COMEDOR', family: 'comedor', name: 'Mesa de comedor', shape: 'table', width: 1.6, depth: 0.9, height: 0.75 },
   { id: 'mesa-centro', code: 'MOB-MESA-CENTRO', family: 'salon', name: 'Mesa de centro', shape: 'table', width: 1.1, depth: 0.6, height: 0.4 },
+  { id: 'television', code: 'MOB-TELEVISION', family: 'salon', name: 'Televisión', shape: 'tv', width: 1.2, depth: 0.25, height: 0.75 },
   { id: 'silla', code: 'MOB-SILLA', family: 'comedor', name: 'Silla', shape: 'chair', width: 0.45, depth: 0.45, height: 0.9 },
   { id: 'sofa', code: 'MOB-SOFA', family: 'salon', name: 'Sofá', shape: 'sofa', width: 2, depth: 0.9, height: 0.8 },
   { id: 'cama-doble', code: 'MOB-CAMA-DOBLE', family: 'dormitorio', name: 'Cama doble', shape: 'bed', width: 1.6, depth: 2, height: 0.5 },
