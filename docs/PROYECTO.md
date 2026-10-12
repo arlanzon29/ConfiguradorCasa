@@ -444,7 +444,8 @@ Teclas: `R` gira lo seleccionado, `Supr` lo borra, `Esc` cancela la herramienta.
   plano a la vista, `App` pasa a Plano + 3D; volver a Plano 2D, ir a otra foto o
   "Cancelar" la cancelan y la foto anterior queda como estaba. Se guarda la pose
   real de la cámara: si el usuario la mueve a mitad, la foto queda reencuadrada.
-  La vista 3D enseña además su propio botón **"Repetir foto N"** cuando la cámara
+  La vista 3D enseña además sus propios botones **"Ver foto N"** (abre el
+  visor) y **"Repetir foto N"** cuando la cámara
   está en el sitio y con el objetivo de una foto guardada (`hereIndex` en
   `View3D.tsx`, comparando poses con tolerancia): así sale también en la ventana
   `?vista=3d`, que no tiene panel pero recibe la pose al pasar a la foto en la otra.
@@ -665,6 +666,14 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-12** · **"Ver foto N" en la vista 3D** (lo pidió el usuario: la
+  vista ya detectaba que la cámara estaba en el sitio de una foto y ofrecía
+  repetirla, pero no verla). Botón junto a "Repetir foto N" en `View3D.tsx`
+  que abre el visor (`open` de `photos.ts`). Probado en el servidor aparte
+  (5185), en la ventana `?vista=3d`: la cámara a una foto, el botón y el
+  visor con la foto 5. Sin probar con el ratón en el botón (el clic se hizo
+  por código) ni en Plano + 3D.
 
 - **2026-10-12** · **Casa de Daniel actualizada en `comercial/`** con dos
   enchufes (0,3 m, detrás de las mesillas) y un interruptor (0,8 m, junto a

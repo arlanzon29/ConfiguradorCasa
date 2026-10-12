@@ -1068,12 +1068,20 @@ export default function View3D() {
           <>
             <button onClick={startPhoto}>Foto en calidad</button>
             {hereIndex >= 0 && (
-              <button
-                title="Vuelve a sacarla desde aquí, con el tamaño de esta vista, y sustituye a la anterior"
-                onClick={() => usePhotos.getState().retake(photos[hereIndex].id)}
-              >
-                Repetir foto {hereIndex + 1}
-              </button>
+              <>
+                <button
+                  title="Abre la foto guardada desde este sitio"
+                  onClick={() => usePhotos.getState().open(photos[hereIndex].id)}
+                >
+                  Ver foto {hereIndex + 1}
+                </button>
+                <button
+                  title="Vuelve a sacarla desde aquí, con el tamaño de esta vista, y sustituye a la anterior"
+                  onClick={() => usePhotos.getState().retake(photos[hereIndex].id)}
+                >
+                  Repetir foto {hereIndex + 1}
+                </button>
+              </>
             )}
           </>
         )}
