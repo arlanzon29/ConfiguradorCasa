@@ -86,8 +86,8 @@ function boxes({ shape, width: w, depth: d, height: h }: FurnitureType): Box[] {
         { position: [0, h / 2, -front / 2], size: [w, h, d - front], color: WHITE },
         { position: [0, cold / 2, d / 2 - front / 2], size: [doorW, cold - gap / 2, front], color: '#d6d8dc' },
         { position: [0, cold + gap + freezer / 2, d / 2 - front / 2], size: [doorW, freezer - gap / 2, front], color: '#d6d8dc' },
-        handle(cold - 0.15, 0.4),
-        handle(cold + gap + 0.1, 0.14),
+        handle(cold - 0.3, 0.4),
+        handle(cold + gap + 0.14, 0.16),
       ]
     }
     case 'washer': {

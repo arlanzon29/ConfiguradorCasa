@@ -704,6 +704,11 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Asas separadas en los frigoríficos** (lo pidió el
+  usuario): el asa del frío cruzaba la junta y entraba en la puerta del
+  congelador. Ahora cada puerta lleva la suya, entera dentro de su puerta y
+  con holgura entre las dos. Visto en 3D en el servidor aparte (5185).
+
 - **2026-10-12** · **Ojo de buey redondo y horno** (lo pidió el usuario: la
   parte negra de la lavadora parecía un horno, y un horno con las medidas del
   lavavajillas). `Box` de `Furniture3D.tsx` admite `round` (un disco, con el
