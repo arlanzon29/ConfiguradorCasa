@@ -158,6 +158,7 @@ src/
   main.tsx, App.tsx, App.css     arranque, los dos paneles, selector de vista
   store.ts                       estado global y TODAS las acciones (zustand)
   photos.ts                      fotos en calidad guardadas (IndexedDB) y su estado
+  api.ts                         funciones para manejar la casa sin la interfaz (`window.eurocasa`)
   model/                         lógica pura, sin React
     house.ts        parcela, rejilla, estancias, módulos de fábrica, encaje
     walls.ts        paredes deducidas, encaje de huecos en paredes
@@ -621,6 +622,21 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-12** · **Funciones para manejar la casa sin la interfaz**, primera
+  prueba del uso "comercial desde Claude". El usuario dijo que la aplicación
+  se usará de tres maneras: usuario final, comercial y comercial desde Claude.
+  Nuevo `src/api.ts`, que deja en `window.eurocasa` cinco funciones: `casa()`
+  (lee el árbol), `nuevoPlano()`, `medirModulo`, `crearEstancia` (nombre,
+  ancho, fondo y, si se quiere, `x` e `y` desde la esquina de su módulo) y
+  `eliminarEstancia`. Devuelven lo creado o `{ error }` con el motivo; a los
+  módulos y estancias se les llama por nombre o por id. Están también en la
+  web publicada. Probado en el servidor aparte (5183): la misma casa de 10 × 4
+  con salón, dos dormitorios y baño, que por la interfaz fueron unas diez
+  tandas de clics, sale con seis llamadas en 5 ms, y una estancia que no cabe
+  se rechaza con su motivo. Sin probar: `eliminarEstancia`, `crearEstancia`
+  sin posición, y un segundo módulo. Hablado y sin hacer: el conector (MCP)
+  para un comercial en Claude, y una skill que sepa diseñar casas.
 
 - **2026-10-12** · **Los focos se arrastran en el plano** (el usuario no podía
   moverlos). Pinchar uno lo elige y lo arrastra, en pasos de 5 cm y sin salir
