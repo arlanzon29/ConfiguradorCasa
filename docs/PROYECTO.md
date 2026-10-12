@@ -624,6 +624,11 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Descartado por el usuario**: que Claude monte la casa
+  escribiendo el `.json` del plano y cargándolo de golpe, y también la
+  variante que propuse (una función `montar(casa)` con la casa entera). Se
+  sigue con funciones sueltas y la skill.
+
 - **2026-10-12** · **Skill `crear-casas` probada por el usuario en una sesión
   nueva**: con un solo prompt (módulo de 12 × 4 m, salón, habitación y baño,
   ocho huecos y nueve muebles) la casa se montó en **34 segundos**, y le
