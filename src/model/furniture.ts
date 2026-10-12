@@ -53,8 +53,8 @@ export const FURNITURE: FurnitureType[] = [
   { id: 'lavadora', code: 'MOB-LAVADORA', family: 'cocina', name: 'Lavadora', shape: 'washer', width: 0.6, depth: 0.6, height: 0.82 },
   { id: 'lavadora-pequena', code: 'MOB-LAVADORA-PEQUENA', family: 'cocina', name: 'Lavadora pequeña', shape: 'washer', width: 0.6, depth: 0.45, height: 0.8 },
   { id: 'horno', code: 'MOB-HORNO', family: 'cocina', name: 'Horno', shape: 'oven', width: 0.6, depth: 0.6, height: 0.82 },
-  // Su base es el fondo de la cubeta: con `lift` 0,72 m el borde queda a 0,9 m, a ras de una encimera de esa altura.
-  { id: 'fregadero', code: 'MOB-FREGADERO', family: 'cocina', name: 'Fregadero', shape: 'sink', width: 0.8, depth: 0.5, height: 0.4, lift: 0.72 },
+  // Sin profundidad: se apoya sobre la encimera, con su base a 0,9 m (ajustable con la altura).
+  { id: 'fregadero', code: 'MOB-FREGADERO', family: 'cocina', name: 'Fregadero', shape: 'sink', width: 0.8, depth: 0.5, height: 0.35, lift: 0.9 },
 ]
 
 export const furnitureType = (id: string) => FURNITURE.find((f) => f.id === id)

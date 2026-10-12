@@ -104,31 +104,23 @@ function boxes({ shape, width: w, depth: d, height: h }: FurnitureType): Box[] {
       ]
     }
     case 'sink': {
-      // Fregadero de acero de un seno, para encastrar en una encimera: el borde
-      // queda a `bh` sobre la base, la cubeta cuelga por debajo y el grifo sube
-      // por detrás. `h` es el total, con el grifo.
+      // Fregadero de acero sin profundidad: se apoya sobre la encimera, con un
+      // borde bajo, la cubeta como una placa más oscura y el grifo detrás.
       const steel = '#c9ccd1'
-      const inner = '#aeb2b8'
-      const bh = 0.18
+      const basin = '#8e9399'
+      const rim = 0.02
       const f = 0.03
-      const t = 0.01
       const iw = w - 2 * f
       const id = d - 2 * f
-      const tap = h - bh
+      const tap = h - rim
       return [
-        // Borde (el marco que apoya sobre la encimera).
-        { position: [0, bh - t / 2, -(d / 2 - f / 2)], size: [w, t, f], color: steel },
-        { position: [0, bh - t / 2, d / 2 - f / 2], size: [w, t, f], color: steel },
-        { position: [-(w / 2 - f / 2), bh - t / 2, 0], size: [f, t, id], color: steel },
-        { position: [w / 2 - f / 2, bh - t / 2, 0], size: [f, t, id], color: steel },
-        // Cubeta: cuatro paredes y fondo.
-        { position: [0, bh / 2, -(id / 2 - t / 2)], size: [iw, bh, t], color: inner },
-        { position: [0, bh / 2, id / 2 - t / 2], size: [iw, bh, t], color: inner },
-        { position: [-(iw / 2 - t / 2), bh / 2, 0], size: [t, bh, id - 2 * t], color: inner },
-        { position: [iw / 2 - t / 2, bh / 2, 0], size: [t, bh, id - 2 * t], color: inner },
-        { position: [0, t / 2, 0], size: [iw, t, id], color: inner },
-        // Grifo: pie, caño vertical y pico hacia delante.
-        { position: [0, bh + (tap - 0.03) / 2, -d / 2 + 0.05], size: [0.03, tap - 0.03, 0.03], color: steel },
+        { position: [0, rim / 2, -(d / 2 - f / 2)], size: [w, rim, f], color: steel },
+        { position: [0, rim / 2, d / 2 - f / 2], size: [w, rim, f], color: steel },
+        { position: [-(w / 2 - f / 2), rim / 2, 0], size: [f, rim, id], color: steel },
+        { position: [w / 2 - f / 2, rim / 2, 0], size: [f, rim, id], color: steel },
+        { position: [0, 0.004, 0], size: [iw, 0.008, id], color: basin },
+        // Grifo: caño vertical y pico hacia delante.
+        { position: [0, rim + (tap - 0.03) / 2, -d / 2 + 0.05], size: [0.03, tap - 0.03, 0.03], color: steel },
         { position: [0, h - 0.015, -d / 2 + 0.05 + 0.07], size: [0.03, 0.03, 0.17], color: steel },
       ]
     }
