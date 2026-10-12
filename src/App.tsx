@@ -86,6 +86,7 @@ export default function App() {
         <Suspense fallback={<p className="muted">Cargando vista 3D…</p>}>
           <View3D />
         </Suspense>
+        <PhotoViewer />
       </div>
     )
   }

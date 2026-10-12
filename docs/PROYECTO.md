@@ -624,6 +624,15 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Ver una foto guardada por funciones** (el usuario pidió
+  la foto asociada a la vista del salón): `verFoto` (por número o por
+  estancia) en `window.eurocasa`, que abre el visor, con su parte en la skill
+  `crear-casas`. De paso, **el visor sale también en la ventana `?vista=3d`**
+  (`PhotoViewer` en la rama de `App.tsx` de la vista sola), donde no estaba.
+  Probado en el servidor aparte (5183), en esa ventana: la foto 2, del salón,
+  y los rechazos de una estancia sin foto y de un número que no existe. Sin
+  probar: los botones del visor en esa ventana.
+
 - **2026-10-12** · **Ir a una estancia usa la vista de su foto guardada** (lo
   pidió el usuario). `llevarCamara` sin `mirando` ni `desde` va a la última
   foto de esa estancia, con su objetivo (`goTo` de `photos.ts`); si no hay,

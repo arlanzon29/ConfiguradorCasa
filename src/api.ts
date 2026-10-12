@@ -529,7 +529,26 @@ function hacerFoto(p: { muestras?: number } = {}) {
   return { foto: 'empezada', muestras: state().photoSamples }
 }
 
+/**
+ * Abre el visor con una foto guardada: la de ese número (`foto`, como en
+ * `casa().fotos`) o la última de una `estancia`. La cámara va a donde se sacó.
+ */
+function verFoto(p: { foto?: number; estancia?: string }) {
+  const { photos, open } = usePhotos.getState()
+  let at = (p.foto ?? 0) - 1
+  if (p.foto === undefined) {
+    const room = p.estancia === undefined ? undefined : findRoom(p.estancia)
+    if (!room) return { error: `No hay ninguna estancia "${p.estancia ?? ''}".` } as Fallo
+    at = photos.map((f) => photoRoom(f.pose)?.id).lastIndexOf(room.id)
+    if (at < 0) return { error: 'Esa estancia no tiene ninguna foto guardada.' } as Fallo
+  }
+  if (!photos[at]) return { error: `No hay ninguna foto ${p.foto}.` } as Fallo
+  open(photos[at].id)
+  return { foto: at + 1, de: photos.length }
+}
+
 const eurocasa = {
+  verFoto,
   hacerFoto,
   llevarCamara,
   catalogoAcabados,
