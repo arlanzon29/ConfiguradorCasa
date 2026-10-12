@@ -645,8 +645,12 @@ Se anota aquí cada cosa que se hace, la más reciente arriba.
   12 × 4 m, tres estancias, ocho huecos, nueve muebles, suelos y paredes), y
   la cámara llevada a una esquina del salón, con captura del plano y de la
   vista 3D. De paso quedaron probados los ajustes dentro de `ponerHueco`
-  (`ancho`, `alto`, `altura`, `abreHacia`). Sin probar ahí: la foto en
-  calidad y la extensión de Chrome.
+  (`ancho`, `alto`, `altura`, `abreHacia`). Después, **foto en calidad en la
+  web publicada** con `hacerFoto`: las 200 muestras en menos de 30 s, y al
+  terminar sale la pregunta de guardar. Visto de paso: con Plano + 3D en una
+  ventana estrecha, los botones de muestras de la barra de la foto se salen
+  de la vista 3D y pisan el panel Propiedades. Sin probar ahí: la extensión
+  de Chrome.
 
 - **2026-10-12** · **La web ya está publicada.** El usuario activó Pages y un
   commit vacío lanzó la publicación, que esta vez terminó bien. Comprobado en
