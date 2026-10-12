@@ -5,7 +5,11 @@ import { useHouse } from '../store'
 import { redo, undo, useHistory } from '../history'
 
 // Sin barra inicial: la web puede colgar de una subcarpeta (GitHub Pages).
-const EXAMPLE_URL = 'ejemplos/ejemplo1.json'
+// Para añadir otro: su archivo en public/ejemplos y una línea aquí.
+const EXAMPLES = [
+  { name: 'Test 1', url: 'ejemplos/ejemplo1.json' },
+  { name: 'Test 2', url: 'ejemplos/ejemplo2.json' },
+]
 
 /** Empezar un plano nuevo, guardarlo en un archivo y cargarlo desde uno, o cargar el ejemplo. */
 export default function PlanFileButtons() {
@@ -77,13 +81,13 @@ export default function PlanFileButtons() {
 
   const load = async (file: File) => loadText(await file.text(), 'este archivo')
 
-  /** La casa de ejemplo que viaja con la web (public/ejemplos). */
-  const loadExample = async () => {
+  /** Una de las casas de ejemplo que viajan con la web (public/ejemplos). */
+  const loadExample = async (example: (typeof EXAMPLES)[number]) => {
     setNotice('')
     try {
-      const response = await fetch(EXAMPLE_URL)
+      const response = await fetch(example.url)
       if (!response.ok) throw new Error(String(response.status))
-      await loadText(await response.text(), 'el ejemplo')
+      await loadText(await response.text(), `el ejemplo ${example.name}`)
     } catch {
       setNotice('No se ha podido cargar el ejemplo.')
     }
@@ -107,9 +111,12 @@ export default function PlanFileButtons() {
       </button>
       <button onClick={() => void save()}>Guardar plano</button>
       <button onClick={() => fileInput.current?.click()}>Cargar plano</button>
-      <button className="full" onClick={() => void loadExample()}>
-        Cargar ejemplo
-      </button>
+      <p className="muted full">Cargar ejemplo:</p>
+      {EXAMPLES.map((example) => (
+        <button key={example.url} onClick={() => void loadExample(example)}>
+          {example.name}
+        </button>
+      ))}
       <input
         ref={fileInput}
         type="file"

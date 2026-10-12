@@ -706,6 +706,18 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Dos casas de ejemplo públicas, "Test 1" y "Test 2"** (el
+  usuario: "podemos poner esta casa dentro de los ejemplos públicos, que se
+  pueda escoger entre el test 1 y este test 2"). `public/ejemplos/ejemplo2.json`
+  sale del plano que el usuario bajó de la web (`eurocasa-plano-2026-10-12.json`
+  de Descargas: el Salón de 6,6 × 4,2 con la cocina, el desayunador en L y
+  los taburetes, dos dormitorios y dos baños), **sin las dos fotos** (el
+  repositorio es público; como el primero). `PlanFileButtons.tsx`: el botón
+  "Cargar ejemplo" pasa a "Cargar ejemplo:" con dos botones, "Test 1" y
+  "Test 2" (`EXAMPLES`: para añadir otro, su archivo y una línea). Compila y
+  `dist` lleva los dos archivos; **sin probar los botones a la vista**
+  (había una ventana emergente abierta que bloqueaba el navegador).
+
 - **2026-10-12** · **Foto en calidad con 100 muestras por defecto** (el
   usuario: "las fotos de calidad por defecto con 100"): `DEFAULT_PHOTO_SAMPLES`
   en `store.ts` en lugar de la mayor de las tres. Quien ya tenga guardado otro

@@ -1,0 +1,418 @@
+{
+  "app": "eurocasa-configurador",
+  "version": 2,
+  "shells": [
+    {
+      "id": "24c22809-7560-4edd-b733-727bab6ed892",
+      "x": 0,
+      "y": 0,
+      "width": 13,
+      "depth": 4.2,
+      "rooms": [
+        {
+          "id": "a58d6b7b-38b3-43ad-bff5-4e28ca54fae5",
+          "typeId": "custom",
+          "x": 10,
+          "y": 0,
+          "width": 3,
+          "depth": 2.4,
+          "lights": [
+            {
+              "id": "8fecb16b-7bd9-4cac-bd41-5167d3df99ae",
+              "x": 1.5,
+              "y": 1.2,
+              "power": 100,
+              "tone": "neutral"
+            }
+          ],
+          "name": "Dormitorio 2",
+          "floor": "pino",
+          "openings": [],
+          "furniture": []
+        },
+        {
+          "id": "ccf9251f-5df3-48d4-a7f6-85d5c6afe170",
+          "typeId": "custom",
+          "x": 10,
+          "y": 2.4,
+          "width": 3,
+          "depth": 1.8,
+          "lights": [
+            {
+              "id": "b9577be0-ceb3-48d6-87f8-b96024d16ec0",
+              "x": 1.5,
+              "y": 0.9,
+              "power": 100,
+              "tone": "neutral"
+            }
+          ],
+          "name": "Baño 2",
+          "floor": "gris-perla",
+          "openings": [],
+          "furniture": []
+        },
+        {
+          "id": "295669a5-2c0e-4a30-ab4e-ef2f53f2f23b",
+          "typeId": "custom",
+          "x": 0,
+          "y": 0,
+          "width": 3.4,
+          "depth": 3,
+          "lights": [
+            {
+              "id": "ae7e1502-f4ba-4c41-943e-15085d107637",
+              "x": 1.45,
+              "y": 1.55,
+              "power": 100,
+              "tone": "neutral"
+            }
+          ],
+          "name": "Dormitorio 1",
+          "floor": "pino",
+          "skirting": {
+            "n": {
+              "color": "#ffffff"
+            }
+          },
+          "sideColors": {
+            "n": "#c5d1bd",
+            "w": "#c5d1bd"
+          },
+          "openings": [
+            {
+              "id": "32003698-2b9f-4f32-ae82-a708956851d4",
+              "kind": "door",
+              "side": "e",
+              "offset": 1.05,
+              "width": 0.9,
+              "height": 2.1,
+              "sill": 0,
+              "closed": true
+            },
+            {
+              "id": "0e81374e-b9f0-4066-967a-c433f12705d0",
+              "kind": "door",
+              "side": "s",
+              "offset": 0.3,
+              "width": 2.4,
+              "height": 2.1,
+              "sill": 0
+            },
+            {
+              "id": "63f9f987-2e89-4532-a55f-3069d01bb6db",
+              "kind": "window",
+              "side": "n",
+              "offset": 0.75,
+              "width": 1.2,
+              "height": 1.2,
+              "sill": 0.9
+            }
+          ],
+          "furniture": [
+            {
+              "id": "18267788-217d-4b24-a31b-9c7739d1902f",
+              "typeId": "mesilla",
+              "x": 0.38,
+              "y": 0.35,
+              "rotation": 0
+            },
+            {
+              "id": "695265ae-19bc-4864-b45d-743bf4a5e824",
+              "typeId": "mesilla",
+              "x": 0.38,
+              "y": 2.75,
+              "rotation": 0
+            },
+            {
+              "id": "d120de02-2893-4d0d-b328-62a38b502df9",
+              "typeId": "armario-medio",
+              "x": 2.9,
+              "y": 0.45,
+              "rotation": 0
+            }
+          ]
+        },
+        {
+          "id": "8012c52c-a5dc-43f1-b224-fc490049a6af",
+          "typeId": "custom",
+          "x": 0,
+          "y": 3,
+          "width": 3.4,
+          "depth": 1.2,
+          "lights": [
+            {
+              "id": "811433c7-9268-4d83-8529-b71e9c28bfae",
+              "x": 1.5,
+              "y": 0.6,
+              "power": 100,
+              "tone": "neutral"
+            }
+          ],
+          "name": "Baño 1",
+          "floor": "gris-perla",
+          "openings": [],
+          "furniture": [
+            {
+              "id": "05370f1e-0c0f-471b-9276-49b4898aaf9e",
+              "typeId": "cama-doble",
+              "x": 1.15,
+              "y": 3.25,
+              "rotation": 270
+            }
+          ]
+        },
+        {
+          "id": "321e05df-4d45-4ff0-8f91-27600d983c9a",
+          "typeId": "custom",
+          "x": 3.4,
+          "y": 0,
+          "width": 6.6,
+          "depth": 4.2,
+          "lights": [
+            {
+              "id": "5c95cb5d-6321-42b3-ab84-026d57e2130b",
+              "x": 3.5,
+              "y": 2.1,
+              "power": 100,
+              "tone": "neutral"
+            }
+          ],
+          "name": "Salón",
+          "floor": "pino",
+          "boards": {
+            "n": [
+              {
+                "id": "595157d7-92f4-4e02-80dc-fb7ea2b34c45",
+                "x": 4.22,
+                "y": 0,
+                "width": 0.02,
+                "height": 0.82,
+                "depth": 0.6,
+                "finish": "pino"
+              },
+              {
+                "id": "992c1fae-5aba-4eb8-a9b0-33c59762a510",
+                "x": 4.22,
+                "y": 0.82,
+                "width": 1.68,
+                "height": 0.02,
+                "depth": 0.6,
+                "finish": "gris-perla"
+              }
+            ]
+          },
+          "openings": [
+            {
+              "id": "af8c398b-b7a5-407b-96e2-7b9c549d16e9",
+              "kind": "door",
+              "side": "s",
+              "offset": 1.1,
+              "width": 0.9,
+              "height": 2.1,
+              "sill": 0,
+              "swing": "in"
+            },
+            {
+              "id": "d7f6612b-63ec-42e1-80bd-ab77c36127fc",
+              "kind": "door",
+              "side": "e",
+              "offset": 1.3,
+              "width": 0.9,
+              "height": 2.1,
+              "sill": 0,
+              "swing": "out",
+              "hinge": "end"
+            },
+            {
+              "id": "c352a654-f3ff-4b9f-aa88-12e130d86914",
+              "kind": "door",
+              "side": "e",
+              "offset": 3.05,
+              "width": 0.9,
+              "height": 2.1,
+              "sill": 0,
+              "swing": "out",
+              "hinge": "end"
+            },
+            {
+              "id": "e701a539-6760-4a2e-a3ec-0074964b84be",
+              "kind": "window",
+              "side": "n",
+              "offset": 4.4,
+              "width": 1.2,
+              "height": 1.2,
+              "sill": 0.9
+            },
+            {
+              "id": "c0f02eeb-027e-4aa8-a0be-22a4c7b737ea",
+              "kind": "window",
+              "side": "n",
+              "offset": 0.95,
+              "width": 1.2,
+              "height": 1.2,
+              "sill": 0.9
+            },
+            {
+              "id": "446aa32f-9d5e-45da-878d-a986603fddc9",
+              "kind": "window",
+              "side": "s",
+              "offset": 3.8,
+              "width": 2,
+              "height": 1.2,
+              "sill": 0.9
+            }
+          ],
+          "furniture": [
+            {
+              "id": "b921e694-0a35-47f5-a11b-0a1b9b406a11",
+              "typeId": "mesa-comedor",
+              "x": 5.45,
+              "y": 2.1,
+              "rotation": 0
+            },
+            {
+              "id": "9d49ffc7-d1f7-46da-907d-d36f0c5ca077",
+              "typeId": "silla",
+              "x": 5.1,
+              "y": 1.65,
+              "rotation": 0
+            },
+            {
+              "id": "1cd790ed-7e10-42fc-810b-bf3812022ca3",
+              "typeId": "silla",
+              "x": 5.85,
+              "y": 1.65,
+              "rotation": 0
+            },
+            {
+              "id": "a4e914c5-2d04-455f-9970-a4dae4d24b65",
+              "typeId": "silla",
+              "x": 5.15,
+              "y": 2.5,
+              "rotation": 180
+            },
+            {
+              "id": "122e8323-f346-4361-91f4-7abe93bd38b5",
+              "typeId": "silla",
+              "x": 5.85,
+              "y": 2.5,
+              "rotation": 180
+            },
+            {
+              "id": "77a82200-ad02-4814-981e-2f2339761002",
+              "typeId": "silla",
+              "x": 6.3,
+              "y": 2.1,
+              "rotation": 90
+            },
+            {
+              "id": "08cdb538-9f46-4bf6-9bb1-eef34dfc7c96",
+              "typeId": "silla",
+              "x": 4.55,
+              "y": 2.1,
+              "rotation": 270
+            },
+            {
+              "id": "fd8895b4-a5f0-498c-b896-d2efc0220b43",
+              "typeId": "sofa",
+              "x": 8.1,
+              "y": 3.6,
+              "rotation": 180
+            },
+            {
+              "id": "06389f81-8cf5-4c3b-a5f0-e18a3534ae16",
+              "typeId": "frigorifico",
+              "x": 9.65,
+              "y": 0.45,
+              "rotation": 0
+            },
+            {
+              "id": "ecf03563-8f29-4d45-9fe1-16aed5935950",
+              "typeId": "lavadora",
+              "x": 9.05,
+              "y": 0.45,
+              "rotation": 0
+            },
+            {
+              "id": "8de60802-a918-47e1-9be8-7fa35c2e5149",
+              "typeId": "armario-cocina",
+              "x": 8.52,
+              "y": 0.45,
+              "rotation": 0,
+              "elevation": 0.02
+            },
+            {
+              "id": "a1e68d83-60f4-4a0d-862f-571e000634c3",
+              "typeId": "lavavajillas",
+              "x": 7.99,
+              "y": 0.45,
+              "rotation": 0
+            },
+            {
+              "id": "b9385261-2d6e-46cd-b831-1f6b3f966a4a",
+              "typeId": "mesa-centro",
+              "x": 6.1,
+              "y": 0.45,
+              "rotation": 0
+            },
+            {
+              "id": "dc13c98d-42d8-4774-aea1-9258dbeabc37",
+              "typeId": "television",
+              "x": 6.1,
+              "y": 0.38,
+              "rotation": 0,
+              "elevation": 0.4
+            },
+            {
+              "id": "54d09e4a-d773-4107-b727-b95ad86dee17",
+              "typeId": "mesa-armarios",
+              "x": 7.37,
+              "y": 0.75,
+              "rotation": 270
+            },
+            {
+              "id": "23c9d9cd-d204-487b-bef0-498f80edf3d1",
+              "typeId": "taburete",
+              "x": 6.85,
+              "y": 0.95,
+              "rotation": 0
+            },
+            {
+              "id": "99584423-0440-4589-8cce-55d9df94eaaf",
+              "typeId": "taburete",
+              "x": 6.85,
+              "y": 1.3,
+              "rotation": 0
+            },
+            {
+              "id": "ba137b1f-66a7-4326-8419-aefc167b35dd",
+              "typeId": "fregadero",
+              "x": 8.52,
+              "y": 0.45,
+              "rotation": 0,
+              "elevation": 0.84
+            },
+            {
+              "id": "f26370dc-c767-40e0-8ece-259d2221669f",
+              "typeId": "vitroceramica",
+              "x": 7.99,
+              "y": 0.45,
+              "rotation": 0,
+              "elevation": 0.84
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "rooms": [],
+  "furniture": [],
+  "joints": {
+    "295669a5-2c0e-4a30-ab4e-ef2f53f2f23b|8012c52c-a5dc-43f1-b224-fc490049a6af": {
+      "skirting": {
+        "color": "#c5d1bd"
+      }
+    }
+  },
+  "photos": []
+}
