@@ -705,6 +705,13 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Fregadero y vitro centrados y separados** (el usuario:
+  "separa un poco más la vitro y céntralos en la encimera"): 12 cm entre el
+  fregadero y la vitro, y el conjunto centrado en la encimera (16,5 cm de
+  sobra a cada lado). Entorno de pruebas (5185); anotado en `crear-cocinas`.
+  La separación de 12 cm la elegí yo; interpreté "centrarlos" como a lo
+  ancho de la encimera, no en el fondo (siguen contra la pared).
+
 - **2026-10-12** · **Paso 4 de la cocina de prueba** (el usuario: "ponemos
   encima del armario el fregadero, del lavavajillas la vitro"): el fregadero
   sobre el armario y la vitrocerámica sobre el lavavajillas pequeño, los dos

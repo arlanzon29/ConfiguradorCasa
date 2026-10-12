@@ -135,19 +135,21 @@ la puerta (sur) y la ventana (norte); sin más. Pasos hechos, en orden:
    fondo y `altura` 0,80 (cara de arriba a 0,82). Fue `ponerTablero` con
    `posicion` 2,58 y `ancho` 1,35.
 
-4. (usuario) **Fregadero sobre el armario y vitrocerámica sobre el
-   lavavajillas**, encima de la encimera, de espaldas a la pared y a
-   `altura` 0,82 (la cara de arriba de la encimera de 2 cm). El fregadero
-   (0,4) cabe en el armario (0,45); la vitro (0,5) sobresale unos 2,5 cm del
-   lavavajillas (0,45) por cada lado y queda pegada al fregadero. Fue
-   `ponerMueble` con `pared: 'norte'`, `posicion` la `x` de cada pieza de abajo.
+4. (usuario) **Fregadero y vitrocerámica sobre la encimera**, de espaldas a la
+   pared y a `altura` 0,82 (la cara de arriba de la encimera de 2 cm). Primero
+   se pusieron uno sobre el armario y otro sobre el lavavajillas, pegados; el
+   usuario pidió **separar la vitro un poco más y centrar los dos en la
+   encimera**. Queda: fregadero (0,4) y vitro (0,5) con **12 cm** entre ellos,
+   el conjunto (1,02 m) centrado en la encimera (1,35 m): 16,5 cm de sobra a
+   cada lado. Se colocan sueltos con `x` e `y` (`espalda: 'norte'`) calculando
+   desde el centro de la encimera.
 
 ## Pendiente
 
 - Qué tablero tapa "todo" (frentes de los electrodomésticos): por hablar con el
   usuario.
-- El fregadero y la vitro quedan pegados entre sí: ver si hace falta un hueco
-  entre ellos, y su relación con la ventana (queda sobre el fregadero y la vitro).
+- Su relación con la ventana: queda sobre el fregadero y la vitro, algo a la izquierda
+  del centro del conjunto.
 - Cocina en L y isla con la mesa de armarios.
 - Los códigos de artículo y el criterio de diseño de EuroCasa, que sustituyan a
   los provisionales.
