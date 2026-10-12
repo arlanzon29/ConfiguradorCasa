@@ -704,6 +704,21 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Altura de un mueble sobre el suelo** (opción A, elegida
+  por el usuario, para poner la tele sobre una mesilla). Campo `elevation` en
+  `FurnitureItem` y `liftOf` en `furniture.ts` (la del mueble, y si no la de
+  su tipo, `lift`); `setFurnitureElevation` en `store.ts`; casilla "Altura:
+  Sobre el suelo (m)" en Propiedades del mueble, entre 0 y la altura de pared
+  menos la del mueble; `Furniture3D` la usa. En `window.eurocasa`:
+  `cambiarMueble({ mueble, altura })`, `altura` en `ponerMueble` y `casa()`
+  la devuelve; su parte en la skill `crear-casas`. **No hay apoyo
+  automático**: la altura la escribe quien coloca, y si se mueve el mueble de
+  debajo, el de encima se queda donde estaba. El archivo de plano no cambia
+  de versión (el campo viaja con el mueble). Probado en el servidor aparte
+  (5185): la tele a 0,5 m sobre una mesilla en 3D y el rechazo de 2,5 m.
+  Sin probar: la casilla con el teclado, ni la foto en calidad. La tele sigue
+  llevando su pie; no he hecho una "sin pie".
+
 - **2026-10-12** · **Armario pequeño de cocina corregido**: 45 de ancho × 60
   de fondo × **82** de alto, como el lavavajillas (el usuario lo confirmó; el
   45 × 45 era ancho y alto, y el alto es 82). Sigue sin verse a la vista.

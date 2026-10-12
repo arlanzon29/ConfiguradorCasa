@@ -280,6 +280,8 @@ interface HouseState {
   placeFurniture: (id: string, x: number, y: number) => void
   /** Gira la pieza 90° en sentido horario. */
   rotateFurniture: (id: string) => void
+  /** Pone la pieza a esa altura sobre el suelo (m): encima de otro mueble, por ejemplo. */
+  setFurnitureElevation: (id: string, elevation: number) => void
   removeFurniture: (id: string) => void
   /**
    * Arrima la pieza a la pared más próxima de su estancia, de espaldas a ella.
@@ -1005,6 +1007,11 @@ export const useHouse = create<HouseState>()(
                 ? clampFurniture({ ...f, rotation: ((f.rotation + 90) % 360) as Rotation })
                 : f,
             ),
+          })),
+
+        setFurnitureElevation: (id, elevation) =>
+          set((s) => ({
+            furniture: s.furniture.map((f) => (f.id === id ? { ...f, elevation: roundSize(elevation) } : f)),
           })),
 
         snapFurnitureToWall: (id) => {

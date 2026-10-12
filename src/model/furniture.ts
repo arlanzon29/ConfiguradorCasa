@@ -69,7 +69,12 @@ export interface FurnitureItem {
   rotation: Rotation
   /** Estancia de la que cuelga; solo falta si no hay ninguna donde está. */
   roomId?: string
+  /** Altura sobre el suelo a la que está puesta, en metros. Si falta, la de su tipo. */
+  elevation?: number
 }
+
+/** Altura sobre el suelo de una pieza: la suya si la tiene, y si no la de su tipo. */
+export const liftOf = (item: FurnitureItem) => item.elevation ?? furnitureType(item.typeId)?.lift ?? 0
 
 // Los muebles se colocan en pasos de 5 cm.
 export const snapFurniture = (v: number) => Math.round(v * 20) / 20

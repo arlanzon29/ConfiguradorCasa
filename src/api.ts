@@ -3,11 +3,11 @@
 // Claude": pocas funciones, con parámetros en el idioma del comercial, que
 // devuelven lo creado o el motivo por el que no se ha podido.
 
-import { PLOT, PlacedModule, Shell, Side, fits, roundSize, sideLength, validSize } from './model/house'
+import { PLOT, PlacedModule, Shell, Side, WALL_HEIGHT, fits, roundSize, sideLength, validSize } from './model/house'
 import { MECHANISMS, MECHANISM_HEIGHT, mechanismSize, mechanismType } from './model/mechanisms'
 import { wallFace } from './model/vinyls'
 import { BASE_FLOOR, MATERIALS, WALL_COLORS, floorOf, interiorFinish } from './model/finishes'
-import { FURNITURE, FurnitureItem, Rotation, furnitureType } from './model/furniture'
+import { FURNITURE, FurnitureItem, Rotation, furnitureType, liftOf } from './model/furniture'
 import { furnitureName, pieceName, roomName, shellName } from './model/names'
 import { OPPOSITE, Opening, openingCode, swingDoor, validOpeningSize, wallLine } from './model/openings'
 import { deriveWalls, wallOf } from './model/walls'
@@ -323,6 +323,8 @@ function describeFurniture(f: FurnitureItem) {
     y: roundSize(f.y - (room?.y ?? 0)),
     // Hacia dónde mira su parte trasera (cabecero, respaldo, fondo del armario).
     espalda: lado(BACKS[f.rotation]),
+    // Metros sobre el suelo; 0 si apoya en él.
+    altura: liftOf(f),
   }
 }
 
@@ -346,6 +348,7 @@ function ponerMueble(p: {
   x?: number
   y?: number
   espalda?: string
+  altura?: number
 }) {
   const key = p.mueble.trim().toLowerCase()
   const type = FURNITURE.find((t) => t.id === key || t.name.toLowerCase() === key)
@@ -391,7 +394,39 @@ function ponerMueble(p: {
     }
     state().placeFurniture(id, x, y)
   }
+  if (p.altura !== undefined) {
+    const error = elevar(id, p.altura)
+    if (error) {
+      state().removeFurniture(id)
+      return { error } as Fallo
+    }
+  }
   return describeFurniture(find())
+}
+
+/** Pone un mueble a esa altura sobre el suelo; devuelve el motivo si no puede. */
+function elevar(id: string, altura: number) {
+  const item = state().furniture.find((f) => f.id === id)!
+  const type = furnitureType(item.typeId)!
+  const max = WALL_HEIGHT - type.height
+  if (!(altura >= 0) || altura > max + 0.001) return `La altura tiene que estar entre 0 y ${roundSize(max)} m.`
+  state().setFurnitureElevation(id, altura)
+  return ''
+}
+
+/**
+ * Cambia un mueble que ya está puesto. De momento solo `altura`: metros sobre
+ * el suelo (0 apoya en él; 0,5 sobre una mesilla).
+ */
+function cambiarMueble(p: { mueble: string; altura?: number }) {
+  if (!state().furniture.some((f) => f.id === p.mueble)) {
+    return { error: `No hay ningún mueble "${p.mueble}".` } as Fallo
+  }
+  if (p.altura !== undefined) {
+    const error = elevar(p.mueble, p.altura)
+    if (error) return { error } as Fallo
+  }
+  return describeFurniture(state().furniture.find((f) => f.id === p.mueble)!)
 }
 
 /** Quita un mueble, por su id. */
@@ -692,6 +727,7 @@ const eurocasa = {
   catalogoMuebles,
   ponerMueble,
   quitarMueble,
+  cambiarMueble,
   catalogoMecanismos,
   ponerMecanismo,
   quitarMecanismo,

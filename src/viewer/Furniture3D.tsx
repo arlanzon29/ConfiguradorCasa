@@ -1,4 +1,4 @@
-import { FurnitureItem, FurnitureType, furnitureType } from '../model/furniture'
+import { FurnitureItem, FurnitureType, furnitureType, liftOf } from '../model/furniture'
 
 const WOOD = '#b08d62'
 const FABRIC = '#8fa3b0'
@@ -147,7 +147,7 @@ export default function Furniture3D({ item, floorY, selected }: Props) {
   if (!type) return null
   return (
     // En el plano el giro es horario con y hacia abajo; en 3D eso es un giro negativo sobre y.
-    <group position={[item.x, floorY + (type.lift ?? 0), item.y]} rotation-y={(-item.rotation * Math.PI) / 180}>
+    <group position={[item.x, floorY + liftOf(item), item.y]} rotation-y={(-item.rotation * Math.PI) / 180}>
       {boxes(type).map((box, i) => (
         <mesh key={i} position={box.position} castShadow receiveShadow>
           <boxGeometry args={box.size} />

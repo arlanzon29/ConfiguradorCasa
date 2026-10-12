@@ -1,5 +1,5 @@
 import { ReactNode, useMemo, useState } from 'react'
-import { FurnitureItem, furnitureType } from '../model/furniture'
+import { FurnitureItem, furnitureType, liftOf } from '../model/furniture'
 import {
   MAX_SKIRTING_HEIGHT,
   MAX_WALL_THICKNESS,
@@ -372,6 +372,7 @@ function FurnitureProperties({ item }: { item: FurnitureItem }) {
   const joints = useHouse((s) => s.joints)
   const placeFurniture = useHouse((s) => s.placeFurniture)
   const rotateFurniture = useHouse((s) => s.rotateFurniture)
+  const setFurnitureElevation = useHouse((s) => s.setFurnitureElevation)
   const removeFurniture = useHouse((s) => s.removeFurniture)
   const snapFurnitureToWall = useHouse((s) => s.snapFurnitureToWall)
   const [notice, setNotice] = useState('')
@@ -438,6 +439,18 @@ function FurnitureProperties({ item }: { item: FurnitureItem }) {
         />
       </Fields>
       {!box.inRoom && <p className="muted">Está fuera de las estancias.</p>}
+      <Fields title="Altura">
+        <Field
+          label="Sobre el suelo (m)"
+          value={liftOf(item)}
+          onApply={(h) => {
+            const max = WALL_HEIGHT - type.height
+            if (h < 0 || h > max + EPS) return `Entre 0 y ${formatMeters(Math.max(max, 0))} m.`
+            setFurnitureElevation(item.id, h)
+            return ''
+          }}
+        />
+      </Fields>
       <div className="actions spaced">
         <button
           onClick={() =>
