@@ -706,7 +706,8 @@ Se anota aquí cada cosa que se hace, la más reciente arriba.
 
 - **2026-10-12** · **Anotado en `docs/PENDIENTES.md` (tema 18)**: dentro de
   "Casa" en el árbol debe haber una carpeta "Módulos" con su "+" para añadir
-  un módulo nuevo. Solo anotado; sin tocar código.
+  un módulo nuevo; y dentro de cada módulo, una carpeta "Estancias" con su
+  "+" para añadir una estancia. Solo anotado; sin tocar código.
 
 - **2026-10-12** · **AR: escalar con los dos mandos** (el usuario: lo de la
   maqueta lejos y la que no funcionaba era un problema de caché de las Quest,

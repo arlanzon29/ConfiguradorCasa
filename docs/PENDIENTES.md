@@ -26,6 +26,9 @@ está decidido ni empezado. Lo más reciente, arriba.
   haber una **carpeta "Módulos"** (como las de Paredes, Mobiliario y Luces en la
   estancia), con su "+" para poder añadir un módulo nuevo desde el propio árbol.
   Hoy los módulos cuelgan sueltos de "Casa" y añadirlos es de Propiedades.
+- **Pedido también el 2026-10-12, sin hacer:** dentro de cada módulo, una
+  **carpeta "Estancias"** con su "+" para añadir una estancia nueva desde el
+  árbol (hoy cuelgan sueltas del módulo y se añaden desde Propiedades).
 
 ### 17. Más geometría: primitivas (tableros)
 
