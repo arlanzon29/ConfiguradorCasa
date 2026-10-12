@@ -705,6 +705,16 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Skill `crear-cocinas` reescrito** (el usuario: "así podría
+  quedar, anota en el skill cómo hemos trabajado") y **tapa lateral
+  quitada** ("quita este último tablón"). El skill pasa a tener: cómo hemos
+  trabajado (un paso cada vez, frases cortas, preguntar con opciones si hay
+  varias lecturas, rehacer sin miedo, enseñar siempre, entorno de pruebas),
+  las piezas, las reglas decididas por el usuario, la receta completa de la
+  cocina de prueba, las trampas que nos hemos encontrado y lo pendiente. En el
+  entorno de pruebas (5185) queda sin la tapa de pino; la encimera se queda
+  con 1,36 m, unos 1,5 cm salida por la izquierda del armario.
+
 - **2026-10-12** · **La encimera, encima de la tapa** (el usuario: "la
   encimera que quede encima del tablón"): la tapa lateral baja a 0,80 m y la
   encimera, de 1,36 m, empieza en ella y llega justo al frigorífico, así que
