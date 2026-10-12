@@ -310,6 +310,14 @@ tira de 32 px para volver a sacarlos; se recuerda en `localStorage` (clave
 y "3D en otra ventana". En el plano, un marcador naranja muestra la cámara 3D y se
 puede arrastrar (posición) y orientar (tirador del cono).
 
+**Qué se ve en el plano** (lo pidió el usuario, sobre todo para quitar el
+mobiliario): casillas "Ver en el plano" a la derecha de los botones de vista,
+con el plano a la vista: Mobiliario, Cámara y Rejilla (`PLAN_LAYERS` y
+`planLayers` en `store.ts`). Solo afecta al plano 2D, no a la vista 3D ni a la
+foto. Con el mobiliario oculto se sigue dibujando el mueble elegido (desde el
+árbol o recién colocado), para poder moverlo. Se guarda en `localStorage`, no
+en el archivo de plano.
+
 **Vista 3D**: cámara en primera persona. Arrastrar el ratón gira la vista; WASD y la
 rueda desplazan. "Bajar a pie" fija la altura de ojos (1,6 m) y movimiento horizontal.
 Sin techo (lo pidió el usuario). Las paredes no proyectan sombra; los muebles sí.
@@ -613,6 +621,17 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-12** · **Elegir qué se ve en el plano** (lo pidió el usuario, sobre
+  todo para quitar el mobiliario): casillas Mobiliario, Cámara y Rejilla junto
+  a los botones de vista. `PLAN_LAYERS`, `planLayers` y `setPlanLayer` en
+  `store.ts`; `.plan-layers` en `App.tsx` y `App.css`; `Editor2D.tsx` las
+  consulta. Las tres capas las elegí yo; el usuario solo nombró el mobiliario.
+  Probado pulsando las casillas por código, en el servidor aparte y en el
+  plano del usuario (con su permiso): mobiliario y rejilla se quitan y
+  vuelven, el mueble elegido sigue a la vista y la elección se guarda. Sin
+  probar: la casilla Cámara con el marcador a la vista (no lo había en
+  ninguno de los dos planos), ni nada con el ratón.
 
 - **2026-10-12** · **Publicación en GitHub Pages** (lo pidió el usuario):
   `.github/workflows/pages.yml`, `base: './'` y rutas de texturas relativas.

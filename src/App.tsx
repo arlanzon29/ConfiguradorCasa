@@ -5,7 +5,7 @@ import PhotoViewer from './panels/PhotoViewer'
 import PlanFileButtons from './panels/PlanFileButtons'
 import PropertiesPanel from './panels/PropertiesPanel'
 import { usePhotos } from './photos'
-import { useHouse } from './store'
+import { PLAN_LAYERS, useHouse } from './store'
 
 // Three.js pesa bastante: solo se descarga al abrir la vista 3D.
 const View3D = lazy(() => import('./viewer/View3D'))
@@ -32,6 +32,8 @@ function readHiddenPanels(): { left: boolean; right: boolean } {
 export default function App() {
   const walkMode = useHouse((s) => s.walkMode)
   const setWalkMode = useHouse((s) => s.setWalkMode)
+  const planLayers = useHouse((s) => s.planLayers)
+  const setPlanLayer = useHouse((s) => s.setPlanLayer)
   const [view, setView] = useState<'2d' | '3d' | 'split'>('2d')
   const [hidden, setHidden] = useState(readHiddenPanels)
 
@@ -148,6 +150,21 @@ export default function App() {
             3D en otra ventana
           </button>
           {view !== '2d' && walkButton}
+          {view !== '3d' && (
+            <div className="plan-layers">
+              <span className="muted">Ver en el plano:</span>
+              {PLAN_LAYERS.map((layer) => (
+                <label key={layer.id}>
+                  <input
+                    type="checkbox"
+                    checked={planLayers[layer.id]}
+                    onChange={(e) => setPlanLayer(layer.id, e.target.checked)}
+                  />
+                  {layer.name}
+                </label>
+              ))}
+            </div>
+          )}
         </div>
         <div className={view === 'split' ? 'view split' : 'view'}>
           {view !== '3d' && <Editor2D />}

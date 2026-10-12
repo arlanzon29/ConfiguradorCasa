@@ -88,6 +88,15 @@ export function stopCameraFlight() {
  */
 export const PHOTO_SAMPLES = [50, 100, 200]
 
+/** Lo que el usuario puede quitar de la vista en el plano 2D. */
+export const PLAN_LAYERS = [
+  { id: 'furniture', name: 'Mobiliario' },
+  { id: 'camera', name: 'Cámara' },
+  { id: 'grid', name: 'Rejilla' },
+] as const
+export type PlanLayer = (typeof PLAN_LAYERS)[number]['id']
+const ALL_PLAN_LAYERS: Record<PlanLayer, boolean> = { furniture: true, camera: true, grid: true }
+
 export const LENSES = [
   { name: 'Normal', fov: 45 },
   { name: 'Angular', fov: 60 },
@@ -156,6 +165,9 @@ interface HouseState {
   /** Muestras con las que se da por terminada una foto en calidad (una de PHOTO_SAMPLES). */
   photoSamples: number
   setPhotoSamples: (samples: number) => void
+  /** Qué se dibuja en el plano 2D, a elegir por el usuario (PLAN_LAYERS). */
+  planLayers: Record<PlanLayer, boolean>
+  setPlanLayer: (layer: PlanLayer, on: boolean) => void
 
   // Selección: como mucho una de las tres está activa.
   selectedId: string | null
@@ -593,6 +605,8 @@ export const useHouse = create<HouseState>()(
         setCameraFov: (cameraFov) => set({ cameraFov }),
         photoSamples: PHOTO_SAMPLES[PHOTO_SAMPLES.length - 1],
         setPhotoSamples: (photoSamples) => set({ photoSamples }),
+        planLayers: ALL_PLAN_LAYERS,
+        setPlanLayer: (layer, on) => set((s) => ({ planLayers: { ...s.planLayers, [layer]: on } })),
 
         select: (id, side = null) => set({ ...NO_SELECTION, selectedId: id, selectedSide: side }),
         selectWall: (key) => set({ ...NO_SELECTION, selectedWall: key }),
@@ -1259,6 +1273,8 @@ export const useHouse = create<HouseState>()(
       // Lo guardado antes de que cada cosa apuntara a su padre se completa al leerlo.
       merge: (saved, current) => {
         const state = { ...current, ...(saved as Partial<HouseState>) }
+        // Una capa añadida después de guardar sale a la vista.
+        state.planLayers = { ...ALL_PLAN_LAYERS, ...state.planLayers }
         return { ...state, ...withParents(state) }
       },
       partialize: (s) => ({
@@ -1272,6 +1288,7 @@ export const useHouse = create<HouseState>()(
         walkMode: s.walkMode,
         cameraFov: s.cameraFov,
         photoSamples: s.photoSamples,
+        planLayers: s.planLayers,
       }),
     },
   ),

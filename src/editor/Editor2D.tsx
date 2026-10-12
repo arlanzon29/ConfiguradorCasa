@@ -237,6 +237,7 @@ export default function Editor2D() {
   const selectShell = useHouse((s) => s.selectShell)
   const moveShell = useHouse((s) => s.moveShell)
   const furniture = useHouse((s) => s.furniture)
+  const layers = useHouse((s) => s.planLayers)
   const selectedFurnitureId = useHouse((s) => s.selectedFurnitureId)
   const selectedLightId = useHouse((s) => s.selectedLightId)
   const pick = useHouse((s) => s.pick)
@@ -457,7 +458,7 @@ export default function Editor2D() {
       }}
     >
       <rect className="plot" width={PLOT.width} height={PLOT.depth} />
-      {gridLines(PLOT.width).map(({ at, major }) => (
+      {layers.grid && gridLines(PLOT.width).map(({ at, major }) => (
         <line
           key={`v${at}`}
           className={major ? 'grid-line major' : 'grid-line'}
@@ -467,7 +468,7 @@ export default function Editor2D() {
           y2={PLOT.depth}
         />
       ))}
-      {gridLines(PLOT.depth).map(({ at, major }) => (
+      {layers.grid && gridLines(PLOT.depth).map(({ at, major }) => (
         <line
           key={`h${at}`}
           className={major ? 'grid-line major' : 'grid-line'}
@@ -571,7 +572,10 @@ export default function Editor2D() {
 
       {walls.map(renderWall)}
 
-      {furniture.map((item) => (
+      {/* Con el mobiliario oculto solo se dibuja la pieza elegida, para poder colocarla. */}
+      {furniture
+        .filter((item) => layers.furniture || item.id === selectedFurnitureId)
+        .map((item) => (
         <g
           key={item.id}
           className={item.id === selectedFurnitureId ? 'furniture selected' : 'furniture'}
@@ -670,7 +674,7 @@ export default function Editor2D() {
           )
         })}
 
-      {cameraPose && (
+      {cameraPose && layers.camera && (
         <CameraMarker
           pose={cameraPose}
           view={view}
