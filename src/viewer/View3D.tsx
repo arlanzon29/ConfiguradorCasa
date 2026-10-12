@@ -57,8 +57,12 @@ const JOINERY_MATERIALS: Record<Exclude<JoineryMaterial, 'wood'>, object> = {
 interface WallPart {
   position: [number, number, number]
   size: [number, number, number]
-  /** Color de cada cara de la caja, en el orden de BoxGeometry: +x, -x, +y, -y, +z, -z. */
-  faces: string[]
+  /**
+   * Color de cada cara de la caja, en el orden de BoxGeometry: +x, -x, +y, -y, +z, -z.
+   * Un par es una junta con otro trozo de la misma pared: cada mitad de la cara
+   * lleva el color de la cara larga de su lado, [norte u oeste, sur o este].
+   */
+  faces: (string | [string, string])[]
   /** Caras con material: una lámina con textura encima de la caja. */
   skins: WallSkin[]
 }
@@ -75,6 +79,9 @@ interface WallSkin {
   /** Metros desde el origen de la textura, para que siga sin saltos de una caja a la siguiente. */
   start: [number, number]
 }
+
+// Lo que se solapan dintel y antepecho con los tramos de pared de al lado.
+const JOINT_OVERLAP = 0.002
 
 // Separación de la lámina de material a su pared, como la de los vinilos en la foto.
 const SKIN_GAP = 0.0005
@@ -121,16 +128,24 @@ function wallParts(
         ? [undefined, ownSkin]
         : [ownSkin, undefined]
 
-    const add = (from: number, to: number, bottom: number, top: number) => {
-      if (to - from < 1e-3 || top - bottom < 1e-3) return
+    // `grow` alarga la pieza por los extremos que no son de la pared: dintel y
+    // antepecho se meten un poco en los tramos de al lado, porque si solo se
+    // tocan, el dibujo deja ver una raya fina en la junta.
+    const add = (start: number, end: number, bottom: number, top: number, grow = 0) => {
+      if (end - start < 1e-3 || top - bottom < 1e-3) return
+      // Los extremos reales de la pared asoman a la fachada en las esquinas; los
+      // cantos que dan a un hueco, el canto superior y el inferior quedan neutros.
+      // En una junta interior la cara se ve de canto y deja una raya: lleva los
+      // colores de las caras largas para que no se note.
+      const joint: [string, string] = [low, high]
+      const endLow = start === wall.from ? facadeColor : joint
+      const endHigh = end === wall.to ? facadeColor : joint
+      const from = start > wall.from ? start - grow : start
+      const to = end < wall.to ? end + grow : end
       const along = to - from
       const mid = (from + to) / 2
       const across = wall.thickness
       const y = SLAB + (bottom + top) / 2
-      // Los extremos reales de la pared asoman a la fachada en las esquinas; los
-      // cantos que dan a un hueco, el canto superior y el inferior quedan neutros.
-      const endLow = from === wall.from ? facadeColor : DEFAULT_WALL_COLOR
-      const endHigh = to === wall.to ? facadeColor : DEFAULT_WALL_COLOR
       const neutral = DEFAULT_WALL_COLOR
       const skins: WallSkin[] = []
       // `toward` es 1 en la cara sur o este de la caja y -1 en la norte u oeste.
@@ -172,8 +187,8 @@ function wallParts(
     let cursor = wall.from
     for (const { opening: o, from, to } of openingsOf(wall, modules, walls, openings)) {
       add(cursor, from, 0, WALL_HEIGHT)
-      add(from, to, 0, o.sill)
-      add(from, to, o.sill + o.height, WALL_HEIGHT)
+      add(from, to, 0, o.sill, JOINT_OVERLAP)
+      add(from, to, o.sill + o.height, WALL_HEIGHT, JOINT_OVERLAP)
       cursor = to
     }
     add(cursor, wall.to, 0, WALL_HEIGHT)
@@ -404,15 +419,21 @@ function FirstPersonControls() {
  */
 function WallBox({ part }: { part: WallPart }) {
   const [w, h, d] = part.size
-  const faces = part.faces.join()
+  const faces = JSON.stringify(part.faces)
   const geometry = useMemo(() => {
     const box = new BoxGeometry(w, h, d)
     // BoxGeometry tiene cuatro vértices por cara, en el mismo orden que `faces`.
     // Con cuatro componentes (RGBA), que es lo que el trazador da por hecho al mezclar mallas.
-    const colors = faces.split(',').flatMap((face) => {
-      const rgba = [...new Color(face).toArray(), 1]
-      return [...rgba, ...rgba, ...rgba, ...rgba]
-    })
+    const position = box.getAttribute('position')
+    const across = w < d ? 0 : 2
+    const rgba = (color: string) => [...new Color(color).toArray(), 1]
+    const colors = JSON.parse(faces).flatMap((face: string | [string, string], f: number) =>
+      [0, 1, 2, 3].flatMap((k) => {
+        if (typeof face === 'string') return rgba(face)
+        const coord = across === 0 ? position.getX(f * 4 + k) : position.getZ(f * 4 + k)
+        return rgba(coord < 0 ? face[0] : face[1])
+      }),
+    )
     box.setAttribute('color', new Float32BufferAttribute(colors, 4))
     return box
   }, [w, h, d, faces])

@@ -606,6 +606,13 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-12** · **Fuera las rayas finas** en las juntas de las paredes (se
+  veían sobre todo junto a puertas y ventanas): las caras de las juntas se
+  veían de canto. Ahora llevan, por mitades, el color de las caras largas de
+  su lado (`faces` admite un par en `WallPart`), y dintel y antepecho se meten
+  2 mm en los tramos de al lado (`JOINT_OVERLAP`). Comprobado con capturas en
+  la nube, con paredes lisas y de madera.
+
 - **2026-10-12** · **Techo configurable** (tema 4; el usuario aceptó mi
   propuesta): por estancia, con casilla para quitarlo de la foto y acabado
   (color o material). Probado en la nube: el panel con una estancia de techo
