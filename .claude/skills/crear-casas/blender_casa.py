@@ -1,7 +1,7 @@
 # Pasa la casa del configurador a Blender. Claude lo manda entero con
 # execute_blender_code (conector MCP for Blender), después de rellenar FOTOS
-# con casa().fotos de la web. Sin GLB, coge el eurocasa-casa-*.glb más
-# reciente de Descargas.
+# con casa().fotos de la web. Sin GLB, coge el que dejó blender_receptor.py
+# y, si no hay, el eurocasa-casa-*.glb más reciente de Descargas.
 #
 # Qué hace: quita la casa anterior (colección "Casa EuroCasa" y lo que puso
 # este script), importa el GLB en esa colección, pone Cycles en GPU (CUDA),
@@ -13,6 +13,10 @@ GLB = None  # ruta del .glb; None = el más reciente de Descargas
 FOTOS = []  # casa().fotos tal cual: [{foto, estancia, x, y, camara: {...}}]
 TECHO = 2.9  # cara de abajo del techo: suelo de 0,2 m + pared de 2,7 m
 
+import tempfile
+recibido = os.path.join(tempfile.gettempdir(), "eurocasa-casa.glb")  # de blender_receptor.py
+if GLB is None and os.path.exists(recibido):
+    GLB = recibido
 if GLB is None:
     found = glob.glob(os.path.expanduser(r"~\Downloads\eurocasa-casa-*.glb"))
     if not found:

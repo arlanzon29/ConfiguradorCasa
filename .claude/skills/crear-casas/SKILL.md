@@ -70,16 +70,23 @@ su id; los huecos, por su id.
 | `llevarCamara` | `{ estancia, mirando?, desde? }` | Lleva la cámara de la vista 3D a esa estancia, de pie (ojos a 1,6 m). Con `desde` (`noroeste`, `noreste`, `suroeste`, `sureste`) se pone en esa **esquina** y mira en diagonal al centro: es la vista que mejor enseña una estancia. Con `mirando` (`norte`, `sur`, `este`, `oeste`), centrada en la pared contraria y mirando recto. **Sin nada, va a la vista de la última foto guardada de esa estancia** (con su objetivo; devuelve `foto` con su número) y, si no hay ninguna, mira recto a lo largo del lado más largo. Una foto es de la estancia a la que mira la cámara, aunque esté sacada desde el umbral de la puerta; `casa().fotos` dice de cuál es cada una. La cámara vuela, tarda algo más de un segundo: espera antes de capturar. Úsala para enseñar o comprobar a la vista lo que has cambiado en una estancia |
 | `hacerFoto` | `{ muestras? }` | Empieza una **foto en calidad** de lo que ve la cámara (llévala antes con `llevarCamara`). `muestras`: 50, 100 o 200; sin decirlo, las que estén elegidas. Hace falta la vista 3D a la vista ("Vista 3D", "Plano + 3D" o la ventana `?vista=3d`). La primera foto tarda alrededor de un minuto en arrancar. **No la guarda**: al terminar, la página pregunta "¿Guardar la foto?" y lo decide quien la mira |
 | `verFoto` | `{ foto?, estancia? }` | Abre el **visor** con una foto guardada: la de ese número (como en `casa().fotos`) o la última de esa estancia. El visor tiene Anterior, Siguiente, Descargar y Cerrar. Si piden "la foto" de una estancia, es esto. El archivo no se puede sacar de la página desde aquí: para tenerlo, el botón "Descargar" del visor |
-| `descargarGlb` | — | Descarga la casa como `eurocasa-casa-<fecha>.glb` (lo mismo que el botón "Descargar GLB" de la vista 3D), para abrirla en Blender o Unity. Hace falta la vista 3D a la vista. El archivo cae en la carpeta de descargas del navegador; los focos van como discos emisivos, sin luz |
+| `descargarGlb` | `{ enviarA? }` | Con `enviarA`, en vez de descargar manda el GLB por POST a esa dirección (el receptor de Blender, ver "Pasar la casa a Blender"); devuelve una promesa. Sin nada: descarga la casa como `eurocasa-casa-<fecha>.glb` (lo mismo que el botón "Descargar GLB" de la vista 3D), para abrirla en Blender o Unity. Hace falta la vista 3D a la vista. El archivo cae en la carpeta de descargas del navegador; los focos van como discos emisivos, sin luz |
 | `cambiarImagenFoto` | `{ foto, imagen }` | Sustituye la **imagen** de la foto guardada número `foto` por otra, normalmente un render de Blender hecho desde su misma cámara. `imagen` es una dirección que la página pueda leer: un `data:` o una ruta del propio servidor (en local, copia el archivo a `public/` un momento, pásale `'/<nombre>.png'` y bórralo después). Se guarda en JPEG al 92 %; conserva número, cámara y objetivo. **No se deshace**: la imagen anterior se pierde, así que confírmalo antes con quien la pide |
 
 **Pasar la casa a Blender** ("pasa la casa a Blender"; solo en el equipo del
 usuario, con Blender abierto y "Start MCP Server" pulsado):
 
-1. En la web, con la vista 3D a la vista, `descargarGlb()`. Comprueba en
-   `~\Downloads` que hay un `eurocasa-casa-*.glb` con la hora de ahora; en el
-   navegador de la app la descarga puede quedarse en `.tmp` esperando a que
-   el usuario la acepte.
+1. **Directo, sin pantalla de descarga:** manda a Blender
+   `blender_receptor.py` (junto a esta skill; abre un receptor de un solo uso
+   en `http://localhost:8765`) y, en la web con la vista 3D a la vista,
+   `await descargarGlb({ enviarA: 'http://localhost:8765' })`, que devuelve
+   `{ glb: 'enviado', kb }`. Probado desde `localhost:5173`. **Desde la web
+   publicada (HTTPS) el navegador de la app lo bloquea**
+   (`ERR_BLOCKED_BY_CLIENT`); en Chrome puede pedir permiso de "red local" la
+   primera vez, sin probar. Si falla, usa la descarga: `descargarGlb()` sin
+   nada deja el archivo en Descargas (el usuario acepta la pantalla de
+   descarga) y `blender_casa.py` lo encuentra solo; antes borra el
+   `eurocasa-casa.glb` de la carpeta temporal para que no coja uno viejo.
 2. Lee `casa().fotos`.
 3. Abre `blender_casa.py` (junto a esta skill), sustituye `FOTOS = []` por
    esas fotos (JSON tal cual) y, si hace falta, `GLB` por la ruta; mándalo

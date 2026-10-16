@@ -97,6 +97,15 @@ export const PHOTO_EVENT = 'eurocasa:foto'
 /** Evento de `window` con el que se pide descargar la casa como `.glb` (botón y api.ts). */
 export const GLB_EVENT = 'eurocasa:glb'
 
+/**
+ * Lo que puede llevar el evento `GLB_EVENT`: `sendTo` manda el `.glb` por POST
+ * a esa dirección en vez de descargarlo, y `done` recibe cómo ha ido.
+ */
+export interface GlbRequest {
+  sendTo?: string
+  done?: (result: { ok: true; bytes: number } | { ok: false; error: string }) => void
+}
+
 /** Lo que el usuario puede quitar de la vista en el plano 2D. */
 export const PLAN_LAYERS = [
   { id: 'furniture', name: 'Mobiliario' },

@@ -43,7 +43,7 @@ import { VINYLS, VinylSheet, vinylPlacement, vinylSheets, vinylType } from '../m
 import { OPPOSITE, Opening } from '../model/openings'
 import { Joints, Wall, deriveWalls, openingsOf, wallAcross } from '../model/walls'
 import { Shot, usePhotos } from '../photos'
-import { GLB_EVENT, LENSES, PHOTO_EVENT, PHOTO_SAMPLES, cameraFlying, samePose, stopCameraFlight, useHouse } from '../store'
+import { GLB_EVENT, GlbRequest, LENSES, PHOTO_EVENT, PHOTO_SAMPLES, cameraFlying, samePose, stopCameraFlight, useHouse } from '../store'
 import Furniture3D from './Furniture3D'
 import { JoineryMaterial, JoineryPart, joineryParts } from './joinery'
 import PhotoTracer from './PhotoTracer'
@@ -1248,23 +1248,42 @@ function FloorTexture({ room, url, size }: FloorTextureProps) {
 function GlbExport({ onDone }: { onDone: (message: string) => void }) {
   const scene = useThree((s) => s.scene)
   useEffect(() => {
-    const run = async () => {
+    const run = async ({ sendTo, done }: GlbRequest) => {
       const house = scene.getObjectByName('casa')
-      if (!house) return onDone('No hay casa que exportar.')
+      if (!house) {
+        done?.({ ok: false, error: 'No hay casa que exportar.' })
+        return onDone('No hay casa que exportar.')
+      }
       try {
         const { GLTFExporter } = await import('three/examples/jsm/exporters/GLTFExporter.js')
         const glb = await new GLTFExporter().parseAsync(house.children, { binary: true })
+        if (sendTo) {
+          // Directo a quien lo espera (Blender), sin pantalla de descarga. El
+          // cuerpo sin tipo evita la consulta previa de CORS en lo posible.
+          const bytes = (glb as ArrayBuffer).byteLength
+          try {
+            const res = await fetch(sendTo, { method: 'POST', body: new Blob([glb as ArrayBuffer]) })
+            if (!res.ok) throw new Error(`respuesta ${res.status}`)
+            done?.({ ok: true, bytes })
+            return onDone('GLB enviado')
+          } catch (e) {
+            done?.({ ok: false, error: `No se pudo enviar a ${sendTo}: ${e instanceof Error ? e.message : e}` })
+            return onDone('No se pudo enviar el GLB')
+          }
+        }
         const link = document.createElement('a')
         link.href = URL.createObjectURL(new Blob([glb as ArrayBuffer], { type: 'model/gltf-binary' }))
         link.download = `eurocasa-casa-${new Date().toISOString().slice(0, 10)}.glb`
         link.click()
         setTimeout(() => URL.revokeObjectURL(link.href), 10_000)
+        done?.({ ok: true, bytes: (glb as ArrayBuffer).byteLength })
         onDone('GLB descargado')
       } catch (e) {
+        done?.({ ok: false, error: `No se pudo exportar: ${e instanceof Error ? e.message : e}` })
         onDone(`No se pudo exportar: ${e instanceof Error ? e.message : e}`)
       }
     }
-    const listener = () => void run()
+    const listener = (e: Event) => void run((e as CustomEvent<GlbRequest>).detail ?? {})
     window.addEventListener(GLB_EVENT, listener)
     return () => window.removeEventListener(GLB_EVENT, listener)
   }, [scene, onDone])

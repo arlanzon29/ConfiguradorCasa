@@ -706,6 +706,18 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-16** · **GLB directo a Blender, sin descarga** (lo pidió el
+  usuario, también desde GitHub Pages). `descargarGlb({ enviarA })` manda el
+  `.glb` por POST a esa dirección (`GlbRequest` en `store.ts`, `GlbExport` en
+  `View3D.tsx`; el botón sigue descargando), y
+  `.claude/skills/crear-casas/blender_receptor.py` abre dentro de Blender un
+  receptor de un solo uso en `127.0.0.1:8765` (con las cabeceras de CORS y
+  de red privada) que lo deja en la carpeta temporal, de donde lo coge
+  `blender_casa.py`. Probado desde `localhost:5173`: 4 MB recibidos sin
+  pantalla. **Desde la web publicada el navegador de la app lo bloquea**
+  (`ERR_BLOCKED_BY_CLIENT`, con un envío de prueba); en Chrome sin probar,
+  puede pedir permiso de red local. Si falla, queda la descarga.
+
 - **2026-10-16** · **Receta "pasar la casa a Blender"** en la skill
   `crear-casas` (lo pidió el usuario: llevar el GLB directo a Blender), con el
   guion `.claude/skills/crear-casas/blender_casa.py`, que Claude rellena con

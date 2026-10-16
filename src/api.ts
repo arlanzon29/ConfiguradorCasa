@@ -14,7 +14,7 @@ import { deriveWalls, wallOf } from './model/walls'
 import { Plan, parsePhotos, parsePlan, serializePlan } from './model/planFile'
 import { exportPhotos, importPhotos, usePhotos } from './photos'
 import { redo, undo } from './history'
-import { CameraPose, GLB_EVENT, PHOTO_EVENT, PHOTO_SAMPLES, furnitureBox, useHouse } from './store'
+import { CameraPose, GLB_EVENT, GlbRequest, PHOTO_EVENT, PHOTO_SAMPLES, furnitureBox, useHouse } from './store'
 
 type Fallo = { error: string }
 
@@ -796,14 +796,22 @@ function hacerFoto(p: { muestras?: number } = {}) {
 
 /**
  * Descarga la casa como `.glb` (lo mismo que el botón "Descargar GLB" de la vista
- * 3D) para llevarla a Blender. Hace falta la vista 3D abierta.
+ * 3D) para llevarla a Blender. Hace falta la vista 3D abierta. Con `enviarA`
+ * (p. ej. `http://localhost:8765`, el receptor que abre Claude en Blender) no
+ * descarga: manda el archivo por POST a esa dirección y espera la respuesta.
  */
-function descargarGlb() {
+function descargarGlb(p: { enviarA?: string } = {}) {
   if (!document.querySelector('.view3d-wrap')) {
-    return { error: 'La vista 3D no está abierta: hay que pasar a "Vista 3D" o "Plano + 3D".' } as Fallo
+    return Promise.resolve({ error: 'La vista 3D no está abierta: hay que pasar a "Vista 3D" o "Plano + 3D".' } as Fallo)
   }
-  window.dispatchEvent(new Event(GLB_EVENT))
-  return { glb: 'descargando' }
+  return new Promise<{ glb: string; kb: number } | Fallo>((resolve) => {
+    const detail: GlbRequest = {
+      sendTo: p.enviarA,
+      done: (r) =>
+        resolve(r.ok ? { glb: p.enviarA ? 'enviado' : 'descargado', kb: Math.round(r.bytes / 1024) } : { error: r.error }),
+    }
+    window.dispatchEvent(new CustomEvent(GLB_EVENT, { detail }))
+  })
 }
 
 /**
