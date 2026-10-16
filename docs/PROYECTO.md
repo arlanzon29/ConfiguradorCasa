@@ -712,8 +712,9 @@ Se anota aquí cada cosa que se hace, la más reciente arriba.
   la comunidad) instalado con `uvx mcp-for-blender install-addon`, y el
   servidor en `.mcp.json` del proyecto, **fuera de git** (lleva rutas de este
   equipo). Python fijado a 3.12 y sin descargas: uv fallaba al crear el enlace
-  de carpeta de la versión menor en `AppData\Roaming\uv\python`. Sin probar
-  todavía la conexión.
+  de carpeta de la versión menor en `AppData\Roaming\uv\python`. **Conexión
+  probada** (2026-10-16): Claude ve Blender 5.2.2 y el addon al día
+  (protocolo 13). Bibliotecas de modelos y generadores 3D apagados.
 
 - **2026-10-16** · **Descargar la casa como GLB** (el usuario: "podemos crear
   la función de descargar glb?", para llevarla a Blender y renderizar mejor;
