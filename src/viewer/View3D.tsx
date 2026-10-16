@@ -43,7 +43,7 @@ import { VINYLS, VinylSheet, vinylPlacement, vinylSheets, vinylType } from '../m
 import { OPPOSITE, Opening } from '../model/openings'
 import { Joints, Wall, deriveWalls, openingsOf, wallAcross } from '../model/walls'
 import { Shot, usePhotos } from '../photos'
-import { LENSES, PHOTO_EVENT, PHOTO_SAMPLES, cameraFlying, samePose, stopCameraFlight, useHouse } from '../store'
+import { GLB_EVENT, LENSES, PHOTO_EVENT, PHOTO_SAMPLES, cameraFlying, samePose, stopCameraFlight, useHouse } from '../store'
 import Furniture3D from './Furniture3D'
 import { JoineryMaterial, JoineryPart, joineryParts } from './joinery'
 import PhotoTracer from './PhotoTracer'
@@ -1240,6 +1240,37 @@ function FloorTexture({ room, url, size }: FloorTextureProps) {
   return <meshStandardMaterial map={texture} roughness={0.8} />
 }
 
+/**
+ * Descarga la casa como `.glb` para llevarla a Blender. Exporta lo que cuelga del
+ * grupo "casa" tal como está dibujado (metros, plano (x, y) como (x, z), esquina de la
+ * parcela en el origen). Los focos van como discos emisivos: la luz la pone Blender.
+ */
+function GlbExport({ onDone }: { onDone: (message: string) => void }) {
+  const scene = useThree((s) => s.scene)
+  useEffect(() => {
+    const run = async () => {
+      const house = scene.getObjectByName('casa')
+      if (!house) return onDone('No hay casa que exportar.')
+      try {
+        const { GLTFExporter } = await import('three/examples/jsm/exporters/GLTFExporter.js')
+        const glb = await new GLTFExporter().parseAsync(house.children, { binary: true })
+        const link = document.createElement('a')
+        link.href = URL.createObjectURL(new Blob([glb as ArrayBuffer], { type: 'model/gltf-binary' }))
+        link.download = `eurocasa-casa-${new Date().toISOString().slice(0, 10)}.glb`
+        link.click()
+        setTimeout(() => URL.revokeObjectURL(link.href), 10_000)
+        onDone('GLB descargado')
+      } catch (e) {
+        onDone(`No se pudo exportar: ${e instanceof Error ? e.message : e}`)
+      }
+    }
+    const listener = () => void run()
+    window.addEventListener(GLB_EVENT, listener)
+    return () => window.removeEventListener(GLB_EVENT, listener)
+  }, [scene, onDone])
+  return null
+}
+
 export default function View3D() {
   const modules = useHouse((s) => s.modules)
   const selectedId = useHouse((s) => s.selectedId)
@@ -1412,6 +1443,12 @@ export default function View3D() {
             >
               Maqueta AR
             </button>
+            <button
+              title="Descarga la casa como archivo .glb para abrirla en Blender"
+              onClick={() => window.dispatchEvent(new Event(GLB_EVENT))}
+            >
+              Descargar GLB
+            </button>
             {hereIndex >= 0 && (
               <>
                 <button
@@ -1512,6 +1549,7 @@ export default function View3D() {
       {/* En AR la casa va sobre su mesa, centrada en ella y sin el césped de la parcela. */}
       <ARTable enabled={ar} size={[footprint.w, footprint.d]}>
       <group
+        name="casa"
         position={ar ? [-footprint.cx, 0, -footprint.cy] : [-PLOT.width / 2, 0, -PLOT.depth / 2]}
       >
         {!ar && (
@@ -1618,6 +1656,8 @@ export default function View3D() {
         ))}
       </group>
       </ARTable>
+
+      <GlbExport onDone={setSaved} />
 
       <XR store={xrStore}>
         <VRRig ar={ar} />

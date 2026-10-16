@@ -706,6 +706,20 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-16** · **Descargar la casa como GLB** (el usuario: "podemos crear
+  la función de descargar glb?", para llevarla a Blender y renderizar mejor;
+  después preguntó si Unity lo abre: sí, con el paquete glTFast o UnityGLTF).
+  Botón **"Descargar GLB"** en la barra de la vista 3D y función
+  `descargarGlb()` en `window.eurocasa` (evento `GLB_EVENT` de `store.ts`);
+  `GlbExport` en `View3D.tsx` exporta con `GLTFExporter` lo que cuelga del
+  grupo `casa` (metros, plano (x, y) como (x, z), esquina de la parcela en el
+  origen; incluye el césped de la parcela). Los focos van como **discos
+  emisivos, sin luz**: la luz la pone Blender. No lleva techo ni cámara, y lo
+  elegido sale con su color de resalte. Es de una sola dirección. Probado en
+  el servidor aparte (5185): casa con salón, puerta, suelo de pino y sofá, GLB
+  válido de 1,3 MB con 36 nodos y la textura. **Sin abrirlo aún en Blender ni
+  en Unity.** En la skill `crear-casas`.
+
 - **2026-10-12** · **Dos casas de ejemplo públicas, "Test 1" y "Test 2"** (el
   usuario: "podemos poner esta casa dentro de los ejemplos públicos, que se
   pueda escoger entre el test 1 y este test 2"). `public/ejemplos/ejemplo2.json`

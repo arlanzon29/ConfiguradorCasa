@@ -94,6 +94,9 @@ export const DEFAULT_PHOTO_SAMPLES = 100
 /** Evento de `window` con el que se pide una foto en calidad sin pulsar el botón (api.ts). */
 export const PHOTO_EVENT = 'eurocasa:foto'
 
+/** Evento de `window` con el que se pide descargar la casa como `.glb` (botón y api.ts). */
+export const GLB_EVENT = 'eurocasa:glb'
+
 /** Lo que el usuario puede quitar de la vista en el plano 2D. */
 export const PLAN_LAYERS = [
   { id: 'furniture', name: 'Mobiliario' },
