@@ -89,7 +89,17 @@ function casa() {
       const x = roundSize(p.pose.position[0] + PLOT.width / 2)
       const y = roundSize(p.pose.position[2] + PLOT.depth / 2)
       const room = photoRoom(p.pose)
-      return { foto: i + 1, ...(room && { estancia: roomName(modules, room.id) }), x, y }
+      // La cámara entera (para copiarla en Blender): altura de ojos, giro y
+      // cabeceo en radianes como `CameraPose`, objetivo vertical y tamaño.
+      const camara = {
+        altura: p.pose.position[1],
+        giro: p.pose.yaw,
+        cabeceo: p.pose.pitch,
+        objetivo: p.fov,
+        ancho: p.width,
+        alto: p.height,
+      }
+      return { foto: i + 1, ...(room && { estancia: roomName(modules, room.id) }), x, y, camara }
     }),
   }
 }
@@ -815,6 +825,34 @@ function verFoto(p: { foto?: number; estancia?: string }) {
 }
 
 /**
+ * Cambia la imagen de una foto guardada por otra (p. ej. un render de
+ * Blender hecho desde su misma cámara). `imagen` es una dirección que la página
+ * pueda leer (`data:` o una ruta del propio servidor). Se guarda en JPEG al
+ * 92 %, como las demás; la foto conserva número, cámara y objetivo. No se puede
+ * deshacer: la imagen anterior se pierde.
+ */
+async function cambiarImagenFoto(p: { foto: number; imagen: string }) {
+  const { photos, replace } = usePhotos.getState()
+  const old = photos[p.foto - 1]
+  if (!old) return { error: `No hay ninguna foto ${p.foto}.` } as Fallo
+  let bitmap: ImageBitmap
+  try {
+    bitmap = await createImageBitmap(await (await fetch(p.imagen)).blob())
+  } catch {
+    return { error: 'No se ha podido leer esa imagen.' } as Fallo
+  }
+  const canvas = document.createElement('canvas')
+  canvas.width = bitmap.width
+  canvas.height = bitmap.height
+  canvas.getContext('2d')!.drawImage(bitmap, 0, 0)
+  const jpeg = await new Promise<Blob | null>((ok) => canvas.toBlob(ok, 'image/jpeg', 0.92))
+  if (!jpeg) return { error: 'No se ha podido convertir la imagen.' } as Fallo
+  const { id, takenAt, image, retakenAt, ...shot } = old
+  await replace(id, jpeg, { ...shot, width: bitmap.width, height: bitmap.height })
+  return { foto: p.foto, ancho: bitmap.width, alto: bitmap.height, kb: Math.round(jpeg.size / 1024) }
+}
+
+/**
  * Devuelve la casa como el texto de un archivo de plano (el mismo que "Guardar
  * plano"), para que Claude lo guarde en la carpeta `comercial/`. Sin fotos, que
  * pesan; con `fotos: true`, dentro del texto.
@@ -840,6 +878,7 @@ const eurocasa = {
   bajarCasa,
   subirCasa,
   verFoto,
+  cambiarImagenFoto,
   hacerFoto,
   descargarGlb,
   llevarCamara,

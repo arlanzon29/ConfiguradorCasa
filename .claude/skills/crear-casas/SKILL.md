@@ -71,6 +71,15 @@ su id; los huecos, por su id.
 | `hacerFoto` | `{ muestras? }` | Empieza una **foto en calidad** de lo que ve la cámara (llévala antes con `llevarCamara`). `muestras`: 50, 100 o 200; sin decirlo, las que estén elegidas. Hace falta la vista 3D a la vista ("Vista 3D", "Plano + 3D" o la ventana `?vista=3d`). La primera foto tarda alrededor de un minuto en arrancar. **No la guarda**: al terminar, la página pregunta "¿Guardar la foto?" y lo decide quien la mira |
 | `verFoto` | `{ foto?, estancia? }` | Abre el **visor** con una foto guardada: la de ese número (como en `casa().fotos`) o la última de esa estancia. El visor tiene Anterior, Siguiente, Descargar y Cerrar. Si piden "la foto" de una estancia, es esto. El archivo no se puede sacar de la página desde aquí: para tenerlo, el botón "Descargar" del visor |
 | `descargarGlb` | — | Descarga la casa como `eurocasa-casa-<fecha>.glb` (lo mismo que el botón "Descargar GLB" de la vista 3D), para abrirla en Blender o Unity. Hace falta la vista 3D a la vista. El archivo cae en la carpeta de descargas del navegador; los focos van como discos emisivos, sin luz |
+| `cambiarImagenFoto` | `{ foto, imagen }` | Sustituye la **imagen** de la foto guardada número `foto` por otra, normalmente un render de Blender hecho desde su misma cámara. `imagen` es una dirección que la página pueda leer: un `data:` o una ruta del propio servidor (en local, copia el archivo a `public/` un momento, pásale `'/<nombre>.png'` y bórralo después). Se guarda en JPEG al 92 %; conserva número, cámara y objetivo. **No se deshace**: la imagen anterior se pierde, así que confírmalo antes con quien la pide |
+
+**Copiar la cámara de una foto en Blender** (`casa().fotos[i]`, con `x`, `y` y
+`camara`): en Blender, posición `(x, −y, camara.altura)`, giro en grados
+`(90° + cabeceo, 0, giro)` (pasando cabeceo y giro de radianes a grados),
+`sensor_fit` vertical con ángulo `camara.objetivo` y resolución
+`camara.ancho × camara.alto`. Así coincide con el GLB de `descargarGlb`
+importado tal cual. Render en GPU con CUDA (OptiX falla en el equipo del
+usuario).
 
 Los muebles **no chocan** entre sí ni con las puertas: comprueba tú, con las
 medidas del catálogo y las posiciones de `casa()`, que no se pisan ni tapan

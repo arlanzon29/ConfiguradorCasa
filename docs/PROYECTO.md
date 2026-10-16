@@ -706,6 +706,19 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-16** · **`cambiarImagenFoto`** en `window.eurocasa` (lo pidió el
+  usuario, para meter en la web el render de Blender en lugar de la foto
+  trazada): cambia la imagen de una foto guardada por otra leída de una
+  dirección (`data:` o ruta del servidor), en JPEG al 92 %, y conserva número,
+  cámara y objetivo. `casa().fotos` devuelve ahora también la `camara`
+  (altura, giro, cabeceo, objetivo, ancho y alto), con la receta para
+  copiarla en Blender en la skill `crear-casas`. Antes se hizo a mano con la
+  foto 2 del salón en el navegador de la app (5173). Renders: 18,8 s en GPU
+  (CUDA) frente a 172,9 s en CPU, misma calidad; OptiX falla al cargar su
+  núcleo (driver de NVIDIA, supuesto) y se queda CUDA. Probado: `casa().fotos`
+  con la cámara y los dos rechazos (foto que no existe, imagen que no se
+  lee); la sustitución buena solo con el código a mano de antes.
+
 - **2026-10-16** · **Primer render en Blender** (al usuario le ha quedado
   "muy bien"). Sobre el GLB importado, Claude puso por el conector: Cycles,
   cielo físico y sol, techo sobre la casa, una luz de área en cada disco
