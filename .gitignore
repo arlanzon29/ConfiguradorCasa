@@ -6,3 +6,6 @@ dist
 
 # Casas de los comerciales (planos .json); solo viven en el disco de cada uno.
 comercial/
+
+# Conector de Blender: rutas de este equipo
+.mcp.json

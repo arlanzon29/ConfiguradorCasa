@@ -706,6 +706,15 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-16** · **Conector de Blender** (lo pidió el usuario, para renderizar
+  la casa en Blender). Blender 5.2.2 LTS (quitó la 3.0), `uv` 0.13.1 en
+  `C:\Users\arlan\.local\bin`, addon "MCP for Blender" (antes BlenderMCP, de
+  la comunidad) instalado con `uvx mcp-for-blender install-addon`, y el
+  servidor en `.mcp.json` del proyecto, **fuera de git** (lleva rutas de este
+  equipo). Python fijado a 3.12 y sin descargas: uv fallaba al crear el enlace
+  de carpeta de la versión menor en `AppData\Roaming\uv\python`. Sin probar
+  todavía la conexión.
+
 - **2026-10-16** · **Descargar la casa como GLB** (el usuario: "podemos crear
   la función de descargar glb?", para llevarla a Blender y renderizar mejor;
   después preguntó si Unity lo abre: sí, con el paquete glTFast o UnityGLTF).
