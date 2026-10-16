@@ -73,6 +73,26 @@ su id; los huecos, por su id.
 | `descargarGlb` | — | Descarga la casa como `eurocasa-casa-<fecha>.glb` (lo mismo que el botón "Descargar GLB" de la vista 3D), para abrirla en Blender o Unity. Hace falta la vista 3D a la vista. El archivo cae en la carpeta de descargas del navegador; los focos van como discos emisivos, sin luz |
 | `cambiarImagenFoto` | `{ foto, imagen }` | Sustituye la **imagen** de la foto guardada número `foto` por otra, normalmente un render de Blender hecho desde su misma cámara. `imagen` es una dirección que la página pueda leer: un `data:` o una ruta del propio servidor (en local, copia el archivo a `public/` un momento, pásale `'/<nombre>.png'` y bórralo después). Se guarda en JPEG al 92 %; conserva número, cámara y objetivo. **No se deshace**: la imagen anterior se pierde, así que confírmalo antes con quien la pide |
 
+**Pasar la casa a Blender** ("pasa la casa a Blender"; solo en el equipo del
+usuario, con Blender abierto y "Start MCP Server" pulsado):
+
+1. En la web, con la vista 3D a la vista, `descargarGlb()`. Comprueba en
+   `~\Downloads` que hay un `eurocasa-casa-*.glb` con la hora de ahora; en el
+   navegador de la app la descarga puede quedarse en `.tmp` esperando a que
+   el usuario la acepte.
+2. Lee `casa().fotos`.
+3. Abre `blender_casa.py` (junto a esta skill), sustituye `FOTOS = []` por
+   esas fotos (JSON tal cual) y, si hace falta, `GLB` por la ruta; mándalo
+   entero con `execute_blender_code`. Quita la casa anterior (colección "Casa
+   EuroCasa" y lo marcado con `eurocasa`), importa el GLB, pone Cycles en GPU
+   (CUDA), cielo y sol, techo, una luz por foco y una cámara por foto.
+   Devuelve un resumen; mira el resultado con `look` (`mode: camera`).
+4. Si piden render: cámara activa (`scene.camera`) y su `resolucion`,
+   `render.render(write_still=True)` a un archivo. Para que el usuario vea
+   el avance, `bpy.ops.render.render('INVOKE_DEFAULT', write_still=True)`,
+   que abre la ventana de render (puede quedar detrás de la de Blender).
+5. Para subirlo a la web: `cambiarImagenFoto` (abajo), con permiso.
+
 **Copiar la cámara de una foto en Blender** (`casa().fotos[i]`, con `x`, `y` y
 `camara`): en Blender, posición `(x, −y, camara.altura)`, giro en grados
 `(90° + cabeceo, 0, giro)` (pasando cabeceo y giro de radianes a grados),

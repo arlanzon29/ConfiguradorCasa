@@ -706,6 +706,17 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-16** · **Receta "pasar la casa a Blender"** en la skill
+  `crear-casas` (lo pidió el usuario: llevar el GLB directo a Blender), con el
+  guion `.claude/skills/crear-casas/blender_casa.py`, que Claude rellena con
+  `casa().fotos` y manda por el conector: quita la casa anterior, importa el
+  GLB más reciente de Descargas en la colección "Casa EuroCasa" y pone
+  Cycles en CUDA, cielo y sol, techo, luces de los focos y una cámara por
+  foto. Sin cambios en la web. Probado con la casa del usuario: 5 focos, techo
+  de 13 × 4,2 m y las dos cámaras, vista la del dormitorio. La descarga del
+  GLB desde el navegador de la app se quedó en `.tmp` (esperando a aceptarla):
+  se probó con el GLB que ya había bajado el usuario.
+
 - **2026-10-16** · **`cambiarImagenFoto`** en `window.eurocasa` (lo pidió el
   usuario, para meter en la web el render de Blender en lugar de la foto
   trazada): cambia la imagen de una foto guardada por otra leída de una
