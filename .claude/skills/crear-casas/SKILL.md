@@ -76,6 +76,9 @@ su id; los huecos, por su id.
 **Pasar la casa a Blender** ("pasa la casa a Blender"; solo en el equipo del
 usuario, con Blender abierto y "Start MCP Server" pulsado):
 
+0. **Con la web publicada, lo acordado con el usuario:** él descarga el GLB
+   y dice el nombre del archivo; pon esa ruta en `GLB` de `blender_casa.py` y
+   sigue en el paso 2. El envío directo queda para `localhost`.
 1. **Directo, sin pantalla de descarga:** manda a Blender
    `blender_receptor.py` (junto a esta skill; abre un receptor de un solo uso
    en `http://localhost:8765`) y, en la web con la vista 3D a la vista,
