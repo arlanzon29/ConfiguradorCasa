@@ -706,6 +706,16 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-16** · **Primer render en Blender** (al usuario le ha quedado
+  "muy bien"). Sobre el GLB importado, Claude puso por el conector: Cycles,
+  cielo físico y sol, techo sobre la casa, una luz de área en cada disco
+  emisivo de los focos y una cámara por cada foto guardada en la web (leídas
+  del IndexedDB del navegador). Paso de la pose de la web a Blender:
+  posición (x + 14, −(z + 10), y), giro (90° + pitch, 0, yaw), objetivo como
+  ángulo vertical. Foto 2 del salón a 100 muestras. De paso, las
+  preferencias de Blender pasan a OptiX (RTX 3060); antes renderizaba en la
+  CPU. Nada en el código.
+
 - **2026-10-16** · **Conector de Blender** (lo pidió el usuario, para renderizar
   la casa en Blender). Blender 5.2.2 LTS (quitó la 3.0), `uv` 0.13.1 en
   `C:\Users\arlan\.local\bin`, addon "MCP for Blender" (antes BlenderMCP, de
