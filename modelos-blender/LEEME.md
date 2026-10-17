@@ -44,6 +44,11 @@ esos nombres sin cambiar también el catálogo.
 | Armario medio (`armario-medio`) | `armario-medio.blend` | `public/modelos/armario-medio.glb` | 0,9 × 0,6 × 2,2 m | — |
 | Armario (`armario`) | `armario.blend` | `public/modelos/armario.glb` | 1,8 × 0,6 × 2,2 m | — |
 
+**Nunca dos caras en el mismo plano** (z-fighting: la web y Blender no
+saben cuál pintar y parpadean, como pasó con la rejilla del frigorífico y
+los zócalos). Una pieza pegada sobre otra (zócalo, rejilla, pantalla,
+teclas) va al menos 3 mm por delante de la cara que tiene detrás.
+
 **El alto es el del modelo**, no el del catálogo: la web ajusta ancho y fondo
 a las medidas del catálogo pero deja el alto como viene (la cama mide 0,5 en
 el catálogo y su cabecero sube a 1 m). Modelar siempre en metros reales.

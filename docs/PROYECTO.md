@@ -711,6 +711,17 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-17** · **Fuera el parpadeo de los modelos detallados** (el
+  usuario: en el frigorífico y el lavavajillas, la tira negra de abajo se
+  ponía blanca y parpadeaba). Era z-fighting: la rejilla del frigorífico y el
+  zócalo del lavavajillas tenían la cara delantera en el mismo plano que el
+  cuerpo. Adelantadas 4 mm, y lo mismo en los zócalos de los dos armarios de
+  dormitorio, que tenían el mismo fallo. Revisando todos los modelos con un
+  guion (caras paralelas a menos de 1,5 mm), dos más con riesgo: la pantalla
+  de la tele (a 3 mm del marco) y las teclas de la vitro (más gruesas). Los
+  ocho `.glb` y `.blend` vueltos a guardar. Regla en `modelos-blender/LEEME.md`.
+  Sin verlo en la web: el usuario estaba usando la pestaña de pruebas.
+
 - **2026-10-17** · **La vista 3D arranca siempre en "Sencillos"** (el
   usuario: "por defecto quiero el 3d en modo sencillo"). Ya era el valor de
   partida, pero se guardaba en el navegador y volvía "Detallados" si se dejó
