@@ -46,6 +46,22 @@ export interface JoineryPart {
   role: JoineryRole
   /** Acabado elegido para el hueco; solo cuenta en las piezas `wood`. */
   finish?: Finish
+  /**
+   * Solo en la hoja de una puerta abatible y sus manillas: la pieza va en la
+   * postura cerrada y gira sobre el eje de las bisagras.
+   */
+  leaf?: DoorLeafAxis
+}
+
+/** El eje de giro de una hoja de puerta y cuánto gira para quedar abierta. */
+export interface DoorLeafAxis {
+  /** El hueco al que pertenece. */
+  opening: string
+  /** Dónde está el eje en el plano (x, y del plano). */
+  pivot: [number, number]
+  /** Giro en radianes alrededor del eje vertical (el `rotation.y` de three) con la puerta abierta. */
+  open: number
+  closed: boolean
 }
 
 /** Cercos, hojas, cristales y manillas de todos los huecos de la casa. */
@@ -56,8 +72,9 @@ export function joineryParts(modules: PlacedModule[], joints: Joints, openings: 
     if (wall.open) continue
     const [acrossMin, acrossMax] = wallAcross(wall)
     const axis = (acrossMin + acrossMax) / 2
-    // Acabado del hueco que se está montando.
+    // Acabado del hueco que se está montando, y eje de la hoja si es una puerta.
     let finish: Finish | undefined
+    let leafAxis: DoorLeafAxis | undefined
 
     // Caja dada por sus extremos a lo largo de la pared, a través de ella y en altura.
     const box = (
@@ -73,8 +90,8 @@ export function joineryParts(modules: PlacedModule[], joints: Joints, openings: 
       const [a, c, h] = [(a0 + a1) / 2, (c0 + c1) / 2, (y[0] + y[1]) / 2]
       parts.push(
         wall.horizontal
-          ? { position: [a, h, c], size: [a1 - a0, y[1] - y[0], c1 - c0], material, role, finish }
-          : { position: [c, h, a], size: [c1 - c0, y[1] - y[0], a1 - a0], material, role, finish },
+          ? { position: [a, h, c], size: [a1 - a0, y[1] - y[0], c1 - c0], material, role, finish, leaf: leafAxis }
+          : { position: [c, h, a], size: [c1 - c0, y[1] - y[0], a1 - a0], material, role, finish, leaf: leafAxis },
       )
     }
 
@@ -127,13 +144,23 @@ export function joineryParts(modules: PlacedModule[], joints: Joints, openings: 
         }
 
         // Hoja: enrasada con la cara hacia la que abre y girando sobre el canto
-        // de las bisagras. `u` recorre la hoja desde ese canto y `v` su grosor;
-        // abierta a 90° los dos ejes se cruzan.
+        // de las bisagras. `u` recorre la hoja desde ese canto y `v` su grosor.
+        // Se monta cerrada; abierta es la misma hoja girada 90° sobre el eje
+        // (`leafAxis`), que la vista 3D anima.
         const dir = swingSign(o)
         const face = dir > 0 ? acrossMax : acrossMin
         const turn = o.hinge === 'end' ? -1 : 1
         const pivot = o.hinge === 'end' ? to - JAMB - LEAF_GAP : from + JAMB + LEAF_GAP
         const width = to - from - 2 * (JAMB + LEAF_GAP)
+        // Abrir lleva (u, -v) a (v, u) en ejes de la pared, multiplicados por
+        // `turn` y `dir`; en three, con x y z del plano, eso es este giro.
+        const quarter = (turn * dir * Math.PI) / 2
+        leafAxis = {
+          opening: o.id,
+          pivot: wall.horizontal ? [pivot, face] : [face, pivot],
+          open: wall.horizontal ? -quarter : quarter,
+          closed: !!o.closed,
+        }
         const leaf = (
           u: [number, number],
           v: [number, number],
@@ -141,21 +168,13 @@ export function joineryParts(modules: PlacedModule[], joints: Joints, openings: 
           material: JoineryMaterial = 'wood',
           role: JoineryRole = 'Hoja',
         ) =>
-          o.closed
-            ? box(
-                [pivot + turn * u[0], pivot + turn * u[1]],
-                [face - dir * v[0], face - dir * v[1]],
-                y,
-                material,
-                role,
-              )
-            : box(
-                [pivot + turn * v[0], pivot + turn * v[1]],
-                [face + dir * u[0], face + dir * u[1]],
-                y,
-                material,
-                role,
-              )
+          box(
+            [pivot + turn * u[0], pivot + turn * u[1]],
+            [face - dir * v[0], face - dir * v[1]],
+            y,
+            material,
+            role,
+          )
         leaf([0, width], [0, LEAF], [LEAF_FLOOR_GAP, top - JAMB - LEAF_GAP])
         // Manilla por las dos caras: escudo cuadrado, vástago y palanca.
         for (const [near, far] of [
@@ -170,6 +189,7 @@ export function joineryParts(modules: PlacedModule[], joints: Joints, openings: 
           leaf([width - 0.075, width - 0.055], [near, far], hy, 'metal', 'Manilla')
           leaf([width - 0.18, width - 0.055], lever, hy, 'metal', 'Manilla')
         }
+        leafAxis = undefined
         continue
       }
 

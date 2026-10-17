@@ -1,10 +1,18 @@
-import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber'
-import { XR, XROrigin, createXRStore, useXR, useXRControllerLocomotion } from '@react-three/xr'
-import { Suspense, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { Canvas, ThreeEvent, useFrame, useLoader, useThree } from '@react-three/fiber'
+import {
+  DefaultXRController,
+  XR,
+  XROrigin,
+  createXRStore,
+  useXR,
+  useXRControllerLocomotion,
+} from '@react-three/xr'
+import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import {
   BoxGeometry,
   CanvasTexture,
   Color,
+  EdgesGeometry,
   Float32BufferAttribute,
   Group,
   Mesh,
@@ -45,7 +53,7 @@ import { Joints, Wall, deriveWalls, openingsOf, wallAcross } from '../model/wall
 import { Shot, usePhotos } from '../photos'
 import { GLB_EVENT, GlbRequest, LENSES, PHOTO_EVENT, PHOTO_SAMPLES, cameraFlying, samePose, stopCameraFlight, useHouse } from '../store'
 import Furniture3D from './Furniture3D'
-import { JoineryMaterial, JoineryPart, joineryParts } from './joinery'
+import { DoorLeafAxis, JoineryMaterial, JoineryPart, joineryParts } from './joinery'
 import PhotoTracer from './PhotoTracer'
 
 // Grosor de la losa, en metros.
@@ -431,12 +439,12 @@ function FirstPersonControls() {
 }
 
 // Realidad virtual (WebXR): se entra desde el botón "Entrar en VR" y vale para las
-// Quest. Es solo para ver: sin ratones ni paneles, y con los mandos se camina
-// (stick izquierdo) y se gira a saltos (stick derecho). En localhost la propia
-// librería emula unas Quest 3 cuando el navegador no tiene VR.
+// Quest. Sin ratones ni paneles: con los mandos se camina (stick izquierdo), se
+// gira a saltos (stick derecho) y, apuntando a una puerta con el rayo, el
+// gatillo la abre o la cierra. En localhost la propia librería emula unas
+// Quest 3 cuando el navegador no tiene VR.
 const xrStore = createXRStore({
-  // Solo se mira: sin rayos ni agarres, que no hay nada que tocar.
-  controller: { rayPointer: false, grabPointer: false },
+  controller: VRController,
   hand: { rayPointer: false, grabPointer: false, touchPointer: false },
   gaze: false,
   transientPointer: false,
@@ -446,6 +454,49 @@ const VR_WALK_SPEED = 2
 const VR_TURN_DEGREES = 30
 // Cuánto dura el aviso de cómo salir, en milisegundos.
 const VR_HINT_MS = 10000
+// Hasta dónde llega el rayo del mando, en metros, y a qué velocidad gira una
+// hoja de puerta al abrirla o cerrarla (radianes por segundo: 90° en medio segundo).
+const VR_RAY_LENGTH = 6
+const DOOR_TURN_SPEED = Math.PI
+
+/**
+ * El mando en VR: su modelo y un rayo para apuntar a las puertas. En AR, sin
+ * rayo: el gatillo coloca la maqueta y no hay nada que tocar.
+ */
+function VRController() {
+  const ar = useXR((s) => s.mode === 'immersive-ar')
+  return (
+    <DefaultXRController
+      rayPointer={ar ? false : { rayModel: { maxLength: VR_RAY_LENGTH } }}
+      grabPointer={false}
+    />
+  )
+}
+
+/** Un cartel de texto pintado en un lienzo, para colgarlo en la escena de la VR. */
+function vrLabel(text: string) {
+  const canvas = document.createElement('canvas')
+  canvas.width = 640
+  canvas.height = 96
+  const ctx = canvas.getContext('2d')!
+  ctx.fillStyle = 'rgba(20, 24, 28, 0.85)'
+  ctx.fillRect(0, 0, 640, 96)
+  ctx.fillStyle = '#ffffff'
+  ctx.font = 'bold 40px sans-serif'
+  ctx.textAlign = 'center'
+  ctx.fillText(text, 320, 62)
+  return new CanvasTexture(canvas)
+}
+
+/** Los dos carteles de las puertas; se pintan la primera vez que hacen falta. */
+let doorLabels: { open: CanvasTexture; close: CanvasTexture } | null = null
+function doorLabel(closed: boolean) {
+  doorLabels ??= {
+    open: vrLabel('Gatillo: abrir la puerta'),
+    close: vrLabel('Gatillo: cerrar la puerta'),
+  }
+  return closed ? doorLabels.open : doorLabels.close
+}
 
 /** Un cartel pequeño, delante de los ojos y siempre encima, que dice cómo salir de la VR. */
 function exitHint(title: string, lines: string[]) {
@@ -686,7 +737,11 @@ function VRRig({ ar }: { ar: boolean }) {
           'Stick: girarla · A o X: tamaño real',
           __APP_VERSION__,
         ])
-      : exitHint('Pulsa B o Y para salir', ['Stick: caminar y girar', __APP_VERSION__])
+      : exitHint('Pulsa B o Y para salir', [
+          'Stick: caminar y girar',
+          'Apunta a una puerta y pulsa el gatillo',
+          __APP_VERSION__,
+        ])
     camera.add(hint)
     const timer = setTimeout(() => camera.remove(hint), VR_HINT_MS)
     return () => {
@@ -818,6 +873,130 @@ function JoineryBox({ part }: { part: JoineryPart }) {
     <Suspense fallback={plain}>
       <TexturedBox name={name} position={position} size={part.size} url={finish.texture} scale={finish.size ?? [1, 1]} />
     </Suspense>
+  )
+}
+
+/**
+ * Hoja de una puerta abatible con sus manillas: gira sobre las bisagras hasta
+ * quedar abierta o cerrada. Al cambiar `closed` gira poco a poco; durante la
+ * foto en calidad va directa, para que el trazador la vea ya en su sitio.
+ * En VR (`interactive`) se apunta con el rayo del mando: se resalta, sale un
+ * cartel con el botón que hay que pulsar y el gatillo la abre o la cierra.
+ */
+function DoorLeaf({
+  axis,
+  parts,
+  animate,
+  interactive,
+}: {
+  axis: DoorLeafAxis
+  parts: JoineryPart[]
+  animate: boolean
+  interactive: boolean
+}) {
+  const group = useRef<Group>(null)
+  const label = useRef<Mesh>(null)
+  const gl = useThree((s) => s.gl)
+  const target = axis.closed ? 0 : axis.open
+  const angle = useRef(target)
+  // Qué mandos apuntan a la hoja, y dónde da el último rayo.
+  const [pointers, setPointers] = useState<Set<number>>(new Set())
+  const hit = useRef(new Vector3())
+  const tmp = useRef({ head: new Vector3(), toward: new Vector3() })
+  const hovered = interactive && pointers.size > 0
+
+  useLayoutEffect(() => {
+    if (animate || !group.current) return
+    angle.current = target
+    group.current.rotation.y = target
+  }, [animate, target])
+  useEffect(() => {
+    if (!interactive) setPointers(new Set())
+  }, [interactive])
+
+  useFrame((_, delta) => {
+    const g = group.current
+    if (g) {
+      const left = target - angle.current
+      const step = DOOR_TURN_SPEED * delta
+      if (left !== 0) {
+        angle.current = Math.abs(left) <= step ? target : angle.current + Math.sign(left) * step
+        g.rotation.y = angle.current
+      }
+    }
+    // El cartel, donde da el rayo, un poco hacia la cabeza y de cara a ella.
+    const l = label.current
+    if (!l || !l.parent) return
+    const { head, toward } = tmp.current
+    gl.xr.getCamera().getWorldPosition(head)
+    toward.subVectors(head, hit.current).setY(0)
+    if (toward.lengthSq() > 1e-6) toward.normalize().multiplyScalar(0.08)
+    l.position.copy(hit.current).add(toward)
+    l.position.y += 0.12
+    l.parent.worldToLocal(l.position)
+    l.lookAt(head.x, l.getWorldPosition(toward).y, head.z)
+  })
+
+  // Resalte: las aristas de la hoja, un poco mayores que ella.
+  const panel = parts.find((p) => p.role === 'Hoja')
+  const edges = useMemo(() => {
+    if (!panel) return null
+    const [w, h, d] = panel.size
+    const box = new BoxGeometry(w + 0.01, h + 0.01, d + 0.01)
+    const lines = new EdgesGeometry(box)
+    box.dispose()
+    return lines
+  }, [panel?.size[0], panel?.size[1], panel?.size[2]])
+  useEffect(() => () => edges?.dispose(), [edges])
+
+  const [px, pz] = axis.pivot
+  const handlers = interactive
+    ? {
+        onPointerOver: (e: ThreeEvent<PointerEvent>) => {
+          hit.current.copy(e.point)
+          setPointers((s) => new Set(s).add(e.pointerId))
+        },
+        onPointerMove: (e: ThreeEvent<PointerEvent>) => {
+          hit.current.copy(e.point)
+        },
+        onPointerOut: (e: ThreeEvent<PointerEvent>) =>
+          setPointers((s) => {
+            const next = new Set(s)
+            next.delete(e.pointerId)
+            return next
+          }),
+        onClick: (e: ThreeEvent<MouseEvent>) => {
+          e.stopPropagation()
+          useHouse.getState().setDoor(axis.opening, { closed: !axis.closed })
+        },
+      }
+    : {}
+
+  return (
+    <>
+      <group ref={group} position={[px, 0, pz]} rotation-y={angle.current} {...handlers}>
+        <group position={[-px, 0, -pz]}>
+          {parts.map((part, i) => (
+            <JoineryBox key={i} part={part} />
+          ))}
+          {hovered && panel && edges && (
+            <lineSegments
+              geometry={edges}
+              pointerEvents="none"
+              position={[panel.position[0], SLAB + panel.position[1], panel.position[2]]}
+            >
+              <lineBasicMaterial color="#ff9a3c" />
+            </lineSegments>
+          )}
+        </group>
+      </group>
+      {hovered && (
+        <mesh ref={label} renderOrder={999} pointerEvents="none">
+          <planeGeometry args={[0.36, 0.054]} />
+          <meshBasicMaterial map={doorLabel(axis.closed)} transparent depthTest={false} />
+        </mesh>
+      )}
+    </>
   )
 }
 
@@ -1342,6 +1521,19 @@ export default function View3D() {
     () => joineryParts(modules, joints, openings),
     [modules, joints, openings],
   )
+  // Las hojas de las puertas abatibles van aparte, cada una con sus piezas: giran.
+  const doorLeaves = useMemo(() => {
+    const leaves = new Map<string, { axis: DoorLeafAxis; parts: JoineryPart[] }>()
+    for (const part of joinery) {
+      if (!part.leaf) continue
+      const leaf = leaves.get(part.leaf.opening) ?? { axis: part.leaf, parts: [] }
+      leaf.parts.push(part)
+      leaves.set(part.leaf.opening, leaf)
+    }
+    return [...leaves.values()]
+  }, [joinery])
+  // En VR (no en la maqueta AR) las puertas se abren y cierran apuntándolas.
+  const vrDoors = xrSession != null && xrMode === 'vr'
 
   // Foto en calidad: trazado de rayos sobre esta misma escena, con un
   // techo que solo existe mientras dura la foto. La luz la dan los focos de cada
@@ -1591,6 +1783,9 @@ export default function View3D() {
       <group
         name="casa"
         position={ar ? [-footprint.cx, 0, -footprint.cy] : [-PLOT.width / 2, 0, -PLOT.depth / 2]}
+        // En VR, todo lo de la casa para el rayo del mando: así no se coge una
+        // puerta que esté detrás de una pared.
+        pointerEvents={vrDoors ? 'auto' : undefined}
       >
         {!ar && (
           <mesh
@@ -1664,8 +1859,15 @@ export default function View3D() {
           )),
         )}
         {/* Carpintería de puertas y ventanas: cercos, hojas, cristales y manillas. */}
-        {joinery.map((part, i) => (
-          <JoineryBox key={i} part={part} />
+        {joinery.map((part, i) => !part.leaf && <JoineryBox key={i} part={part} />)}
+        {doorLeaves.map(({ axis, parts }) => (
+          <DoorLeaf
+            key={axis.opening}
+            axis={axis}
+            parts={parts}
+            animate={!photo}
+            interactive={vrDoors}
+          />
         ))}
         {/* Vinilos: un plano por cada uno; en la foto, una lámina por cara de pared. */}
         {photo

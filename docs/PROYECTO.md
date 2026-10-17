@@ -81,7 +81,9 @@ Otros elementos:
   dos hojas de cristal solapadas. De cada puerta abatible se guarda en el hueco
   hacia dónde abre (`swing`: `in` hacia su estancia, `out` al otro lado), en qué
   canto gira (`hinge`: `start` el extremo oeste o norte, `end` el otro) y si se ve
-  cerrada en 3D (`closed`; si no, abierta a 90° como en el plano). Cerco y hojas
+  cerrada en 3D (`closed`; si no, abierta a 90° como en el plano). La hoja se
+  monta siempre cerrada y lleva el eje de sus bisagras (`leaf` en
+  `JoineryPart`); la vista 3D la gira hasta abierta o cerrada, poco a poco. Cerco y hojas
   llevan el **acabado** del hueco (`Opening.finish`, por defecto blanco).
 - **Acabado** (`Finish` en `finishes.ts`): un solo concepto, un texto que es un
   color liso (`#rrggbb`) o el `id` de un material del catálogo (`MATERIALS`, los
@@ -373,7 +375,14 @@ publicada (HTTPS). Entras donde estaba la cámara y mirando hacia donde miraba,
 con la altura de ojos que da el visor. Con los mandos: stick izquierdo
 camina (2 m/s) y stick derecho gira a saltos de 30°. **B o Y (el botón de
 arriba de cada mando) sale de la VR**; los primeros 10 s hay un cartel delante
-de los ojos que lo dice. Es **solo para ver**: sin paneles ni punteros. Al salir, la cámara y el marcador del plano quedan donde
+de los ojos que lo dice. Sin paneles. Cada mando lleva un **rayo**
+(`VRController`): al apuntar a una puerta abatible su hoja se resalta en
+naranja y sale un cartel junto al punto del rayo, "Gatillo: abrir la puerta"
+o "Gatillo: cerrar la puerta"; el **gatillo** la abre o la cierra y la hoja
+gira en medio segundo (`DoorLeaf`). Cambia el mismo dato que el botón de
+Propiedades (`closed`), así que se guarda en la casa. En VR la casa entera
+para el rayo (`pointerEvents` en el grupo `casa`), para no coger una puerta
+detrás de una pared. En la AR no hay rayo. Al salir, la cámara y el marcador del plano quedan donde
 dejaste la cabeza. En VR se apaga la cámara de ratón y teclado
 (`DesktopControls`). La foto en calidad no existe en VR. En localhost, si el
 navegador no tiene WebXR, la librería emula unas Quest 3 (solo desarrollo).
@@ -651,7 +660,8 @@ que la textura "Madera de pino" cubre 2 × 2 m (supuesto, sin confirmar).
   la librería, en el servidor aparte (5185): se entra, el origen se coloca donde
   estaba la cámara con su giro, y al salir la cámara queda en la cabeza (mover
   la cabeza 1 m en el emulador la movió 1 m en el plano). Sin probar: los
-  sticks (caminar y girar), los mandos y las manos, el rendimiento y la
+  sticks (caminar y girar), los mandos y las manos, abrir y cerrar puertas
+  con el rayo (ni siquiera en el emulador), el rendimiento y la
   comodidad (sin viñeta al andar, puede marear), ni que la web publicada ofrezca
   la sesión en las Quest. No hay colisiones: se atraviesan las paredes. El
   empaquetado incluye el emulador (unos 6 MB en trozos que solo se descargan en
@@ -710,6 +720,19 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-17** · **Abrir y cerrar puertas en VR apuntando** (el usuario:
+  "apuntar y que salga qué botón hay que pulsar"; la opción de coger la
+  manilla queda para después). Rayo en cada mando (`VRController`, solo en
+  VR, no en AR); al apuntar a una puerta abatible se resalta la hoja y sale
+  el cartel "Gatillo: abrir / cerrar la puerta"; el gatillo cambia `closed`
+  (`setDoor`) y la hoja gira 90° en medio segundo. Para poder girarla,
+  `joineryParts` monta la hoja siempre cerrada con su eje (`DoorLeafAxis`) y
+  `DoorLeaf` en `View3D.tsx` la gira; durante la foto en calidad va directa.
+  El cartel de entrada de la VR añade "Apunta a una puerta y pulsa el
+  gatillo". El botón "Cerrar / Abrir la puerta en 3D" de Propiedades ahora
+  también la anima. **Sin probar** (lo prueba el usuario en las Quest): solo
+  `tsc` y la compilación.
 
 - **2026-10-17** · **Fuera el parpadeo de los modelos detallados** (el
   usuario: en el frigorífico y el lavavajillas, la tira negra de abajo se
