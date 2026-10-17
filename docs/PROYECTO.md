@@ -711,6 +711,16 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-17** · **Fuera las rayas verticales de las paredes en Blender**
+  (el usuario: se veían líneas verticales en las ventanas, "parece un
+  problema del modelo"). Venían del solape de 2 mm de dintel y antepecho con
+  los tramos de al lado (`JOINT_OVERLAP`, puesto para la web): en esos 2 mm
+  había dos caras en el mismo plano y Cycles pintaba una raya de suelo a
+  techo en cada lado del hueco. Ahora dintel y antepecho se meten medio
+  milímetro por cada cara (`JOINT_RECESS` en `wallParts`, `View3D.tsx`).
+  Probado: el mismo render del dormitorio ya sin rayas, y en la web la
+  ventana sin la raya fina de antes.
+
 - **2026-10-17** · **Ventanas y puertas mejores, y paisaje en Blender** (el
   usuario: "haz todo" de las tres opciones). En la web (`joinery.ts`): cada
   pieza lleva su `role` (Cerco, Tapajuntas, Hoja, Perfil, Junquillo,

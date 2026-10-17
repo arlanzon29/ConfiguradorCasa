@@ -95,6 +95,10 @@ interface WallSkin {
 
 // Lo que se solapan dintel y antepecho con los tramos de pared de al lado.
 const JOINT_OVERLAP = 0.002
+// Y lo que se meten por cada cara: si sus caras quedaran en el mismo plano que
+// las de los tramos, en el solape habría dos caras iguales y Blender (y el
+// trazador) pintaría una raya vertical de arriba abajo de la pared.
+const JOINT_RECESS = 0.0005
 
 // Separación de la lámina de material a su pared, como la de los vinilos en la foto.
 const SKIN_GAP = 0.0005
@@ -157,7 +161,7 @@ function wallParts(
       const to = end < wall.to ? end + grow : end
       const along = to - from
       const mid = (from + to) / 2
-      const across = wall.thickness
+      const across = grow ? wall.thickness - 2 * JOINT_RECESS : wall.thickness
       const y = SLAB + (bottom + top) / 2
       const neutral = DEFAULT_WALL_COLOR
       const skins: WallSkin[] = []
