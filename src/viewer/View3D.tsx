@@ -670,8 +670,9 @@ function exitHint(title: string, lines: string[]) {
 //    debajo, y gira hacia donde apunta (la trae aunque esté lejos);
 //  · los dos mandos a la vez (gatillo o lateral): la distancia entre ellos
 //    agranda o reduce la maqueta, y girar las manos la gira;
-//  · stick a izquierda o derecha: la gira poco a poco; adelante o atrás, la
-//    agranda o la reduce;
+//  · stick izquierdo: la mueve en horizontal, según hacia dónde miras;
+//  · stick derecho a izquierda o derecha: la gira poco a poco; adelante o
+//    atrás, la agranda o la reduce;
 //  · A o X: cambia entre maqueta (1:20) y tamaño real (1:1).
 const AR_SCALE = 1 / 20
 // Lo más pequeña que puede quedar la maqueta (1:100); lo más grande, 1:1.
@@ -681,6 +682,8 @@ const AR_TABLE_MARGIN = 0.06
 const AR_TURN_SPEED = 1.5
 // Cuánto agranda o reduce la maqueta el stick por segundo (x2,7 a fondo).
 const AR_ZOOM_SPEED = 1
+// Metros por segundo que mueve la mesa el stick izquierdo.
+const AR_MOVE_SPEED = 0.5
 
 /**
  * La mesa de la maqueta: lleva dentro la casa, escalada, y se mueve y gira con
@@ -784,12 +787,27 @@ function ARTable({
         placing.push({ hand, pos: v.hand.clone(), fwd: v.fwd.clone() })
         continue
       }
-      const stick = pad.axes[2] ?? 0
-      if (Math.abs(stick) > 0.3) t.yaw += -stick * AR_TURN_SPEED * delta
-      // Hacia delante, la agranda; hacia atrás, la reduce.
-      const zoom = pad.axes[3] ?? 0
-      if (Math.abs(zoom) > 0.3)
-        t.scale = Math.min(Math.max(t.scale * Math.exp(-zoom * AR_ZOOM_SPEED * delta), AR_MIN_SCALE), 1)
+      const sx = pad.axes[2] ?? 0
+      const sy = pad.axes[3] ?? 0
+      if (hand === 'left') {
+        // Stick izquierdo: mueve la mesa en horizontal, según hacia dónde miras
+        // (adelante la aleja, atrás la acerca, a los lados la desplaza).
+        if (Math.hypot(sx, sy) < 0.3) continue
+        const viewer = frame.getViewerPose(space)
+        if (!viewer) continue
+        const q = viewer.transform.orientation
+        v.dir.set(0, 0, -1).applyQuaternion(v.quat.set(q.x, q.y, q.z, q.w))
+        const flat = Math.hypot(v.dir.x, v.dir.z)
+        const [fx, fz] = flat > 1e-4 ? [v.dir.x / flat, v.dir.z / flat] : [0, -1]
+        const step = AR_MOVE_SPEED * delta
+        t.pos.x += (-fz * sx - fx * sy) * step
+        t.pos.z += (fx * sx - fz * sy) * step
+        continue
+      }
+      // Stick derecho: a los lados la gira; adelante la agranda y atrás la reduce.
+      if (Math.abs(sx) > 0.3) t.yaw += -sx * AR_TURN_SPEED * delta
+      if (Math.abs(sy) > 0.3)
+        t.scale = Math.min(Math.max(t.scale * Math.exp(-sy * AR_ZOOM_SPEED * delta), AR_MIN_SCALE), 1)
     }
 
     if (placing.length >= 2) {
@@ -882,7 +900,9 @@ function VRRig({ ar }: { ar: boolean }) {
           'Gatillo o botón lateral: poner la maqueta',
           'Gatillo apuntando a una puerta: abrirla',
           'Los dos mandos a la vez: escalar y girar',
-          'Stick: girarla y acercarla · A o X: tamaño real',
+          'Stick izquierdo: moverla',
+          'Stick derecho: girarla y agrandarla',
+          'A o X: tamaño real',
           __APP_VERSION__,
         ])
       : exitHint('Pulsa B o Y para salir', [
