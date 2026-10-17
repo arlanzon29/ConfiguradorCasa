@@ -103,6 +103,29 @@ usuario, con Blender abierto y "Start MCP Server" pulsado):
    que abre la ventana de render (puede quedar detrás de la de Blender).
 5. Para subirlo a la web: `cambiarImagenFoto` (abajo), con permiso.
 
+**localhost o GitHub Pages: qué se puede hacer en cada una con Blender**
+(2026-10-17). El navegador no deja que una página de internet hable con
+programas del equipo (el receptor de Blender, el servidor local) ni lea sus
+archivos; con la web en `localhost` esa barrera no existe.
+
+| | localhost | GitHub Pages |
+|---|---|---|
+| Funciones de la casa, cámaras de las fotos | sí | sí |
+| GLB directo a Blender (`enviarA`) | sí, sin pantalla | no: el usuario acepta la descarga y dice el archivo |
+| Meter un render en una foto | sí, `cambiarImagenFoto` | no: el usuario, con "Subir imagen" |
+
+Para trabajar con Blender, mejor `localhost`; un comercial o un cliente usa
+GitHub Pages y no tiene Blender. En el Chrome del usuario quizá funcione
+desde GitHub Pages aceptando un permiso de "red local"; sin probar.
+
+**Blender o la web** (opinión del usuario, 2026-10-17): Blender es muy
+superior en el render (luz del sol, sombras, telas; unos 16 s por foto en
+la GPU frente a más de un minuto la primera vez en la web), y la web es muy
+buena para lo que es. **Se deja como está**: no se intenta igualar la web a
+Blender. Los muebles detallados (`model` en el catálogo, botón
+"Sencillos / Detallados" de la vista 3D) se ven en las dos; hoy solo el sofá
+(`public/modelos/sofa.glb`, de la escena "Sofá" de Blender).
+
 **Renderizar las fotos de la web con Blender, de principio a fin** (probado
 por el usuario en GitHub Pages el 2026-10-17, "funciona"):
 

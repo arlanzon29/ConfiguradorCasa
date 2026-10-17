@@ -706,6 +706,11 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-17** · **Decidido por el usuario: Blender es muy superior a la
+  web en el render, la web es muy buena para lo que es, y se deja como
+  está.** Anotado en la skill `crear-casas`, con lo que se puede hacer con
+  Blender desde `localhost` y desde GitHub Pages.
+
 - **2026-10-17** · **Sofá detallado (alta) en la web, sin perder el sencillo**
   (el usuario: "vamos a poner el sofá high en la web… pero no perdemos el
   sofá low"; antes se habló de tener dos modelos por mueble, uno ligero para
