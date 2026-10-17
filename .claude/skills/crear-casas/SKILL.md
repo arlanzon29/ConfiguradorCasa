@@ -126,6 +126,12 @@ Blender. Los muebles detallados (`model` en el catálogo, botón
 "Sencillos / Detallados" de la vista 3D) se ven en las dos; hoy solo el sofá
 (`public/modelos/sofa.glb`, de la escena "Sofá" de Blender).
 
+**Regla del usuario: se guarda siempre el `.blend`** de cada modelo que se
+haga en Blender, por si hay que retocarlo: el original en
+`modelos-blender/<mueble>.blend` (solo su escena, con
+`bpy.data.libraries.write`) y el `.glb` en `public/modelos/`, en el mismo
+cambio, más su línea en la tabla de `modelos-blender/LEEME.md`.
+
 **Renderizar las fotos de la web con Blender, de principio a fin** (probado
 por el usuario en GitHub Pages el 2026-10-17, "funciona"):
 

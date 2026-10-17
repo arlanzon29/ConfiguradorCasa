@@ -413,6 +413,11 @@ Teclas: `R` gira lo seleccionado, `Supr` lo borra, `Esc` cancela la herramienta,
   texto de la página (una foto se enseña en el visor, no en la conversación),
   y cada comercial tiene su casa en su navegador.
 
+- **Se guarda el `.blend` de cada modelo hecho en Blender** (lo decidió el
+  usuario el 2026-10-17, por si hay que retocarlo): el original editable en
+  `modelos-blender/` y el `.glb` para la web en `public/modelos/`, los dos en
+  el mismo cambio. Cómo se exporta, en `modelos-blender/LEEME.md`.
+
 - **Esto no es un programa de modelado 3D** (lo dijo el usuario el 2026-10-11,
   al empezar con los tableros). Se añaden primitivas poco a poco y con las
   opciones justas; antes de dar más libertad a una pieza, hablarlo con él.
