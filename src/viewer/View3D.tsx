@@ -17,6 +17,7 @@ import {
   Group,
   Mesh,
   MeshBasicMaterial,
+  Object3D,
   PerspectiveCamera,
   PlaneGeometry,
   Quaternion,
@@ -458,6 +459,8 @@ const VR_HINT_MS = 10000
 // hoja de puerta al abrirla o cerrarla (radianes por segundo: 90° en medio segundo).
 const VR_RAY_LENGTH = 6
 const DOOR_TURN_SPEED = Math.PI
+// Color del rayo y del resalte cuando se apunta a algo que se puede accionar.
+const VR_ACTIVE_COLOR = '#ff9a3c'
 
 /**
  * El mando en VR: su modelo y un rayo para apuntar a las puertas. En AR, sin
@@ -467,10 +470,30 @@ function VRController() {
   const ar = useXR((s) => s.mode === 'immersive-ar')
   return (
     <DefaultXRController
-      rayPointer={ar ? false : { rayModel: { maxLength: VR_RAY_LENGTH } }}
+      rayPointer={
+        ar
+          ? false
+          : {
+              // Naranja, como el resalte de la hoja, cuando apunta a algo que se puede accionar.
+              rayModel: {
+                maxLength: VR_RAY_LENGTH,
+                color: (pointer) => (actionable(pointer.getIntersection()?.object) ? VR_ACTIVE_COLOR : 'white'),
+                opacity: (pointer) => (actionable(pointer.getIntersection()?.object) ? 0.9 : 0.4),
+              },
+              cursorModel: {
+                color: (pointer) => (actionable(pointer.getIntersection()?.object) ? VR_ACTIVE_COLOR : 'white'),
+              },
+            }
+      }
       grabPointer={false}
     />
   )
+}
+
+/** Si la pieza, o algo de lo que cuelga, se acciona en VR (`userData.vrAction`: hoy, las puertas). */
+function actionable(object: Object3D | undefined) {
+  for (let o = object; o; o = o.parent ?? undefined) if (o.userData.vrAction) return true
+  return false
 }
 
 /** Un cartel de texto pintado en un lienzo, para colgarlo en la escena de la VR. */
@@ -974,7 +997,13 @@ function DoorLeaf({
 
   return (
     <>
-      <group ref={group} position={[px, 0, pz]} rotation-y={angle.current} {...handlers}>
+      <group
+        ref={group}
+        position={[px, 0, pz]}
+        rotation-y={angle.current}
+        userData={{ vrAction: interactive }}
+        {...handlers}
+      >
         <group position={[-px, 0, -pz]}>
           {parts.map((part, i) => (
             <JoineryBox key={i} part={part} />
@@ -985,7 +1014,7 @@ function DoorLeaf({
               pointerEvents="none"
               position={[panel.position[0], SLAB + panel.position[1], panel.position[2]]}
             >
-              <lineBasicMaterial color="#ff9a3c" />
+              <lineBasicMaterial color={VR_ACTIVE_COLOR} />
             </lineSegments>
           )}
         </group>

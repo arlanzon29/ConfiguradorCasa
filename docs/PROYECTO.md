@@ -378,7 +378,9 @@ arriba de cada mando) sale de la VR**; los primeros 10 s hay un cartel delante
 de los ojos que lo dice. Sin paneles. Cada mando lleva un **rayo**
 (`VRController`): al apuntar a una puerta abatible su hoja se resalta en
 naranja y sale un cartel junto al punto del rayo, "Gatillo: abrir la puerta"
-o "Gatillo: cerrar la puerta"; el **gatillo** la abre o la cierra y la hoja
+o "Gatillo: cerrar la puerta", y el rayo y su punto pasan de blanco a
+**naranja** (`actionable`, por `userData.vrAction`: así se ve que ahí hay
+algo que hacer); el **gatillo** la abre o la cierra y la hoja
 gira en medio segundo (`DoorLeaf`). Cambia el mismo dato que el botón de
 Propiedades (`closed`), así que se guarda en la casa. En VR la casa entera
 para el rayo (`pointerEvents` en el grupo `casa`), para no coger una puerta
@@ -720,6 +722,13 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-17** · **El rayo de la VR se pone naranja sobre una puerta** (el
+  usuario probó lo de las puertas: "va bien"; pidió que el color del rayo
+  indique que hay una opción). Blanco y tenue normalmente; naranja e intenso,
+  rayo y punto, al apuntar a algo marcado con `userData.vrAction` (hoy, las
+  hojas de puerta). Color `VR_ACTIVE_COLOR`, el mismo del resalte. Sin
+  probar: solo `tsc` y la compilación.
 
 - **2026-10-17** · **Abrir y cerrar puertas en VR apuntando** (el usuario:
   "apuntar y que salga qué botón hay que pulsar"; la opción de coger la
