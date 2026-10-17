@@ -34,6 +34,20 @@ esos nombres sin cambiar también el catálogo.
 | Mesa con armarios (`mesa-armarios`) | `mesa-armarios.blend` | `public/modelos/mesa-armarios.glb` | 1,2 × 0,6 × 0,8 m | — |
 | Taburete (`taburete`) | `taburete.blend` | `public/modelos/taburete.glb` | 0,35 × 0,35 × 0,65 m | "Asiento taburete" |
 
+| Mesa de comedor (`mesa-comedor`) | `mesa-comedor.blend` | `public/modelos/mesa-comedor.glb` | 1,6 × 0,9 × 0,75 m | — |
+| Mesa de centro (`mesa-centro`) | `mesa-centro.blend` | `public/modelos/mesa-centro.glb` | 1,1 × 0,6 × 0,4 m | — |
+| Silla (`silla`) | `silla.blend` | `public/modelos/silla.glb` | 0,45 × 0,45 × 0,9 m | — |
+| Televisión (`television`) | `television.blend` | `public/modelos/television.glb` | 1,2 × 0,25 × 0,75 m | — |
+| Mesilla (`mesilla`) | `mesilla.blend` | `public/modelos/mesilla.glb` | 0,45 × 0,4 × 0,5 m | — |
+| Cama individual (`cama-individual`) | `cama-individual.blend` | `public/modelos/cama-individual.glb` | 0,9 × 2 m; cabecero a 1 m | — |
+| Cama doble (`cama-doble`) | `cama-doble.blend` | `public/modelos/cama-doble.glb` | 1,6 × 2 m; cabecero a 1 m | — |
+| Armario medio (`armario-medio`) | `armario-medio.blend` | `public/modelos/armario-medio.glb` | 0,9 × 0,6 × 2,2 m | — |
+| Armario (`armario`) | `armario.blend` | `public/modelos/armario.glb` | 1,8 × 0,6 × 2,2 m | — |
+
+**El alto es el del modelo**, no el del catálogo: la web ajusta ancho y fondo
+a las medidas del catálogo pero deja el alto como viene (la cama mide 0,5 en
+el catálogo y su cabecero sube a 1 m). Modelar siempre en metros reales.
+
 Vitrocerámica y fregadero se modelan apoyados en z = 0 (la altura sobre la
 encimera la pone la web, `lift` del catálogo o `altura` del mueble).
 

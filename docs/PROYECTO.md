@@ -711,6 +711,26 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-17** · **El resto de muebles, detallados** (el usuario: "hazme
+  el resto de muebles… camas, sillas, armarios, televisiones"). Nueve
+  modelos más de Claude en Blender (escena "Salón y dormitorio"): mesa de
+  comedor (faldón y patas cónicas), mesa de centro (con balda), silla
+  (cojín, respaldo de dos travesaños, patas traseras que suben), televisión
+  (marco fino y pie central), mesilla (cajón, hueco y patas), camas doble e
+  individual (bastidor con patas, colchón, edredón beige, embozo, una o dos
+  almohadas y cabecero tapizado a 1 m) y armarios (dos puertas de madera
+  con tiradores largos, zócalo). Con ellos, **los 22 muebles del catálogo
+  tienen modelo detallado**. Un `.glb` (12-294 KB) y un `.blend` por
+  mueble. Cambio en `Furniture3D.tsx`: el modelo se ajusta al ancho y fondo
+  del catálogo pero **conserva su alto** (antes lo estiraba al del
+  catálogo, y la cama, de 0,5 m en el catálogo, habría aplastado el
+  cabecero); la caja de líneas del elegido toma ese alto. Visto en el
+  estudio de Blender y la cama doble en la web del entorno de pruebas
+  (5185). Sin ver en la web: mesas, sillas, tele, mesilla, cama individual
+  y armarios (solo en Blender), ni un render de la casa con ellos. En
+  "Test 2" la cama doble cuelga del Baño 1 (está a caballo de las dos
+  estancias): es del ejemplo, no se ha tocado.
+
 - **2026-10-17** · **Color del asiento del taburete** (el usuario: blanco,
   rojo, azul y rosa). Parte `asiento` del taburete (material "Asiento
   taburete" del modelo), y campo `boxColor` en `FurniturePart`: el color de

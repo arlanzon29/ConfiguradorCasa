@@ -238,8 +238,8 @@ interface Props {
 }
 
 /**
- * Modelo detallado de un mueble (hecho en Blender), ajustado a las medidas de su
- * tipo: centrado en x/z, apoyado en y = 0. Cada mueble lleva su copia, con los
+ * Modelo detallado de un mueble (hecho en Blender), ajustado al ancho y fondo de
+ * su tipo (el alto, el suyo): centrado en x/z, apoyado en y = 0. Cada mueble lleva su copia, con los
  * materiales propios para poder resaltarlo al elegirlo.
  */
 function DetailedModel({ item, type, selected }: { item: FurnitureItem; type: FurnitureType; selected: boolean }) {
@@ -248,7 +248,9 @@ function DetailedModel({ item, type, selected }: { item: FurnitureItem; type: Fu
     const root = gltf.scene.clone(true)
     const box = new Box3().setFromObject(root)
     const size = box.getSize(new Vector3())
-    root.scale.set(type.width / size.x, type.height / size.y, type.depth / size.z)
+    // Ancho y fondo, los del catálogo; el alto, el del modelo (se modela en
+    // metros): la cama mide 0,5 en el catálogo, pero su cabecero sube a 1 m.
+    root.scale.set(type.width / size.x, 1, type.depth / size.z)
     const center = box.getCenter(new Vector3())
     root.position.set(-center.x * root.scale.x, -box.min.y * root.scale.y, -center.z * root.scale.z)
     root.traverse((o) => {
@@ -278,14 +280,17 @@ function DetailedModel({ item, type, selected }: { item: FurnitureItem; type: Fu
   // Elegido, se marca con una caja de líneas y no tiñendo: así se ven sus colores
   // de verdad mientras se eligen (el naranja volvía rosa el azul).
   const outline = useMemo(
-    () => new EdgesGeometry(new BoxGeometry(type.width + 0.04, type.height + 0.04, type.depth + 0.04)),
-    [type],
+    () => {
+      const height = new Box3().setFromObject(model).getSize(new Vector3()).y
+      return { geometry: new EdgesGeometry(new BoxGeometry(type.width + 0.04, height + 0.04, type.depth + 0.04)), height }
+    },
+    [type, model],
   )
   return (
     <>
       <primitive object={model} />
       {selected && (
-        <lineSegments geometry={outline} position={[0, type.height / 2, 0]}>
+        <lineSegments geometry={outline.geometry} position={[0, outline.height / 2, 0]}>
           <lineBasicMaterial color="#d9480f" />
         </lineSegments>
       )}
