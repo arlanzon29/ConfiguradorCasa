@@ -671,8 +671,7 @@ function exitHint(title: string, lines: string[]) {
 //  · los dos mandos a la vez (gatillo o lateral): la distancia entre ellos
 //    agranda o reduce la maqueta, y girar las manos la gira;
 //  · stick izquierdo: la mueve en horizontal, según hacia dónde miras;
-//  · stick derecho a izquierda o derecha: la gira poco a poco; adelante o
-//    atrás, la agranda o la reduce;
+//  · stick derecho a izquierda o derecha: la gira poco a poco;
 //  · A o X: cambia entre maqueta (1:20) y tamaño real (1:1).
 const AR_SCALE = 1 / 20
 // Lo más pequeña que puede quedar la maqueta (1:100); lo más grande, 1:1.
@@ -680,8 +679,6 @@ const AR_MIN_SCALE = 0.01
 const AR_TABLE_HEIGHT = 0.75
 const AR_TABLE_MARGIN = 0.06
 const AR_TURN_SPEED = 1.5
-// Cuánto agranda o reduce la maqueta el stick por segundo (x2,7 a fondo).
-const AR_ZOOM_SPEED = 1
 // Metros por segundo que mueve la mesa el stick izquierdo.
 const AR_MOVE_SPEED = 0.5
 
@@ -790,9 +787,9 @@ function ARTable({
       const sx = pad.axes[2] ?? 0
       const sy = pad.axes[3] ?? 0
       if (hand === 'left') {
-        // Stick izquierdo: mueve la mesa en horizontal, según hacia dónde miras.
-        // Al revés que al caminar (lo probó el usuario): adelante la acerca,
-        // atrás la aleja, y a los lados va hacia el lado contrario.
+        // Stick izquierdo: es como moverte tú, sentado, según hacia dónde miras
+        // (lo dijo el usuario): adelante avanzas y la maqueta se acerca; a la
+        // derecha te desplazas a la derecha y la maqueta va a tu izquierda.
         if (Math.hypot(sx, sy) < 0.3) continue
         const viewer = frame.getViewerPose(space)
         if (!viewer) continue
@@ -805,10 +802,8 @@ function ARTable({
         t.pos.z -= (fx * sx - fz * sy) * step
         continue
       }
-      // Stick derecho: a los lados la gira; adelante la agranda y atrás la reduce.
+      // Stick derecho: solo gira (lo pidió el usuario: agrandar es cosa de los dos mandos).
       if (Math.abs(sx) > 0.3) t.yaw += -sx * AR_TURN_SPEED * delta
-      if (Math.abs(sy) > 0.3)
-        t.scale = Math.min(Math.max(t.scale * Math.exp(-sy * AR_ZOOM_SPEED * delta), AR_MIN_SCALE), 1)
     }
 
     if (placing.length >= 2) {
@@ -902,7 +897,7 @@ function VRRig({ ar }: { ar: boolean }) {
           'Gatillo apuntando a una puerta: abrirla',
           'Los dos mandos a la vez: escalar y girar',
           'Stick izquierdo: moverla',
-          'Stick derecho: girarla y agrandarla',
+          'Stick derecho: girarla',
           'A o X: tamaño real',
           __APP_VERSION__,
         ])

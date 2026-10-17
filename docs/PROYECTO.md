@@ -412,10 +412,10 @@ aunque esté lejos (el usuario esperaba que el botón lateral la colocara);
 ellos **agranda o reduce** la maqueta (de 1:100 a 1:1) y girar las manos la
 gira, con la mesa entre las dos manos;
 **stick izquierdo**, la mueve en horizontal según hacia dónde miras
-(adelante la acerca, atrás la aleja: al revés que al caminar, lo pidió el
-usuario al probarlo; `AR_MOVE_SPEED`, 0,5 m/s); **stick
-derecho** a izquierda o derecha, la gira poco a poco, y adelante o atrás la
-agranda o la reduce (`AR_ZOOM_SPEED`, de 1:100 a 1:1); **A o X**,
+(es como moverte tú, sentado: adelante avanzas y la maqueta se acerca; a la
+derecha, la maqueta va a tu izquierda; lo describió así el usuario; `AR_MOVE_SPEED`, 0,5 m/s); **stick
+derecho** a izquierda o derecha, solo la gira, poco a poco (agrandar o
+reducir es cosa de los dos mandos); **A o X**,
 cambia entre maqueta y tamaño real (1:1); **B o Y** sale. Las **puertas** se
 abren y cierran como en la VR, con el rayo y el gatillo: un gatillo apretado
 apuntando a una puerta es para ella y no mueve la mesa (`aimingHands`, por
@@ -741,6 +741,14 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-17** · **AR: el stick derecho solo gira** (el usuario: al girar
+  "la casa baja"; "solo tiene que girar, que no haga nada más", que para
+  agrandar están los dos mandos). Fuera el zum del stick. Del izquierdo, el
+  usuario dijo que seguía al revés, pero describió lo que quiere (moverse
+  uno mismo, sentado: adelante avanza; a la derecha, la maqueta va a su
+  izquierda) y es lo que ya hacía `d77bde7`: sin cambios, a la espera de
+  que confirme la versión que cargan las gafas. **Sin probar**.
 
 - **2026-10-17** · **AR: el stick izquierdo, al revés** (el usuario lo probó
   en las Quest: "se mueve al revés"). Invertido entero: adelante acerca la
