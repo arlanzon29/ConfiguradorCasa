@@ -115,8 +115,8 @@ por el usuario en GitHub Pages el 2026-10-17, "funciona"):
    (la casa no tiene nombre propio). Enséñaselas al usuario antes de nada.
 4. **En GitHub Pages la página no puede leer archivos del equipo**
    (`cambiarImagenFoto` con una ruta local falla, y el portapapeles simulado
-   tampoco llega): el usuario las sube él, en el panel Fotos → elige la
-   foto → **"Subir imagen"** → el `_fotoN.jpg` que le corresponde. La foto
+   tampoco llega): el usuario las sube él: en el árbol, despliega "Fotos" →
+   pincha "Foto N" → **"Subir imagen"** en Propiedades → el `_fotoN.jpg` que le corresponde. La foto
    conserva número, cámara y objetivo; la imagen anterior se pierde.
 5. En `localhost` puedes subirlas tú con `cambiarImagenFoto` (copiando el
    archivo un momento a `public/` y borrándolo después).

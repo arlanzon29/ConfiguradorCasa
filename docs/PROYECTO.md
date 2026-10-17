@@ -710,9 +710,9 @@ Se anota aquí cada cosa que se hace, la más reciente arriba.
   usuario: para subir una imagen tenía que abrir la foto en el visor y
   salir con Esc). "Fotos" lleva flecha y, dentro, "Foto N" con su fecha;
   elegir una lleva la cámara a su sitio (`goTo`) y deja sus botones en
-  Propiedades, sin abrir el visor. En `HouseTree.tsx`. Solo `tsc`: no se
-  pudo probar porque había una ventana emergente abierta en el navegador
-  de la app que paraba los scripts.
+  Propiedades, sin abrir el visor. En `HouseTree.tsx`. Probado por el usuario en GitHub
+  Pages: **funciona** (yo no pude: una ventana emergente abierta en el
+  navegador de la app paraba los scripts).
 
 - **2026-10-17** · El usuario probó "Subir imagen" en GitHub Pages con los
   renders de Blender: **funciona**. Receta completa ("renderizar las fotos
