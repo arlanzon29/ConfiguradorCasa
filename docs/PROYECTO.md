@@ -722,8 +722,11 @@ Se anota aquí cada cosa que se hace, la más reciente arriba.
   color. En la web, el metal de los modelos detallados se deja en 0,5:
   los tiradores de acero salían negros. Probado en el entorno de pruebas
   (5185) en la cocina de "Test 2": frigorífico, lavadora y lavavajillas
-  pequeño con "Detallados". Sin probar: el horno (sigue en cajas), la foto
-  en calidad, ni pasarlos a Blender en una casa. Trampa anotada en
+  pequeño con "Detallados". Después, la misma cocina en Blender (GLB
+  directo desde 5185 y render a 100 muestras en 18,6 s): salen bien. El
+  metal a medias de la web viajaba en el GLB; `blender_casa.py` devuelve a
+  metal del todo los materiales "Acero…". Sin probar: el horno (sigue en
+  cajas) ni la foto en calidad de la web. Trampa anotada en
   `modelos-blender/LEEME.md`: el exportador mete todas las escenas del
   archivo si no se usa `use_active_scene`.
 
