@@ -706,6 +706,12 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-17** · **Original del sofá guardado**: `modelos-blender/sofa.blend`
+  (solo la escena "Sofá", 80 KB, en el repositorio público, como propuse),
+  con `modelos-blender/LEEME.md`: cada mueble detallado lleva su `.blend`
+  editable ahí y su `.glb` para la web en `public/modelos/`. Comprobado que
+  el archivo se lee (la escena, 19 objetos y 5 materiales).
+
 - **2026-10-17** · **Decidido por el usuario: Blender es muy superior a la
   web en el render, la web es muy buena para lo que es, y se deja como
   está.** Anotado en la skill `crear-casas`, con lo que se puede hacer con
