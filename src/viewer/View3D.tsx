@@ -803,8 +803,18 @@ function ARTable({
         continue
       }
       // Stick derecho: solo gira (lo pidió el usuario: agrandar es cosa de los dos
-      // mandos). El sentido, al revés del primero que hubo: lo probó el usuario.
-      if (Math.abs(sx) > 0.3) t.yaw += sx * AR_TURN_SPEED * delta
+      // mandos), alrededor de donde estás tú y no del centro de la mesa (también
+      // lo pidió). El sentido, al revés del primero que hubo: lo probó el usuario.
+      if (Math.abs(sx) < 0.3) continue
+      const viewer = frame.getViewerPose(space)
+      if (!viewer) continue
+      const eye = viewer.transform.position
+      const angle = sx * AR_TURN_SPEED * delta
+      const [dx, dz] = [t.pos.x - eye.x, t.pos.z - eye.z]
+      const [c, sn] = [Math.cos(angle), Math.sin(angle)]
+      t.pos.x = eye.x + dx * c + dz * sn
+      t.pos.z = eye.z - dx * sn + dz * c
+      t.yaw += angle
     }
 
     if (placing.length >= 2) {

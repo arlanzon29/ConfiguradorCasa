@@ -414,8 +414,8 @@ gira, con la mesa entre las dos manos;
 **stick izquierdo**, la mueve en horizontal según hacia dónde miras
 (es como moverte tú, sentado: adelante avanzas y la maqueta se acerca; a la
 derecha, la maqueta va a tu izquierda; lo describió así el usuario; `AR_MOVE_SPEED`, 0,5 m/s); **stick
-derecho** a izquierda o derecha, solo la gira, poco a poco (agrandar o
-reducir es cosa de los dos mandos); **A o X**,
+derecho** a izquierda o derecha, solo la gira, poco a poco y **alrededor
+de ti**, no de su centro (agrandar o reducir es cosa de los dos mandos); **A o X**,
 cambia entre maqueta y tamaño real (1:1); **B o Y** sale. Las **puertas** se
 abren y cierran como en la VR, con el rayo y el gatillo: un gatillo apretado
 apuntando a una puerta es para ella y no mueve la mesa (`aimingHands`, por
@@ -741,6 +741,12 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-17** · **AR: el stick derecho gira la maqueta alrededor de ti**
+  (el usuario: "la rotación debe ser sobre el punto en el que estamos, no
+  sobre el centro de la casa"). La mesa da la vuelta alrededor de la cabeza
+  y gira con ella. El usuario dijo que el giro continuo le mareaba; si
+  sigue, se pasa a giros a saltos, como en la VR. **Sin probar**.
 
 - **2026-10-17** · **AR: el stick derecho gira al otro lado** (el usuario,
   con `c1b3760` cargada: "funciona bien el stick izquierdo, el derecho rota
