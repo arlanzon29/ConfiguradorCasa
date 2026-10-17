@@ -49,6 +49,8 @@ export interface FurniturePart {
   name: string
   /** Nombre del material en el `.glb` (el de Blender). */
   material: string
+  /** Color de las cajas (modelo sencillo) que hacen de esta parte, para teñirlas también. */
+  boxColor?: string
   options: { id: string; name: string; color: string }[]
 }
 
@@ -59,9 +61,13 @@ const ROSA = { id: 'rosa', name: 'Rosa', color: '#e2b4bd' }
 const ROJO = { id: 'rojo', name: 'Rojo', color: '#a8262e' }
 
 const SOFA_PARTS: FurniturePart[] = [
-  { id: 'tapiceria', name: 'Tapicería', material: 'Tela sofá', options: [AZUL, BLANCO, ROSA] },
+  { id: 'tapiceria', name: 'Tapicería', material: 'Tela sofá', boxColor: '#8fa3b0', options: [AZUL, BLANCO, ROSA] },
   { id: 'cojin-izquierdo', name: 'Cojín izquierdo', material: 'Cojín izquierdo', options: [BLANCO, AZUL, ROJO] },
   { id: 'cojin-derecho', name: 'Cojín derecho', material: 'Cojín derecho', options: [BLANCO, AZUL, ROJO] },
+]
+
+const STOOL_PARTS: FurniturePart[] = [
+  { id: 'asiento', name: 'Asiento', material: 'Asiento taburete', boxColor: '#d9d2c3', options: [BLANCO, ROJO, AZUL, ROSA] },
 ]
 
 export const FURNITURE: FurnitureType[] = [
@@ -87,7 +93,7 @@ export const FURNITURE: FurnitureType[] = [
   { id: 'horno', code: 'MOB-HORNO', family: 'cocina', name: 'Horno', shape: 'oven', width: 0.6, depth: 0.6, height: 0.82, model: 'modelos/horno.glb' },
   // Sin profundidad: se apoya sobre la encimera, con su base a 0,9 m (ajustable con la altura).
   { id: 'fregadero', code: 'MOB-FREGADERO', family: 'cocina', name: 'Fregadero', shape: 'sink', width: 0.4, depth: 0.45, height: 0.35, lift: 0.9, model: 'modelos/fregadero.glb' },
-  { id: 'taburete', code: 'MOB-TABURETE', family: 'cocina', name: 'Taburete', shape: 'stool', width: 0.35, depth: 0.35, height: 0.65, model: 'modelos/taburete.glb' },
+  { id: 'taburete', code: 'MOB-TABURETE', family: 'cocina', name: 'Taburete', shape: 'stool', width: 0.35, depth: 0.35, height: 0.65, model: 'modelos/taburete.glb', parts: STOOL_PARTS },
   { id: 'mesa-armarios', code: 'MOB-MESA-ARMARIOS', family: 'cocina', name: 'Mesa con armarios', shape: 'cabinet-table', width: 1.2, depth: 0.6, height: 0.8, model: 'modelos/mesa-armarios.glb' },
 ]
 

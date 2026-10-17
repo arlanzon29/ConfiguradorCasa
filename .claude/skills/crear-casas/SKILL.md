@@ -132,12 +132,13 @@ catálogo dice qué se puede cambiar de cada mueble y entre qué opciones
 (`parts` en `furniture.ts`; `catalogoMuebles()` lo devuelve en `colores`).
 Lo que no está ahí no se cambia. Sofá: `tapiceria` (azul, blanco, rosa),
 `cojin-izquierdo` y `cojin-derecho` (blanco, azul, rojo); izquierdo y derecho
-mirándolo de frente. Se cambia con
+mirándolo de frente. Taburete: `asiento` (blanco, rojo, azul, rosa). Se cambia con
 `cambiarMueble({ mueble: id, colores: { 'cojin-izquierdo': 'rojo' } })`, que
 rechaza lo que no se puede o no está en la lista; `casa().muebles` da los
 `colores` de cada uno. Es de ese mueble de esa casa y viaja en el plano.
-Los cojines solo se ven con "Detallados" y en Blender (llegan pintados en el
-GLB); en "Sencillos" solo cambia la tapicería. Cada parte es un material del
+Las partes con `boxColor` tiñen también las cajas de "Sencillos" (la
+tapicería del sofá, el asiento del taburete); las demás (los cojines) solo
+se ven con "Detallados" y en Blender (llegan pintadas en el GLB). Cada parte es un material del
 modelo por su nombre en Blender: para un mueble nuevo, darle en el `.blend`
 un material propio a cada parte que se quiera poder cambiar.
 

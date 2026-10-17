@@ -456,8 +456,11 @@ function FurnitureProperties({ item }: { item: FurnitureItem }) {
           </div>
         </section>
       ))}
-      {type.parts && !useHouse.getState().detailedFurniture && (
-        <p className="muted">Los cojines solo se ven con «Detallados» en la vista 3D.</p>
+      {type.parts?.some((p) => !p.boxColor) && !useHouse.getState().detailedFurniture && (
+        <p className="muted">
+          {type.parts.filter((p) => !p.boxColor).map((p) => p.name).join(', ')}: solo se ve con
+          «Detallados» en la vista 3D.
+        </p>
       )}
       <Fields title="Altura">
         <Field

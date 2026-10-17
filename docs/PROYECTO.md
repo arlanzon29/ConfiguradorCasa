@@ -711,6 +711,15 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-17** · **Color del asiento del taburete** (el usuario: blanco,
+  rojo, azul y rosa). Parte `asiento` del taburete (material "Asiento
+  taburete" del modelo), y campo `boxColor` en `FurniturePart`: el color de
+  las cajas de "Sencillos" que hacen de esa parte, para teñirlas también (la
+  tapicería del sofá lo usa ahora en lugar de buscar 'tapiceria' a mano). El
+  aviso de Propiedades nombra solo las partes que no se ven en "Sencillos".
+  Probado en el entorno de pruebas (5185): un taburete rojo y otro rosa por
+  funciones, el rechazo de "verde" y la vista 3D.
+
 - **2026-10-17** · **Taburete detallado rehecho** (el usuario: "el taburete
   no es correcto"). Las patas asomaban fuera del asiento, iban inclinadas al
   revés (abiertas arriba), eran más gruesas abajo y el aro no las tocaba.

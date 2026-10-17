@@ -32,7 +32,7 @@ esos nombres sin cambiar también el catálogo.
 | Fregadero (`fregadero`) | `fregadero.blend` | `public/modelos/fregadero.glb` | 0,4 × 0,45 × 0,35 m (con el grifo) | — |
 | Armario pequeño de cocina (`armario-cocina`) | `armario-cocina.blend` | `public/modelos/armario-cocina.glb` | 0,45 × 0,6 × 0,8 m | — |
 | Mesa con armarios (`mesa-armarios`) | `mesa-armarios.blend` | `public/modelos/mesa-armarios.glb` | 1,2 × 0,6 × 0,8 m | — |
-| Taburete (`taburete`) | `taburete.blend` | `public/modelos/taburete.glb` | 0,35 × 0,35 × 0,65 m | — |
+| Taburete (`taburete`) | `taburete.blend` | `public/modelos/taburete.glb` | 0,35 × 0,35 × 0,65 m | "Asiento taburete" |
 
 Vitrocerámica y fregadero se modelan apoyados en z = 0 (la altura sobre la
 encimera la pone la web, `lift` del catálogo o `altura` del mueble).

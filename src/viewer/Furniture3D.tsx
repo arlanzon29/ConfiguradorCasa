@@ -294,11 +294,15 @@ function DetailedModel({ item, type, selected }: { item: FurnitureItem; type: Fu
 }
 
 function BoxModel({ item, type, selected }: { item: FurnitureItem; type: FurnitureType; selected: boolean }) {
-  // En las cajas, la tela toma el color de la tapicería si el mueble la tiene.
-  const fabric = partChoices(item).find((c) => c.part.id === 'tapiceria')?.option.color
+  // En las cajas, cada parte con color elegido tiñe las cajas de su `boxColor`.
+  const tints = partChoices(item).filter((c) => c.part.boxColor)
+  const tint = (box: Box) => {
+    const c = tints.find((t) => t.part.boxColor === box.color)
+    return c ? { ...box, color: c.option.color } : box
+  }
   return (
     <>
-      {boxes(type).map((box) => (fabric && box.color === FABRIC ? { ...box, color: fabric } : box)).map((box, i) => (
+      {boxes(type).map(tint).map((box, i) => (
         <mesh key={i} position={box.position} rotation-x={box.round ? Math.PI / 2 : 0} castShadow receiveShadow>
           {box.flat ? (
             <cylinderGeometry args={[box.size[0] / 2, box.size[0] / 2, box.size[1], 32]} />
