@@ -150,6 +150,8 @@ interface HouseState {
    * límite no tienen ninguno y siguen sin restricción.
    */
   shells: Shell[]
+  /** El nombre de la casa, si se le ha puesto; si no, se llama "Casa" (`houseName` de names.ts). */
+  houseName?: string
   selectedShellId: string | null
   selectShell: (id: string | null) => void
   /** Añade un módulo vacío del tamaño máximo. False si ya están todos o no cabe. */
@@ -226,7 +228,7 @@ interface HouseState {
 
   /** Pone nombre a una cosa de la casa; vacío, vuelve al nombre por defecto. De una pared, `id` es su clave. */
   rename: (
-    kind: 'shell' | 'room' | 'wall' | 'opening' | 'furniture' | 'light',
+    kind: 'house' | 'shell' | 'room' | 'wall' | 'opening' | 'furniture' | 'light',
     id: string,
     name: string,
   ) => void
@@ -592,7 +594,8 @@ export const useHouse = create<HouseState>()(
           const named = <T extends { id: string }>(list: T[]) =>
             list.map((x) => (x.id === id ? { ...x, name } : x))
           const s = get()
-          if (kind === 'shell') set({ shells: named(s.shells) })
+          if (kind === 'house') set({ houseName: name })
+          else if (kind === 'shell') set({ shells: named(s.shells) })
           else if (kind === 'room') set({ modules: named(s.modules) })
           else if (kind === 'opening') set({ openings: named(s.openings) })
           else if (kind === 'furniture') set({ furniture: named(s.furniture) })
@@ -969,6 +972,7 @@ export const useHouse = create<HouseState>()(
 
         clear: () =>
           set({
+            houseName: undefined,
             modules: [],
             shells: [],
             openings: [],
@@ -978,8 +982,9 @@ export const useHouse = create<HouseState>()(
             ...NO_SELECTION,
           }),
 
-        loadPlan: ({ modules, shells, openings, joints, furniture }) =>
+        loadPlan: ({ houseName, modules, shells, openings, joints, furniture }) =>
           set({
+            houseName,
             ...withParents({ modules, shells, furniture }),
             shells,
             joints,
@@ -1387,6 +1392,7 @@ export const useHouse = create<HouseState>()(
         return { ...state, ...withParents(state) }
       },
       partialize: (s) => ({
+        houseName: s.houseName,
         modules: s.modules,
         shells: s.shells,
         openings: s.openings,

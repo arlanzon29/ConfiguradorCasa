@@ -57,6 +57,7 @@ import { GLB_EVENT, GlbRequest, LENSES, PHOTO_EVENT, PHOTO_SAMPLES, cameraFlying
 import Furniture3D from './Furniture3D'
 import { DoorLeafAxis, JoineryMaterial, JoineryPart, joineryParts } from './joinery'
 import { TeleportPoint, teleportPoints } from './teleport'
+import { fileSlug, houseName } from '../model/names'
 import PhotoTracer from './PhotoTracer'
 
 // Grosor de la losa, en metros.
@@ -1696,7 +1697,8 @@ function GlbExport({ onDone }: { onDone: (message: string) => void }) {
         }
         const link = document.createElement('a')
         link.href = URL.createObjectURL(new Blob([glb as ArrayBuffer], { type: 'model/gltf-binary' }))
-        link.download = `eurocasa-casa-${new Date().toISOString().slice(0, 10)}.glb`
+        const named = fileSlug(houseName(useHouse.getState().houseName)) || 'casa'
+        link.download = `eurocasa-${named}-${new Date().toISOString().slice(0, 10)}.glb`
         link.click()
         setTimeout(() => URL.revokeObjectURL(link.href), 10_000)
         done?.({ ok: true, bytes: (glb as ArrayBuffer).byteLength })

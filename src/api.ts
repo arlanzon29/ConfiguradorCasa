@@ -8,7 +8,7 @@ import { MECHANISMS, MECHANISM_HEIGHT, mechanismSize, mechanismType } from './mo
 import { wallFace } from './model/vinyls'
 import { BASE_FLOOR, MATERIALS, WALL_COLORS, floorOf, interiorFinish } from './model/finishes'
 import { FURNITURE, FurnitureItem, Rotation, furnitureType, liftOf, partChoices } from './model/furniture'
-import { furnitureName, pieceName, roomName, shellName } from './model/names'
+import { furnitureName, houseName, pieceName, roomName, shellName } from './model/names'
 import { OPPOSITE, Opening, openingCode, swingDoor, validOpeningSize, wallLine } from './model/openings'
 import { deriveWalls, wallOf } from './model/walls'
 import { Plan, parsePhotos, parsePlan, serializePlan } from './model/planFile'
@@ -70,6 +70,7 @@ function describeRoom(m: PlacedModule, shell?: Shell) {
 function casa() {
   const { shells, modules } = state()
   return {
+    nombre: houseName(state().houseName),
     modulos: shells.map((s) => ({
       id: s.id,
       nombre: shellName(shells, s),
@@ -108,6 +109,13 @@ function casa() {
 function nuevoPlano() {
   usePhotos.getState().replaceAll([])
   state().newPlan()
+  return casa()
+}
+
+/** Pone nombre a la casa; vacío, vuelve a llamarse "Casa". */
+function nombrarCasa(nombre: string) {
+  if (typeof nombre !== 'string') return { error: 'El nombre tiene que ser un texto.' } as Fallo
+  state().rename('house', '', nombre)
   return casa()
 }
 
@@ -929,6 +937,7 @@ const eurocasa = {
   quitarMecanismo,
   casa,
   nuevoPlano,
+  nombrarCasa,
   medirModulo,
   crearEstancia,
   eliminarEstancia,

@@ -6,10 +6,11 @@ import { historyGate, useHouse } from './store'
 // anterior pasa a la pila de "deshacer". Cambios seguidos (un arrastre, una
 // casa montada por funciones) cuentan como un solo paso.
 //
-// Cubre la casa: estancias, módulos, huecos, paredes compartidas y muebles. No
+// Cubre la casa: su nombre, estancias, módulos, huecos, paredes compartidas y muebles. No
 // cubre las fotos (viven aparte, en IndexedDB), la cámara ni las opciones de vista.
 
 interface Snapshot {
+  houseName: ReturnType<typeof useHouse.getState>['houseName']
   modules: ReturnType<typeof useHouse.getState>['modules']
   shells: ReturnType<typeof useHouse.getState>['shells']
   openings: ReturnType<typeof useHouse.getState>['openings']
@@ -18,6 +19,7 @@ interface Snapshot {
 }
 
 const snapshotOf = (s: ReturnType<typeof useHouse.getState>): Snapshot => ({
+  houseName: s.houseName,
   modules: s.modules,
   shells: s.shells,
   openings: s.openings,
@@ -26,6 +28,7 @@ const snapshotOf = (s: ReturnType<typeof useHouse.getState>): Snapshot => ({
 })
 
 const same = (a: Snapshot, b: Snapshot) =>
+  a.houseName === b.houseName &&
   a.modules === b.modules &&
   a.shells === b.shells &&
   a.openings === b.openings &&

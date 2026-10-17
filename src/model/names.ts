@@ -9,6 +9,19 @@ import { Opening } from './openings'
 import { Vinyl, vinylType } from './vinyls'
 import { Wall } from './walls'
 
+/** El nombre de la casa: el puesto por el usuario o, si no tiene, "Casa". */
+export const DEFAULT_HOUSE_NAME = 'Casa'
+export const houseName = (name?: string) => name ?? DEFAULT_HOUSE_NAME
+
+/** Un nombre hecho apto para un archivo: minúsculas sin acentos y guiones ("Casa García" → "casa-garcia"). */
+export const fileSlug = (name: string) =>
+  name
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+
 const SIDE_NAMES: Record<Side, string> = { n: 'norte', s: 'sur', e: 'este', w: 'oeste' }
 
 export const defaultShellName = (shells: Shell[], id: string) =>

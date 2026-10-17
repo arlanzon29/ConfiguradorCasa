@@ -8,6 +8,7 @@ import {
   furnitureName,
   lightName,
   PieceKind,
+  houseName,
   openingName,
   pieceName,
   piecesOf,
@@ -87,6 +88,7 @@ function Row({ level, label, detail, active, open, onToggle, onPick, onAdd, addT
 export default function HouseTree() {
   const mode = useHouse((s) => s.mode)
   const shells = useHouse((s) => s.shells)
+  const name = useHouse((s) => s.houseName)
   const modules = useHouse((s) => s.modules)
   const joints = useHouse((s) => s.joints)
   const openings = useHouse((s) => s.openings)
@@ -401,7 +403,7 @@ export default function HouseTree() {
     <nav className="tree" aria-label="La casa">
       <Row
         level={0}
-        label="Casa"
+        label={houseName(name)}
         active={mode === 'shells' && !selectedShellId}
         onPick={() => pick('shells')}
       />

@@ -18,6 +18,8 @@ const APP = 'eurocasa-configurador'
 const VERSION = 2
 
 export interface Plan {
+  /** El nombre de la casa; sin él, la casa se llama "Casa". En el archivo, `name`. */
+  houseName?: string
   modules: PlacedModule[]
   shells: Shell[]
   openings: Opening[]
@@ -34,7 +36,7 @@ export interface PlanPhoto extends Shot {
 }
 
 export function serializePlan(
-  { modules, shells, openings, joints, furniture }: Plan,
+  { houseName, modules, shells, openings, joints, furniture }: Plan,
   photos: PlanPhoto[] = [],
 ) {
   // Dentro de su padre, la referencia a él sobra: se quita al guardar y se repone al leer.
@@ -48,6 +50,7 @@ export function serializePlan(
     {
       app: APP,
       version: VERSION,
+      name: houseName,
       shells: shells.map((sh) => ({
         ...sh,
         rooms: modules.filter((m) => m.shellId === sh.id).map(room),
@@ -164,7 +167,10 @@ export function parsePlan(text: string): Plan | null {
       (s) => isRecord(s) && typeof s.id === 'string' && numbers(s, ['x', 'y', 'width', 'depth']),
     )
   if (!validModules || !validOpenings || !validFurniture || !validShells) return null
+  // Los planos de antes del nombre de la casa no lo traen.
+  const name = typeof data.name === 'string' && data.name.trim() ? data.name.trim() : undefined
   return {
+    houseName: name,
     modules: modules as PlacedModule[],
     shells: shells as Shell[],
     openings: openings as Opening[],

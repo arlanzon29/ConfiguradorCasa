@@ -46,8 +46,9 @@ su id; los huecos, por su id.
 
 | Función | Parámetros | Notas |
 |---|---|---|
-| `casa()` | — | Lee la casa: `modulos` con sus `estancias`, y `huecos`, `muebles`, `mecanismos` (interruptores y enchufes) y `fotos`. Llámala antes de tocar una casa que no has montado tú |
-| `nuevoPlano()` | — | Borra todo y deja un módulo vacío de 13 × 4,2 m |
+| `casa()` | — | Lee la casa: su `nombre`, `modulos` con sus `estancias`, y `huecos`, `muebles`, `mecanismos` (interruptores y enchufes) y `fotos`. Llámala antes de tocar una casa que no has montado tú |
+| `nuevoPlano()` | — | Borra todo (también el nombre) y deja un módulo vacío de 13 × 4,2 m |
+| `nombrarCasa` | `nombre` | Pone nombre a la casa (sale en el árbol, en el archivo de plano y en los nombres de lo que se descarga). Vacío, vuelve a "Casa". Al montar una casa para un cliente, ponle nombre ("Casa García") |
 | `medirModulo` | `{ modulo?, ancho, fondo }` | Sin `modulo`, el primero. Falla si alguna estancia dejaría de caber |
 | `crearEstancia` | `{ nombre?, ancho, fondo, x?, y?, modulo? }` | Con `x` e `y`, en ese sitio; sin ellos, en el primer hueco libre |
 | `eliminarEstancia` | `{ estancia }` | Se lleva sus huecos y muebles |

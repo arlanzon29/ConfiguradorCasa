@@ -236,7 +236,7 @@ que se le puede añadir.
 cosa es "Nombre" (`NameField` en `Field.tsx`) y se puede cambiar. Se guarda en
 `name` de cada objeto; el de una pared, donde su grosor (`wallNames` por lado
 de estancia, o `name` en `joints`). Sin nombre propio vale el de por defecto
-(`model/names.ts`: "Módulo 1", "Estancia 2", "Pared norte", "Foco 1", el del
+(`model/names.ts`: "Casa", "Módulo 1", "Estancia 2", "Pared norte", "Foco 1", el del
 catálogo en un mueble, "Puerta" o "Ventana"); dejar la casilla vacía vuelve a
 él. La acción es `rename` en `store.ts`.
 
@@ -301,7 +301,7 @@ Casa
 
 | Elegido | Arriba (datos) | Debajo (añadir y acabados) |
 |---|---|---|
-| Casa | — | Añadir módulo horizontal o vertical. Se ve toda la parcela |
+| Casa | nombre | Añadir módulo horizontal o vertical. Se ve toda la parcela |
 | Módulo | distancia al borde izquierdo y superior de la parcela; ancho y fondo; girar, eliminar | Añadir estancia (catálogo y medida personalizada) y el resumen |
 | Estancia | distancia al borde de su módulo; ancho y fondo; girar, eliminar | Suelo, techo (si lo lleva en la foto y su acabado), acabado de todas sus paredes, "Añadir luz" (foco de techo) y el catálogo de **mobiliario** con el icono de imán |
 | Foco | distancia a la izquierda y arriba, "Centrar en la estancia", potencia (%), tono, color de emisión, eliminar | — |
@@ -500,7 +500,7 @@ Teclas: `R` gira lo seleccionado, `Supr` lo borra, `Esc` cancela la herramienta,
 - **Planos antiguos sin módulos** (`shells: []`) siguen funcionando sin límite: la
   restricción solo aplica si hay algún módulo.
 - **El archivo de plano tiene la forma del árbol** (`planFile.ts`, versión 2; lo
-  pidió el usuario): `shells`, cada uno con sus `rooms` dentro; cada estancia
+  pidió el usuario), con el nombre de la casa arriba (`name`, si lo tiene): `shells`, cada uno con sus `rooms` dentro; cada estancia
   con sus `openings` y su `furniture` dentro (y, como ya estaban, sus luces,
   vinilos, espejos y tableros). Fuera quedan `rooms` (estancias sin módulo),
   `furniture` (muebles sin estancia), `joints` (cada pared compartida es de
@@ -757,6 +757,19 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-17** · **La casa tiene nombre** (el usuario: "las casas quiero que
+  tengan un campo de nombre"). `houseName` en `store.ts` (se guarda en el
+  navegador y entra en deshacer), `rename('house')`, `name` arriba del archivo
+  de plano (sin cambiar de versión; los de antes no lo traen y se llaman
+  "Casa"). Casilla "Nombre" al elegir "Casa" en el árbol (`HouseProperties`),
+  y la rama de arriba del árbol lleva el nombre. Los archivos que se descargan
+  lo llevan: `eurocasa-casa-garcia-2026-10-17.json` y `.glb` (`fileSlug` en
+  `names.ts`). En `window.eurocasa`, `nombrarCasa` y `nombre` en `casa()`; en
+  la skill `crear-casas`. "Nuevo plano" lo quita. Probado en el servidor aparte
+  (5185): nombrar por función y con la casilla, el árbol, el archivo, deshacer,
+  nuevo plano, volver a cargarlo y el nombre vacío. Sin probar: los botones de
+  descarga.
 
 - **2026-10-17** · **Mandar la casa a las Quest por una dirección** (idea del
   usuario: Claude sube el `.json` a Supabase, da una dirección con su QR y la

@@ -23,6 +23,7 @@ import { Wall, deriveWalls, openingSpan, wallOf } from '../model/walls'
 import { Mode, furnitureBox, useHouse } from '../store'
 import { DEFAULT_JOINERY_FINISH } from '../model/finishes'
 import {
+  DEFAULT_HOUSE_NAME,
   defaultFurnitureName,
   defaultOpeningName,
   defaultRoomName,
@@ -557,6 +558,18 @@ interface Props {
   onToggle: () => void
 }
 
+/** La casa entera: su nombre (sale en el árbol y en los archivos que se descargan). */
+function HouseProperties() {
+  const name = useHouse((s) => s.houseName)
+  return (
+    <NameField
+      value={name}
+      fallback={DEFAULT_HOUSE_NAME}
+      onApply={(text) => useHouse.getState().rename('house', '', text)}
+    />
+  )
+}
+
 export default function PropertiesPanel({ hidden, onToggle }: Props) {
   const mode = useHouse((s) => s.mode)
   const modules = useHouse((s) => s.modules)
@@ -593,7 +606,12 @@ export default function PropertiesPanel({ hidden, onToggle }: Props) {
         <ModulesPanel />
       </>
     ) : (
-      <ShellsPanel />
+      <>
+        <section>
+          <HouseProperties />
+        </section>
+        <ShellsPanel />
+      </>
     )
   else if (mode === 'modules' && room && light)
     body = <LightProperties key={light.id} room={room} light={light} />
