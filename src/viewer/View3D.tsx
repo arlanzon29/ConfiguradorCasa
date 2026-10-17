@@ -790,8 +790,9 @@ function ARTable({
       const sx = pad.axes[2] ?? 0
       const sy = pad.axes[3] ?? 0
       if (hand === 'left') {
-        // Stick izquierdo: mueve la mesa en horizontal, según hacia dónde miras
-        // (adelante la aleja, atrás la acerca, a los lados la desplaza).
+        // Stick izquierdo: mueve la mesa en horizontal, según hacia dónde miras.
+        // Al revés que al caminar (lo probó el usuario): adelante la acerca,
+        // atrás la aleja, y a los lados va hacia el lado contrario.
         if (Math.hypot(sx, sy) < 0.3) continue
         const viewer = frame.getViewerPose(space)
         if (!viewer) continue
@@ -800,8 +801,8 @@ function ARTable({
         const flat = Math.hypot(v.dir.x, v.dir.z)
         const [fx, fz] = flat > 1e-4 ? [v.dir.x / flat, v.dir.z / flat] : [0, -1]
         const step = AR_MOVE_SPEED * delta
-        t.pos.x += (-fz * sx - fx * sy) * step
-        t.pos.z += (fx * sx - fz * sy) * step
+        t.pos.x -= (-fz * sx - fx * sy) * step
+        t.pos.z -= (fx * sx - fz * sy) * step
         continue
       }
       // Stick derecho: a los lados la gira; adelante la agranda y atrás la reduce.
