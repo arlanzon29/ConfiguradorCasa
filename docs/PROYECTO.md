@@ -405,21 +405,21 @@ AR"**, para las Quest 3 (`immersive-ar`, con el paso de cámara). La casa sale
 como una **maqueta a 1:20 sobre una mesa translúcida**, centrada en su mesa y
 sin el césped de la parcela, a 0,8 m delante de ti y a 0,75 m del suelo. Se
 maneja como la bandeja de la prueba `D:\IA\Macedonia\games\sala-ar`
-(ahí lo tenía resuelto el usuario): **gatillo o botón lateral (agarre)
-mantenidos**, la mesa sigue al mando (justo debajo) y gira hacia donde apunta,
-aunque esté lejos (el usuario esperaba que el botón lateral la colocara);
-**los dos mandos a la vez** (gatillo o lateral en ambos): la distancia entre
-ellos **agranda o reduce** la maqueta (de 1:100 a 1:1) y girar las manos la
-gira, con la mesa entre las dos manos;
+(ahí lo tenía resuelto el usuario), pero **todo lo de la mesa va con el
+botón lateral** (agarre) y **el gatillo es solo para las puertas** y lo que
+se pueda accionar más adelante (lo decidió el usuario). **Botón lateral
+mantenido**: coges la mesa desde donde está, sin que salte a la mano, y se
+mueve y gira con ella (`grab` en `ARTable`); **los dos laterales a la
+vez**: la distancia entre las manos **agranda o reduce** la maqueta (de
+1:100 a 1:1) y girarlas la gira, alrededor del punto entre ellas y sin
+salto (`pinch`);
 **stick izquierdo**, la mueve en horizontal según hacia dónde miras
 (es como moverte tú, sentado: adelante avanzas y la maqueta se acerca; a la
 derecha, la maqueta va a tu izquierda; lo describió así el usuario; `AR_MOVE_SPEED`, 0,5 m/s); **stick
 derecho** a izquierda o derecha, solo la gira, poco a poco y **alrededor
-de ti**, no de su centro (agrandar o reducir es cosa de los dos mandos); **A o X**,
+de ti**, no de su centro (agrandar o reducir es cosa de los dos laterales); **A o X**,
 cambia entre maqueta y tamaño real (1:1); **B o Y** sale. Las **puertas** se
-abren y cierran como en la VR, con el rayo y el gatillo: un gatillo apretado
-apuntando a una puerta es para ella y no mueve la mesa (`aimingHands`, por
-mano); el botón lateral la mueve siempre. El cartel va a la mitad de tamaño
+abren y cierran como en la VR, con el rayo y el gatillo. El cartel va a la mitad de tamaño
 en la maqueta. Sin puntos de salto en AR. Sin sombras ni fondo.
 Solo con mandos: las manos (pellizco) no están.
 
@@ -741,6 +741,15 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-17** · **AR: la mesa, solo con el botón lateral, y sin saltar**
+  (el usuario: el gatillo sin apuntar a una puerta movía la casa "al
+  inicio"; decidió "el gatillo solo para las puertas y otras posibles
+  acciones, para todo el tema de la mesa el botón lateral"). El gatillo ya
+  no toca la mesa. Con el lateral se coge desde donde está y sigue a la
+  mano conservando distancia y ángulo; con los dos laterales se escala y
+  gira alrededor del punto entre las manos, también sin salto. Fuera
+  `aimingHands`, que ya no hace falta. **Sin probar**.
 
 - **2026-10-17** · **AR: el stick derecho gira la maqueta alrededor de ti**
   (el usuario: "la rotación debe ser sobre el punto en el que estamos, no

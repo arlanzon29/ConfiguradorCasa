@@ -519,60 +519,41 @@ function vrLabelOf(text: string) {
 }
 
 /**
- * Cuántos rayos de cada mano (`left`, `right`) apuntan ahora a algo que se
- * acciona. La maqueta AR lo mira: el gatillo sobre una puerta no la mueve.
- */
-const aimingHands = new Map<string, number>()
-const handOf = (e: ThreeEvent<PointerEvent>) =>
-  (e as unknown as { pointerState?: { inputSource?: XRInputSource } }).pointerState?.inputSource
-    ?.handedness ?? 'none'
-const aimsWith = (hand: string) => (aimingHands.get(hand) ?? 0) > 0
-
-/**
  * Apuntar con el rayo del mando a algo de la VR o la AR: si hay algún rayo
  * encima, dónde da el último y los manejadores para ponerlos en su grupo. El
  * gatillo (clic del rayo) llama a `onAction`. Sin `interactive`, nada.
  */
 function useAim(interactive: boolean, onAction: () => void) {
-  const [count, setCount] = useState(0)
+  // Los rayos que están encima, por su id.
+  const [pointers, setPointers] = useState<ReadonlySet<number>>(new Set())
   const hit = useRef(new Vector3())
-  // Mano de cada rayo que está encima, por su id.
-  const hands = useRef(new Map<number, string>())
-  const release = (id: number) => {
-    const hand = hands.current.get(id)
-    if (hand === undefined) return
-    hands.current.delete(id)
-    aimingHands.set(hand, Math.max((aimingHands.get(hand) ?? 1) - 1, 0))
-    setCount(hands.current.size)
-  }
-  const releaseAll = () => [...hands.current.keys()].forEach(release)
   useEffect(() => {
-    if (!interactive) releaseAll()
+    if (!interactive) setPointers(new Set())
   }, [interactive])
-  useEffect(() => releaseAll, [])
 
   const handlers = interactive
     ? {
         userData: { vrAction: true as boolean },
         onPointerEnter: (e: ThreeEvent<PointerEvent>) => {
           hit.current.copy(e.point)
-          if (hands.current.has(e.pointerId)) return
-          const hand = handOf(e)
-          hands.current.set(e.pointerId, hand)
-          aimingHands.set(hand, (aimingHands.get(hand) ?? 0) + 1)
-          setCount(hands.current.size)
+          setPointers((set) => new Set(set).add(e.pointerId))
         },
         onPointerMove: (e: ThreeEvent<PointerEvent>) => {
           hit.current.copy(e.point)
         },
-        onPointerLeave: (e: ThreeEvent<PointerEvent>) => release(e.pointerId),
+        onPointerLeave: (e: ThreeEvent<PointerEvent>) =>
+          setPointers((set) => {
+            const next = new Set(set)
+            next.delete(e.pointerId)
+            return next
+          }),
         onClick: (e: ThreeEvent<MouseEvent>) => {
           e.stopPropagation()
           onAction()
         },
       }
     : { userData: { vrAction: false as boolean } }
-  return { hovered: interactive && count > 0, hit, handlers }
+  return { hovered: interactive && pointers.size > 0, hit, handlers }
 }
 
 /**
@@ -666,10 +647,12 @@ function exitHint(title: string, lines: string[]) {
 // Realidad aumentada con el paso de cámara de las Quest 3. La casa se ve como una
 // maqueta sobre una mesa virtual translúcida, a 1:20, delante de ti. Se maneja
 // como la bandeja de la prueba `sala-ar` (D:\IA\Macedonia\games\sala-ar):
-//  · gatillo o botón lateral (agarre) mantenido: la mesa sigue al mando, justo
-//    debajo, y gira hacia donde apunta (la trae aunque esté lejos);
-//  · los dos mandos a la vez (gatillo o lateral): la distancia entre ellos
+//  · botón lateral (agarre) mantenido: coges la mesa desde donde está y se
+//    mueve y gira con la mano, sin saltar a ella;
+//  · los botones laterales de los dos mandos a la vez: la distancia entre ellos
 //    agranda o reduce la maqueta, y girar las manos la gira;
+//  · el gatillo no toca la mesa: es para las puertas (y lo que se pueda
+//    accionar más adelante), lo decidió el usuario;
 //  · stick izquierdo: la mueve en horizontal, según hacia dónde miras;
 //  · stick derecho a izquierda o derecha: la gira poco a poco;
 //  · A o X: cambia entre maqueta (1:20) y tamaño real (1:1).
@@ -706,7 +689,16 @@ function ARTable({
     scale: AR_SCALE,
     ready: false,
     // El gesto de escalar con los dos mandos: de dónde partía.
-    pinch: null as null | { dist: number; angle: number; scale: number; yaw: number },
+    pinch: null as null | {
+      dist: number
+      angle: number
+      scale: number
+      yaw: number
+      mid: Vector3
+      pos: Vector3
+    },
+    // La mesa cogida con una mano: dónde estaba respecto a ella al cogerla.
+    grab: null as null | { hand: string; offset: Vector3; yaw: number; handYaw: number },
   })
   // Estado de los botones fotograma a fotograma, para detectar la pulsación (no la mantenida).
   const held = useRef(new Map<string, boolean>())
@@ -721,6 +713,7 @@ function ARTable({
   useEffect(() => {
     table.current.ready = false
     table.current.pinch = null
+    table.current.grab = null
     held.current.clear()
   }, [enabled])
 
@@ -769,12 +762,8 @@ function ARTable({
       v.hand.set(at.x, at.y, at.z)
       v.fwd.set(0, 0, -1).applyQuaternion(v.quat.set(q.x, q.y, q.z, q.w))
       const hand = source.handedness
-      // El gatillo y el botón lateral (agarre) hacen lo mismo: colocar la mesa.
-      // Salvo el gatillo apretado apuntando a una puerta: esa pulsación es para ella.
-      const trigger = !!pad.buttons[0]?.pressed
-      if (trigger && !(held.current.get(hand + 'trigger') ?? false)) held.current.set(hand + 'aim', aimsWith(hand))
-      held.current.set(hand + 'trigger', trigger)
-      const place = (trigger && !held.current.get(hand + 'aim')) || !!pad.buttons[1]?.pressed
+      // Solo el botón lateral (agarre) coge la mesa; el gatillo es para las puertas.
+      const place = !!pad.buttons[1]?.pressed
       const press = !!pad.buttons[4]?.pressed
       const wasPress = held.current.get(hand + 'press') ?? false
       held.current.set(hand + 'press', press)
@@ -824,24 +813,50 @@ function ARTable({
       const [a, b] = placing
       const dist = a.pos.distanceTo(b.pos)
       const angle = Math.atan2(b.pos.z - a.pos.z, b.pos.x - a.pos.x)
-      if (!t.pinch) t.pinch = { dist, angle, scale: t.scale, yaw: t.yaw }
-      if (t.pinch.dist > 0.02) {
-        t.scale = Math.min(Math.max((t.pinch.scale * dist) / t.pinch.dist, AR_MIN_SCALE), 1)
-        t.yaw = t.pinch.yaw - (angle - t.pinch.angle)
-      }
-      t.pos.set(
-        (a.pos.x + b.pos.x) / 2,
-        Math.max(Math.min(a.pos.y, b.pos.y) - 0.03, 0),
-        (a.pos.z + b.pos.z) / 2,
-      )
+      const mid = a.pos.clone().add(b.pos).multiplyScalar(0.5)
+      t.grab = null
+      // Al juntar las manos, la mesa no salta: se recuerda dónde estaba respecto a ellas.
+      t.pinch ??= { dist, angle, scale: t.scale, yaw: t.yaw, mid, pos: t.pos.clone() }
+      const g = t.pinch
+      // Se escala y gira alrededor del punto entre las manos, que lleva la mesa consigo.
+      const scale = g.dist > 0.02 ? Math.min(Math.max((g.scale * dist) / g.dist, AR_MIN_SCALE), 1) : t.scale
+      const turn = -(angle - g.angle)
+      const k = scale / g.scale
+      const [dx, dz] = [(g.pos.x - g.mid.x) * k, (g.pos.z - g.mid.z) * k]
+      const [c, sn] = [Math.cos(turn), Math.sin(turn)]
+      t.scale = scale
+      t.yaw = g.yaw + turn
+      t.pos.set(mid.x + dx * c + dz * sn, Math.max(g.pos.y + mid.y - g.mid.y, 0), mid.z - dx * sn + dz * c)
     } else {
       t.pinch = null
       if (placing.length === 1) {
-        // La mesa va justo debajo del mando y mira hacia donde apunta.
-        const { pos, fwd } = placing[0]
-        t.pos.set(pos.x, Math.max(pos.y - 0.03, 0), pos.z)
-        if (Math.hypot(fwd.x, fwd.z) > 0.2) t.yaw = Math.atan2(-fwd.x, -fwd.z)
-      }
+        // Cogida con una mano: sigue a la mano y gira con ella, sin saltar.
+        const { hand, pos, fwd } = placing[0]
+        const flat = Math.hypot(fwd.x, fwd.z)
+        // Con el mando apuntando arriba o abajo no se sabe su giro: vale el último.
+        const handYaw =
+          flat > 0.2 ? Math.atan2(-fwd.x, -fwd.z) : t.grab?.hand === hand ? t.grab.handYaw : t.yaw
+        if (t.grab?.hand !== hand) {
+          // Dónde está la mesa respecto a la mano, en los ejes de la mano.
+          const [dx, dz] = [t.pos.x - pos.x, t.pos.z - pos.z]
+          const [c, sn] = [Math.cos(-handYaw), Math.sin(-handYaw)]
+          t.grab = {
+            hand,
+            offset: new Vector3(dx * c + dz * sn, t.pos.y - pos.y, -dx * sn + dz * c),
+            yaw: t.yaw - handYaw,
+            handYaw,
+          }
+        }
+        const g = t.grab
+        g.handYaw = handYaw
+        const [c, sn] = [Math.cos(handYaw), Math.sin(handYaw)]
+        t.pos.set(
+          pos.x + g.offset.x * c + g.offset.z * sn,
+          Math.max(pos.y + g.offset.y, 0),
+          pos.z - g.offset.x * sn + g.offset.z * c,
+        )
+        t.yaw = handYaw + g.yaw
+      } else t.grab = null
     }
     if (toggle) t.scale = t.scale >= 0.5 ? AR_SCALE : 1
 
@@ -904,9 +919,9 @@ function VRRig({ ar }: { ar: boolean }) {
     const camera = gl.xr.getCamera()
     const hint = ar
       ? exitHint('Pulsa B o Y para salir', [
-          'Gatillo o botón lateral: poner la maqueta',
+          'Botón lateral: coger la maqueta',
           'Gatillo apuntando a una puerta: abrirla',
-          'Los dos mandos a la vez: escalar y girar',
+          'Los dos botones laterales: escalar y girar',
           'Stick izquierdo: moverla',
           'Stick derecho: girarla',
           'A o X: tamaño real',
