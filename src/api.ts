@@ -7,7 +7,7 @@ import { PLOT, PlacedModule, Shell, Side, WALL_HEIGHT, fits, roundSize, sideLeng
 import { MECHANISMS, MECHANISM_HEIGHT, mechanismSize, mechanismType } from './model/mechanisms'
 import { wallFace } from './model/vinyls'
 import { BASE_FLOOR, MATERIALS, WALL_COLORS, floorOf, interiorFinish } from './model/finishes'
-import { FURNITURE, FurnitureItem, Rotation, furnitureType, liftOf } from './model/furniture'
+import { FURNITURE, FurnitureItem, Rotation, furnitureType, liftOf, partChoices } from './model/furniture'
 import { furnitureName, pieceName, roomName, shellName } from './model/names'
 import { OPPOSITE, Opening, openingCode, swingDoor, validOpeningSize, wallLine } from './model/openings'
 import { deriveWalls, wallOf } from './model/walls'
@@ -344,12 +344,28 @@ function describeFurniture(f: FurnitureItem) {
     espalda: lado(BACKS[f.rotation]),
     // Metros sobre el suelo; 0 si apoya en él.
     altura: liftOf(f),
+    // Los colores de sus partes, si las tiene (tapicería, cojines…).
+    ...(furnitureType(f.typeId)?.parts && {
+      colores: Object.fromEntries(partChoices(f).map((c) => [c.part.id, c.option.id])),
+    }),
   }
 }
 
-/** El catálogo de muebles, con sus medidas: `fondo` es de la espalda al frente. */
+/**
+ * El catálogo de muebles, con sus medidas: `fondo` es de la espalda al frente.
+ * `colores`: lo que se puede cambiar de color y entre qué opciones (la primera,
+ * la de por defecto).
+ */
 const catalogoMuebles = () =>
-  FURNITURE.map((t) => ({ mueble: t.id, codigo: t.code, nombre: t.name, ancho: t.width, fondo: t.depth, alto: t.height }))
+  FURNITURE.map((t) => ({
+    mueble: t.id,
+    codigo: t.code,
+    nombre: t.name,
+    ancho: t.width,
+    fondo: t.depth,
+    alto: t.height,
+    ...(t.parts && { colores: Object.fromEntries(t.parts.map((p) => [p.id, p.options.map((o) => o.id)])) }),
+  }))
 
 /**
  * Pone un mueble del catálogo en una estancia. Con `pared` va de espaldas a la
@@ -434,13 +450,27 @@ function elevar(id: string, altura: number) {
 }
 
 /**
- * Cambia un mueble que ya está puesto. De momento solo `altura`: metros sobre
- * el suelo (0 apoya en él; 0,5 sobre una mesilla).
+ * Cambia un mueble que ya está puesto: `altura`, metros sobre el suelo (0
+ * apoya en él; 0,5 sobre una mesilla), y `colores`, parte → opción (p. ej.
+ * `{ 'cojin-izquierdo': 'rojo' }`), solo de lo que dice `catalogoMuebles`.
  */
-function cambiarMueble(p: { mueble: string; altura?: number }) {
-  if (!state().furniture.some((f) => f.id === p.mueble)) {
+function cambiarMueble(p: { mueble: string; altura?: number; colores?: Record<string, string> }) {
+  const item = state().furniture.find((f) => f.id === p.mueble)
+  if (!item) {
     return { error: `No hay ningún mueble "${p.mueble}".` } as Fallo
   }
+  const parts = furnitureType(item.typeId)?.parts ?? []
+  for (const [part, option] of Object.entries(p.colores ?? {})) {
+    const found = parts.find((x) => x.id === part)
+    if (!found) {
+      const allowed = parts.map((x) => x.id).join(', ')
+      return { error: allowed ? `"${part}" no se puede cambiar; sí: ${allowed}.` : 'A este mueble no se le puede cambiar el color.' } as Fallo
+    }
+    if (!found.options.some((o) => o.id === option)) {
+      return { error: `${found.name}: "${option}" no está; sí: ${found.options.map((o) => o.id).join(', ')}.` } as Fallo
+    }
+  }
+  for (const [part, option] of Object.entries(p.colores ?? {})) state().setFurnitureColor(p.mueble, part, option)
   if (p.altura !== undefined) {
     const error = elevar(p.mueble, p.altura)
     if (error) return { error } as Fallo

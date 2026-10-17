@@ -13,6 +13,11 @@ piezas del mueble (sin suelo, pared, luces ni cámara) a su `.glb` con
 "Apply Modifiers". Debe apoyar en el suelo, centrado, con la espalda hacia +Y
 de Blender (que en la web es el norte) y con las medidas del catálogo.
 
-| Mueble | Original | Para la web | Medidas |
-|---|---|---|---|
-| Sofá (`sofa`) | `sofa.blend` (escena "Sofá") | `public/modelos/sofa.glb` | 2 × 0,9 × 0,8 m |
+Las partes que el cliente puede cambiar de color necesitan **un material
+propio con nombre fijo** en el `.blend`: la web los busca por ese nombre
+(`material` de cada parte en `parts`, `src/model/furniture.ts`). No cambiar
+esos nombres sin cambiar también el catálogo.
+
+| Mueble | Original | Para la web | Medidas | Materiales que cambian de color |
+|---|---|---|---|---|
+| Sofá (`sofa`) | `sofa.blend` (escena "Sofá") | `public/modelos/sofa.glb` | 2 × 0,9 × 0,8 m | "Tela sofá", "Cojín izquierdo", "Cojín derecho" |

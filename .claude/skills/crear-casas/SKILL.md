@@ -126,6 +126,20 @@ Blender. Los muebles detallados (`model` en el catálogo, botón
 "Sencillos / Detallados" de la vista 3D) se ven en las dos; hoy solo el sofá
 (`public/modelos/sofa.glb`, de la escena "Sofá" de Blender).
 
+**Colores por partes de un mueble** (prueba con el sofá, 2026-10-17): el
+catálogo dice qué se puede cambiar de cada mueble y entre qué opciones
+(`parts` en `furniture.ts`; `catalogoMuebles()` lo devuelve en `colores`).
+Lo que no está ahí no se cambia. Sofá: `tapiceria` (azul, blanco, rosa),
+`cojin-izquierdo` y `cojin-derecho` (blanco, azul, rojo); izquierdo y derecho
+mirándolo de frente. Se cambia con
+`cambiarMueble({ mueble: id, colores: { 'cojin-izquierdo': 'rojo' } })`, que
+rechaza lo que no se puede o no está en la lista; `casa().muebles` da los
+`colores` de cada uno. Es de ese mueble de esa casa y viaja en el plano.
+Los cojines solo se ven con "Detallados" y en Blender (llegan pintados en el
+GLB); en "Sencillos" solo cambia la tapicería. Cada parte es un material del
+modelo por su nombre en Blender: para un mueble nuevo, darle en el `.blend`
+un material propio a cada parte que se quiera poder cambiar.
+
 **Regla del usuario: se guarda siempre el `.blend`** de cada modelo que se
 haga en Blender, por si hay que retocarlo: el original en
 `modelos-blender/<mueble>.blend` (solo su escena, con

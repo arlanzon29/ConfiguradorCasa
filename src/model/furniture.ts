@@ -36,7 +36,33 @@ export interface FurnitureType {
    * Debe apoyar en el suelo, con la espalda hacia -z, y se ajusta a las medidas.
    */
   model?: string
+  /**
+   * Lo que se puede cambiar de color en este mueble, y entre qué colores. Lo que
+   * no está aquí no se cambia. Cada parte es un material del modelo detallado
+   * (por su nombre en Blender); la primera opción es la de por defecto.
+   */
+  parts?: FurniturePart[]
 }
+
+export interface FurniturePart {
+  id: string
+  name: string
+  /** Nombre del material en el `.glb` (el de Blender). */
+  material: string
+  options: { id: string; name: string; color: string }[]
+}
+
+// Colores de tela de la prueba (el usuario, 2026-10-17); a falta de los de EuroCasa.
+const AZUL = { id: 'azul', name: 'Azul', color: '#8fa3b0' }
+const BLANCO = { id: 'blanco', name: 'Blanco', color: '#ece9e3' }
+const ROSA = { id: 'rosa', name: 'Rosa', color: '#e2b4bd' }
+const ROJO = { id: 'rojo', name: 'Rojo', color: '#a8262e' }
+
+const SOFA_PARTS: FurniturePart[] = [
+  { id: 'tapiceria', name: 'Tapicería', material: 'Tela sofá', options: [AZUL, BLANCO, ROSA] },
+  { id: 'cojin-izquierdo', name: 'Cojín izquierdo', material: 'Cojín izquierdo', options: [BLANCO, AZUL, ROJO] },
+  { id: 'cojin-derecho', name: 'Cojín derecho', material: 'Cojín derecho', options: [BLANCO, AZUL, ROJO] },
+]
 
 export const FURNITURE: FurnitureType[] = [
   // Los códigos son provisionales, a falta de los de EuroCasa.
@@ -44,7 +70,7 @@ export const FURNITURE: FurnitureType[] = [
   { id: 'mesa-centro', code: 'MOB-MESA-CENTRO', family: 'salon', name: 'Mesa de centro', shape: 'table', width: 1.1, depth: 0.6, height: 0.4 },
   { id: 'television', code: 'MOB-TELEVISION', family: 'salon', name: 'Televisión', shape: 'tv', width: 1.2, depth: 0.25, height: 0.75 },
   { id: 'silla', code: 'MOB-SILLA', family: 'comedor', name: 'Silla', shape: 'chair', width: 0.45, depth: 0.45, height: 0.9 },
-  { id: 'sofa', code: 'MOB-SOFA', family: 'salon', name: 'Sofá', shape: 'sofa', width: 2, depth: 0.9, height: 0.8, model: 'modelos/sofa.glb' },
+  { id: 'sofa', code: 'MOB-SOFA', family: 'salon', name: 'Sofá', shape: 'sofa', width: 2, depth: 0.9, height: 0.8, model: 'modelos/sofa.glb', parts: SOFA_PARTS },
   { id: 'cama-doble', code: 'MOB-CAMA-DOBLE', family: 'dormitorio', name: 'Cama doble', shape: 'bed', width: 1.6, depth: 2, height: 0.5 },
   { id: 'cama-individual', code: 'MOB-CAMA-INDIVIDUAL', family: 'dormitorio', name: 'Cama individual', shape: 'bed', width: 0.9, depth: 2, height: 0.5 },
   { id: 'mesilla', code: 'MOB-MESILLA', family: 'dormitorio', name: 'Mesilla', shape: 'table', width: 0.45, depth: 0.4, height: 0.5 },
@@ -82,6 +108,16 @@ export interface FurnitureItem {
   roomId?: string
   /** Altura sobre el suelo a la que está puesta, en metros. Si falta, la de su tipo. */
   elevation?: number
+  /** Colores elegidos, por parte (`FurniturePart.id` → id de la opción). Lo que falta, por defecto. */
+  colors?: Record<string, string>
+}
+
+/** La opción elegida de cada parte del mueble (o la de por defecto). */
+export function partChoices(item: FurnitureItem) {
+  return (furnitureType(item.typeId)?.parts ?? []).map((part) => ({
+    part,
+    option: part.options.find((o) => o.id === item.colors?.[part.id]) ?? part.options[0],
+  }))
 }
 
 /** Altura sobre el suelo de una pieza: la suya si la tiene, y si no la de su tipo. */

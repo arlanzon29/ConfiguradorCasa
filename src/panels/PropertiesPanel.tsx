@@ -1,5 +1,5 @@
 import { ReactNode, useMemo, useState } from 'react'
-import { FurnitureItem, furnitureType, liftOf } from '../model/furniture'
+import { FurnitureItem, furnitureType, liftOf, partChoices } from '../model/furniture'
 import {
   MAX_SKIRTING_HEIGHT,
   MAX_WALL_THICKNESS,
@@ -439,6 +439,26 @@ function FurnitureProperties({ item }: { item: FurnitureItem }) {
         />
       </Fields>
       {!box.inRoom && <p className="muted">Está fuera de las estancias.</p>}
+      {partChoices(item).map(({ part, option }) => (
+        <section key={part.id} className="part-colors">
+          <h3>{part.name}</h3>
+          <div className="part-choices">
+            {part.options.map((o) => (
+              <button
+                key={o.id}
+                className={o.id === option.id ? 'swatch active' : 'swatch'}
+                onClick={() => useHouse.getState().setFurnitureColor(item.id, part.id, o.id)}
+              >
+                <span className="part-dot" style={{ background: o.color }} />
+                {o.name}
+              </button>
+            ))}
+          </div>
+        </section>
+      ))}
+      {type.parts && !useHouse.getState().detailedFurniture && (
+        <p className="muted">Los cojines solo se ven con «Detallados» en la vista 3D.</p>
+      )}
       <Fields title="Altura">
         <Field
           label="Sobre el suelo (m)"

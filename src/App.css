@@ -227,6 +227,26 @@ button:hover,
   box-shadow: inset 0 0 0 1px var(--accent);
 }
 
+/* Colores de las partes de un mueble (tapicería, cojines). */
+.part-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.part-choices .swatch {
+  gap: 6px;
+  padding: 5px 8px;
+}
+
+.part-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
 .swatch-sample {
   width: 36px;
   height: 36px;

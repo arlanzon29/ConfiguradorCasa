@@ -296,6 +296,8 @@ interface HouseState {
   rotateFurniture: (id: string) => void
   /** Pone la pieza a esa altura sobre el suelo (m): encima de otro mueble, por ejemplo. */
   setFurnitureElevation: (id: string, elevation: number) => void
+  /** Elige el color `option` de la parte `part` de un mueble (ver `parts` del catálogo). */
+  setFurnitureColor: (id: string, part: string, option: string) => void
   removeFurniture: (id: string) => void
   /**
    * Arrima la pieza a la pared más próxima de su estancia, de espaldas a ella.
@@ -1037,6 +1039,12 @@ export const useHouse = create<HouseState>()(
         setFurnitureElevation: (id, elevation) =>
           set((s) => ({
             furniture: s.furniture.map((f) => (f.id === id ? { ...f, elevation: roundSize(elevation) } : f)),
+          })),
+        setFurnitureColor: (id, part, option) =>
+          set((s) => ({
+            furniture: s.furniture.map((f) =>
+              f.id === id ? { ...f, colors: { ...f.colors, [part]: option } } : f,
+            ),
           })),
 
         snapFurnitureToWall: (id) => {

@@ -2,7 +2,7 @@ import { Suspense, useEffect, useMemo } from 'react'
 import { useLoader } from '@react-three/fiber'
 import { Box3, Mesh, MeshStandardMaterial, Vector3 } from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
-import { FurnitureItem, FurnitureType, furnitureType, liftOf } from '../model/furniture'
+import { FurnitureItem, FurnitureType, furnitureType, liftOf, partChoices } from '../model/furniture'
 import { useHouse } from '../store'
 
 const WOOD = '#b08d62'
@@ -242,7 +242,7 @@ interface Props {
  * tipo: centrado en x/z, apoyado en y = 0. Cada mueble lleva su copia, con los
  * materiales propios para poder resaltarlo al elegirlo.
  */
-function DetailedModel({ type, selected }: { type: FurnitureType; selected: boolean }) {
+function DetailedModel({ item, type, selected }: { item: FurnitureItem; type: FurnitureType; selected: boolean }) {
   const gltf = useLoader(GLTFLoader, type.model!)
   const model = useMemo(() => {
     const root = gltf.scene.clone(true)
@@ -259,21 +259,29 @@ function DetailedModel({ type, selected }: { type: FurnitureType; selected: bool
     })
     return root
   }, [gltf, type])
+  // Colores elegidos de sus partes, por el nombre del material en Blender.
+  const colors = partChoices(item)
+  const colorKey = colors.map((c) => c.option.id).join()
   useEffect(() => {
     model.traverse((o) => {
       if (!(o instanceof Mesh)) return
       const m = o.material as MeshStandardMaterial
+      const choice = colors.find((c) => c.part.material === m.name)
+      if (choice) m.color.set(choice.option.color)
       m.emissive.set(selected ? '#d9480f' : '#000000')
       m.emissiveIntensity = 0.25
     })
-  }, [model, selected])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [model, selected, colorKey])
   return <primitive object={model} />
 }
 
-function BoxModel({ type, selected }: { type: FurnitureType; selected: boolean }) {
+function BoxModel({ item, type, selected }: { item: FurnitureItem; type: FurnitureType; selected: boolean }) {
+  // En las cajas, la tela toma el color de la tapicería si el mueble la tiene.
+  const fabric = partChoices(item).find((c) => c.part.id === 'tapiceria')?.option.color
   return (
     <>
-      {boxes(type).map((box, i) => (
+      {boxes(type).map((box) => (fabric && box.color === FABRIC ? { ...box, color: fabric } : box)).map((box, i) => (
         <mesh key={i} position={box.position} rotation-x={box.round ? Math.PI / 2 : 0} castShadow receiveShadow>
           {box.flat ? (
             <cylinderGeometry args={[box.size[0] / 2, box.size[0] / 2, box.size[1], 32]} />
@@ -293,14 +301,14 @@ export default function Furniture3D({ item, floorY, selected }: Props) {
   const type = furnitureType(item.typeId)
   const detailed = useHouse((s) => s.detailedFurniture)
   if (!type) return null
-  const boxModel = <BoxModel type={type} selected={selected} />
+  const boxModel = <BoxModel item={item} type={type} selected={selected} />
   return (
     // En el plano el giro es horario con y hacia abajo; en 3D eso es un giro negativo sobre y.
     <group position={[item.x, floorY + liftOf(item), item.y]} rotation-y={(-item.rotation * Math.PI) / 180}>
       {detailed && type.model ? (
         // Mientras se descarga el modelo, las cajas.
         <Suspense fallback={boxModel}>
-          <DetailedModel type={type} selected={selected} />
+          <DetailedModel item={item} type={type} selected={selected} />
         </Suspense>
       ) : (
         boxModel

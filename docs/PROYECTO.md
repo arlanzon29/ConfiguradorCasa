@@ -711,6 +711,23 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-17** · **Colores por partes de un mueble, prueba con el sofá**
+  (el usuario: elegir el color del sofá entre azul, blanco y rosa, y cada
+  cojín por separado en azul, blanco y rojo; antes pidió que se guarde qué se
+  puede cambiar de cada mueble). `parts` y `FurniturePart` en el catálogo
+  (`furniture.ts`, con `partChoices`), `colors` en `FurnitureItem`,
+  `setFurnitureColor` en `store.ts`, botones por parte en Propiedades del
+  mueble (`.part-choices`), y `Furniture3D` pinta cada material del modelo
+  por su nombre; en las cajas, solo la tapicería. En el `.blend` y el `.glb`
+  del sofá, cada cojín decorativo tiene ya su material ("Cojín izquierdo",
+  "Cojín derecho"). `catalogoMuebles` da los `colores` posibles,
+  `cambiarMueble` admite `colores` y `casa().muebles` los devuelve. Colores
+  de la prueba, míos. Probado en el entorno de pruebas (5185): las tres
+  partes por funciones, los dos rechazos (parte que no se puede cambiar,
+  color que no está), la vista 3D (rosa, rojo y azul) y un clic en
+  "Blanco". Sin probar: en Blender, guardar y cargar el plano, deshacer, ni
+  la foto en calidad. El color no cambia el código de artículo.
+
 - **2026-10-17** · **Original del sofá guardado**: `modelos-blender/sofa.blend`
   (solo la escena "Sofá", 80 KB, en el repositorio público, como propuse),
   con `modelos-blender/LEEME.md`: cada mueble detallado lleva su `.blend`
