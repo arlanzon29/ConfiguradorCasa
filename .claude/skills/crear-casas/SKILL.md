@@ -123,8 +123,8 @@ superior en el render (luz del sol, sombras, telas; unos 16 s por foto en
 la GPU frente a más de un minuto la primera vez en la web), y la web es muy
 buena para lo que es. **Se deja como está**: no se intenta igualar la web a
 Blender. Los muebles detallados (`model` en el catálogo, botón
-"Sencillos / Detallados" de la vista 3D) se ven en las dos; hoy solo el sofá
-(`public/modelos/sofa.glb`, de la escena "Sofá" de Blender).
+"Sencillos / Detallados" de la vista 3D) se ven en las dos; hoy el sofá, los dos frigoríficos, las dos lavadoras y
+los dos lavavajillas (la lista, en `modelos-blender/LEEME.md`).
 
 **Colores por partes de un mueble** (prueba con el sofá, 2026-10-17): el
 catálogo dice qué se puede cambiar de cada mueble y entre qué opciones

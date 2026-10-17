@@ -711,6 +711,22 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-17** · **Frigoríficos, lavadoras y lavavajillas detallados** (el
+  usuario: "podemos hacer el frigorífico, la lavadora y lavavajillas"; los vio
+  en un render de estudio, pidió el lavavajillas blanco en vez de gris y le
+  parecieron "muy chulos"). Seis modelos hechos por Claude en Blender, uno
+  por tipo y no uno estirado (en la lavadora pequeña el ojo de buey saldría
+  ovalado): `public/modelos/<id>.glb` (43-134 KB) y su
+  `modelos-blender/<id>.blend` cada uno, **separados** (el usuario: "no
+  todos juntos"). `model` en sus seis líneas del catálogo. Sin partes de
+  color. En la web, el metal de los modelos detallados se deja en 0,5:
+  los tiradores de acero salían negros. Probado en el entorno de pruebas
+  (5185) en la cocina de "Test 2": frigorífico, lavadora y lavavajillas
+  pequeño con "Detallados". Sin probar: el horno (sigue en cajas), la foto
+  en calidad, ni pasarlos a Blender en una casa. Trampa anotada en
+  `modelos-blender/LEEME.md`: el exportador mete todas las escenas del
+  archivo si no se usa `use_active_scene`.
+
 - **2026-10-17** · **Los colores del sofá llegan a Blender**: el sofá que
   configuró el usuario en el entorno de pruebas (azul, cojín izquierdo
   blanco, derecho rojo), enviado directo con `enviarA` y renderizado a 100

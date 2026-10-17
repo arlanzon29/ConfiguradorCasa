@@ -255,7 +255,11 @@ function DetailedModel({ item, type, selected }: { item: FurnitureItem; type: Fu
       if (!(o instanceof Mesh)) return
       o.castShadow = true
       o.receiveShadow = true
-      o.material = (o.material as MeshStandardMaterial).clone()
+      const m = (o.material as MeshStandardMaterial).clone()
+      // Sin un entorno que reflejar, el metal puro sale negro en la web (los
+      // tiradores de acero): se deja a medias, que se ve como acero satinado.
+      m.metalness = Math.min(m.metalness, 0.5)
+      o.material = m
     })
     return root
   }, [gltf, type])

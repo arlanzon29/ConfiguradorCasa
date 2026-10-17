@@ -21,3 +21,21 @@ esos nombres sin cambiar también el catálogo.
 | Mueble | Original | Para la web | Medidas | Materiales que cambian de color |
 |---|---|---|---|---|
 | Sofá (`sofa`) | `sofa.blend` (escena "Sofá") | `public/modelos/sofa.glb` | 2 × 0,9 × 0,8 m | "Tela sofá", "Cojín izquierdo", "Cojín derecho" |
+| Frigorífico (`frigorifico`) | `frigorifico.blend` | `public/modelos/frigorifico.glb` | 0,6 × 0,6 × 2,1 m | — |
+| Frigorífico pequeño (`frigorifico-pequeno`) | `frigorifico-pequeno.blend` | `public/modelos/frigorifico-pequeno.glb` | 0,6 × 0,6 × 1,8 m | — |
+| Lavadora (`lavadora`) | `lavadora.blend` | `public/modelos/lavadora.glb` | 0,6 × 0,6 × 0,82 m | — |
+| Lavadora pequeña (`lavadora-pequena`) | `lavadora-pequena.blend` | `public/modelos/lavadora-pequena.glb` | 0,45 × 0,6 × 0,8 m | — |
+| Lavavajillas (`lavavajillas`) | `lavavajillas.blend` | `public/modelos/lavavajillas.glb` | 0,6 × 0,6 × 0,82 m | — |
+| Lavavajillas pequeño (`lavavajillas-pequeno`) | `lavavajillas-pequeno.blend` | `public/modelos/lavavajillas-pequeno.glb` | 0,45 × 0,6 × 0,8 m | — |
+
+**Un `.blend` por mueble**, no todos juntos (lo pidió el usuario). Cada uno
+lleva solo su escena, ya centrada.
+
+**Al exportar un `.glb`**, el exportador de Blender mete **todas las escenas
+del archivo** si no se le dice otra cosa (salió un lavadora.glb de 5 MB con
+la casa y el sofá dentro). Exportar con `use_active_scene=True`, desde una
+escena que solo tenga ese mueble, y comprobar que pesa lo esperado (decenas o
+pocos cientos de KB).
+
+En la web el metal se deja a medias (`metalness` ≤ 0,5 en `Furniture3D.tsx`):
+sin entorno que reflejar, el acero puro sale negro.
