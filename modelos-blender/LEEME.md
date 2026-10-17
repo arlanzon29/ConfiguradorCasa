@@ -27,6 +27,15 @@ esos nombres sin cambiar también el catálogo.
 | Lavadora pequeña (`lavadora-pequena`) | `lavadora-pequena.blend` | `public/modelos/lavadora-pequena.glb` | 0,45 × 0,6 × 0,8 m | — |
 | Lavavajillas (`lavavajillas`) | `lavavajillas.blend` | `public/modelos/lavavajillas.glb` | 0,6 × 0,6 × 0,82 m | — |
 | Lavavajillas pequeño (`lavavajillas-pequeno`) | `lavavajillas-pequeno.blend` | `public/modelos/lavavajillas-pequeno.glb` | 0,45 × 0,6 × 0,8 m | — |
+| Horno (`horno`) | `horno.blend` | `public/modelos/horno.glb` | 0,6 × 0,6 × 0,82 m | — |
+| Vitrocerámica (`vitroceramica`) | `vitroceramica.blend` | `public/modelos/vitroceramica.glb` | 0,5 × 0,5 × 0,02 m | — |
+| Fregadero (`fregadero`) | `fregadero.blend` | `public/modelos/fregadero.glb` | 0,4 × 0,45 × 0,35 m (con el grifo) | — |
+| Armario pequeño de cocina (`armario-cocina`) | `armario-cocina.blend` | `public/modelos/armario-cocina.glb` | 0,45 × 0,6 × 0,8 m | — |
+| Mesa con armarios (`mesa-armarios`) | `mesa-armarios.blend` | `public/modelos/mesa-armarios.glb` | 1,2 × 0,6 × 0,8 m | — |
+| Taburete (`taburete`) | `taburete.blend` | `public/modelos/taburete.glb` | 0,35 × 0,35 × 0,65 m | — |
+
+Vitrocerámica y fregadero se modelan apoyados en z = 0 (la altura sobre la
+encimera la pone la web, `lift` del catálogo o `altura` del mueble).
 
 **Un `.blend` por mueble**, no todos juntos (lo pidió el usuario). Cada uno
 lleva solo su escena, ya centrada.

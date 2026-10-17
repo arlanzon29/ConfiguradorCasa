@@ -711,6 +711,21 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-17** · **Toda la cocina detallada** (el usuario: "hazme todo",
+  tras quedar en cajas horno, vitro, fregadero, armario pequeño, mesa con
+  armarios y taburete). Seis modelos más de Claude en Blender, con la misma
+  forma que tenían las cajas: horno (panel negro con mandos y pantalla,
+  ventana oscura, tirador), vitro (cristal negro con cuatro fuegos de aros y
+  teclas), fregadero (marco de acero, cubeta cepillada, grifo de cuello
+  curvo), armario pequeño (puertas de madera con tiradores), mesa con
+  armarios (puerta en el extremo -x con su tirador, paño fijo, tablero de
+  madera, zócalo) y taburete (asiento tapizado, patas abiertas y aro).
+  `.glb` de 16 a 254 KB y su `.blend` cada uno; `model` en el catálogo.
+  Probado en el entorno de pruebas (5185): la cocina de "Test 2" con todo
+  detallado en la web y la misma vista en Blender (100 muestras, 20,8 s).
+  El usuario dice que la web va bien con los modelos detallados. El armario
+  de dormitorio y el medio siguen en cajas (la misma forma, otro tipo).
+
 - **2026-10-17** · **Frigoríficos, lavadoras y lavavajillas detallados** (el
   usuario: "podemos hacer el frigorífico, la lavadora y lavavajillas"; los vio
   en un render de estudio, pidió el lavavajillas blanco en vez de gris y le

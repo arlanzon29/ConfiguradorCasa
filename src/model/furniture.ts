@@ -77,18 +77,18 @@ export const FURNITURE: FurnitureType[] = [
   { id: 'armario', code: 'MOB-ARMARIO', family: 'dormitorio', name: 'Armario', shape: 'wardrobe', width: 1.8, depth: 0.6, height: 2.2 },
   { id: 'armario-medio', code: 'MOB-ARMARIO-MEDIO', family: 'dormitorio', name: 'Armario medio', shape: 'wardrobe', width: 0.9, depth: 0.6, height: 2.2 },
   { id: 'lavavajillas', code: 'MOB-LAVAVAJILLAS', family: 'cocina', name: 'Lavavajillas', shape: 'appliance', width: 0.6, depth: 0.6, height: 0.82, model: 'modelos/lavavajillas.glb' },
-  { id: 'vitroceramica', code: 'MOB-VITROCERAMICA', family: 'cocina', name: 'Vitrocerámica 4 fuegos', shape: 'hob', width: 0.5, depth: 0.5, height: 0.02, lift: 0.9 },
+  { id: 'vitroceramica', code: 'MOB-VITROCERAMICA', family: 'cocina', name: 'Vitrocerámica 4 fuegos', shape: 'hob', width: 0.5, depth: 0.5, height: 0.02, lift: 0.9, model: 'modelos/vitroceramica.glb' },
   { id: 'frigorifico', code: 'MOB-FRIGORIFICO', family: 'cocina', name: 'Frigorífico', shape: 'fridge', width: 0.6, depth: 0.6, height: 2.1, model: 'modelos/frigorifico.glb' },
   { id: 'frigorifico-pequeno', code: 'MOB-FRIGORIFICO-PEQUENO', family: 'cocina', name: 'Frigorífico pequeño', shape: 'fridge', width: 0.6, depth: 0.6, height: 1.8, model: 'modelos/frigorifico-pequeno.glb' },
   { id: 'lavavajillas-pequeno', code: 'MOB-LAVAVAJILLAS-PEQUENO', family: 'cocina', name: 'Lavavajillas pequeño', shape: 'appliance', width: 0.45, depth: 0.6, height: 0.8, model: 'modelos/lavavajillas-pequeno.glb' },
-  { id: 'armario-cocina', code: 'MOB-ARMARIO-COCINA', family: 'cocina', name: 'Armario pequeño de cocina', shape: 'wardrobe', width: 0.45, depth: 0.6, height: 0.8 },
+  { id: 'armario-cocina', code: 'MOB-ARMARIO-COCINA', family: 'cocina', name: 'Armario pequeño de cocina', shape: 'wardrobe', width: 0.45, depth: 0.6, height: 0.8, model: 'modelos/armario-cocina.glb' },
   { id: 'lavadora', code: 'MOB-LAVADORA', family: 'cocina', name: 'Lavadora', shape: 'washer', width: 0.6, depth: 0.6, height: 0.82, model: 'modelos/lavadora.glb' },
   { id: 'lavadora-pequena', code: 'MOB-LAVADORA-PEQUENA', family: 'cocina', name: 'Lavadora pequeña', shape: 'washer', width: 0.45, depth: 0.6, height: 0.8, model: 'modelos/lavadora-pequena.glb' },
-  { id: 'horno', code: 'MOB-HORNO', family: 'cocina', name: 'Horno', shape: 'oven', width: 0.6, depth: 0.6, height: 0.82 },
+  { id: 'horno', code: 'MOB-HORNO', family: 'cocina', name: 'Horno', shape: 'oven', width: 0.6, depth: 0.6, height: 0.82, model: 'modelos/horno.glb' },
   // Sin profundidad: se apoya sobre la encimera, con su base a 0,9 m (ajustable con la altura).
-  { id: 'fregadero', code: 'MOB-FREGADERO', family: 'cocina', name: 'Fregadero', shape: 'sink', width: 0.4, depth: 0.45, height: 0.35, lift: 0.9 },
-  { id: 'taburete', code: 'MOB-TABURETE', family: 'cocina', name: 'Taburete', shape: 'stool', width: 0.35, depth: 0.35, height: 0.65 },
-  { id: 'mesa-armarios', code: 'MOB-MESA-ARMARIOS', family: 'cocina', name: 'Mesa con armarios', shape: 'cabinet-table', width: 1.2, depth: 0.6, height: 0.8 },
+  { id: 'fregadero', code: 'MOB-FREGADERO', family: 'cocina', name: 'Fregadero', shape: 'sink', width: 0.4, depth: 0.45, height: 0.35, lift: 0.9, model: 'modelos/fregadero.glb' },
+  { id: 'taburete', code: 'MOB-TABURETE', family: 'cocina', name: 'Taburete', shape: 'stool', width: 0.35, depth: 0.35, height: 0.65, model: 'modelos/taburete.glb' },
+  { id: 'mesa-armarios', code: 'MOB-MESA-ARMARIOS', family: 'cocina', name: 'Mesa con armarios', shape: 'cabinet-table', width: 1.2, depth: 0.6, height: 0.8, model: 'modelos/mesa-armarios.glb' },
 ]
 
 export const furnitureType = (id: string) => FURNITURE.find((f) => f.id === id)
