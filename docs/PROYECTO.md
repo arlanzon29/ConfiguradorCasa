@@ -706,6 +706,10 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-17** · El usuario probó "Subir imagen" en GitHub Pages con los
+  renders de Blender: **funciona**. Receta completa ("renderizar las fotos
+  de la web con Blender") anotada en la skill `crear-casas`.
+
 - **2026-10-17** · **Botón "Subir imagen"** en la foto elegida del panel
   Fotos (lo pidió el usuario: desde GitHub Pages la página no puede leer
   archivos del equipo, así que los renders de Blender se suben a mano).

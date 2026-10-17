@@ -103,6 +103,24 @@ usuario, con Blender abierto y "Start MCP Server" pulsado):
    que abre la ventana de render (puede quedar detrás de la de Blender).
 5. Para subirlo a la web: `cambiarImagenFoto` (abajo), con permiso.
 
+**Renderizar las fotos de la web con Blender, de principio a fin** (probado
+por el usuario en GitHub Pages el 2026-10-17, "funciona"):
+
+1. Lee `casa().fotos` (cámaras) y pide el GLB: `descargarGlb()` con la vista
+   3D a la vista; el usuario acepta la descarga y dice el nombre.
+2. `blender_casa.py` con `GLB` y `FOTOS` rellenos (pasos de arriba).
+3. Por cada foto: `scene.camera` a "Foto N …", resolución de su
+   `resolucion`, 100 muestras en GPU (unos 20-30 s cada una), guardar en
+   **JPEG** directamente en Descargas como `<nombre-del-glb>_fotoN.jpg`
+   (la casa no tiene nombre propio). Enséñaselas al usuario antes de nada.
+4. **En GitHub Pages la página no puede leer archivos del equipo**
+   (`cambiarImagenFoto` con una ruta local falla, y el portapapeles simulado
+   tampoco llega): el usuario las sube él, en el panel Fotos → elige la
+   foto → **"Subir imagen"** → el `_fotoN.jpg` que le corresponde. La foto
+   conserva número, cámara y objetivo; la imagen anterior se pierde.
+5. En `localhost` puedes subirlas tú con `cambiarImagenFoto` (copiando el
+   archivo un momento a `public/` y borrándolo después).
+
 **Copiar la cámara de una foto en Blender** (`casa().fotos[i]`, con `x`, `y` y
 `camara`): en Blender, posición `(x, −y, camara.altura)`, giro en grados
 `(90° + cabeceo, 0, giro)` (pasando cabeceo y giro de radianes a grados),
