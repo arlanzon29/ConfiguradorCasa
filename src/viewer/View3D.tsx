@@ -55,6 +55,7 @@ import { Shot, usePhotos } from '../photos'
 import { GLB_EVENT, GlbRequest, LENSES, PHOTO_EVENT, PHOTO_SAMPLES, cameraFlying, samePose, stopCameraFlight, useHouse } from '../store'
 import Furniture3D from './Furniture3D'
 import { DoorLeafAxis, JoineryMaterial, JoineryPart, joineryParts } from './joinery'
+import { TeleportPoint, teleportPoints } from './teleport'
 import PhotoTracer from './PhotoTracer'
 
 // Grosor de la losa, en metros.
@@ -463,34 +464,29 @@ const DOOR_TURN_SPEED = Math.PI
 const VR_ACTIVE_COLOR = '#ff9a3c'
 
 /**
- * El mando en VR: su modelo y un rayo para apuntar a las puertas. En AR, sin
- * rayo: el gatillo coloca la maqueta y no hay nada que tocar.
+ * El mando en VR y en AR: su modelo y un rayo para apuntar a las puertas y, en
+ * VR, a los puntos de salto.
  */
 function VRController() {
-  const ar = useXR((s) => s.mode === 'immersive-ar')
   return (
     <DefaultXRController
-      rayPointer={
-        ar
-          ? false
-          : {
-              // Naranja, como el resalte de la hoja, cuando apunta a algo que se puede accionar.
-              rayModel: {
-                maxLength: VR_RAY_LENGTH,
-                color: (pointer) => (actionable(pointer.getIntersection()?.object) ? VR_ACTIVE_COLOR : 'white'),
-                opacity: (pointer) => (actionable(pointer.getIntersection()?.object) ? 0.9 : 0.4),
-              },
-              cursorModel: {
-                color: (pointer) => (actionable(pointer.getIntersection()?.object) ? VR_ACTIVE_COLOR : 'white'),
-              },
-            }
-      }
+      rayPointer={{
+        // Naranja, como el resalte de la hoja, cuando apunta a algo que se puede accionar.
+        rayModel: {
+          maxLength: VR_RAY_LENGTH,
+          color: (pointer) => (actionable(pointer.getIntersection()?.object) ? VR_ACTIVE_COLOR : 'white'),
+          opacity: (pointer) => (actionable(pointer.getIntersection()?.object) ? 0.9 : 0.4),
+        },
+        cursorModel: {
+          color: (pointer) => (actionable(pointer.getIntersection()?.object) ? VR_ACTIVE_COLOR : 'white'),
+        },
+      }}
       grabPointer={false}
     />
   )
 }
 
-/** Si la pieza, o algo de lo que cuelga, se acciona en VR (`userData.vrAction`: hoy, las puertas). */
+/** Si la pieza, o algo de lo que cuelga, se acciona en VR o AR (`userData.vrAction`: puertas y puntos de salto). */
 function actionable(object: Object3D | undefined) {
   for (let o = object; o; o = o.parent ?? undefined) if (o.userData.vrAction) return true
   return false
@@ -511,14 +507,132 @@ function vrLabel(text: string) {
   return new CanvasTexture(canvas)
 }
 
-/** Los dos carteles de las puertas; se pintan la primera vez que hacen falta. */
-let doorLabels: { open: CanvasTexture; close: CanvasTexture } | null = null
-function doorLabel(closed: boolean) {
-  doorLabels ??= {
-    open: vrLabel('Gatillo: abrir la puerta'),
-    close: vrLabel('Gatillo: cerrar la puerta'),
+/** Los carteles ya pintados, por texto: se pintan la primera vez que hacen falta. */
+const vrLabels = new Map<string, CanvasTexture>()
+function vrLabelOf(text: string) {
+  let texture = vrLabels.get(text)
+  if (!texture) vrLabels.set(text, (texture = vrLabel(text)))
+  return texture
+}
+
+/**
+ * Cuántos rayos de cada mano (`left`, `right`) apuntan ahora a algo que se
+ * acciona. La maqueta AR lo mira: el gatillo sobre una puerta no la mueve.
+ */
+const aimingHands = new Map<string, number>()
+const handOf = (e: ThreeEvent<PointerEvent>) =>
+  (e as unknown as { pointerState?: { inputSource?: XRInputSource } }).pointerState?.inputSource
+    ?.handedness ?? 'none'
+const aimsWith = (hand: string) => (aimingHands.get(hand) ?? 0) > 0
+
+/**
+ * Apuntar con el rayo del mando a algo de la VR o la AR: si hay algún rayo
+ * encima, dónde da el último y los manejadores para ponerlos en su grupo. El
+ * gatillo (clic del rayo) llama a `onAction`. Sin `interactive`, nada.
+ */
+function useAim(interactive: boolean, onAction: () => void) {
+  const [count, setCount] = useState(0)
+  const hit = useRef(new Vector3())
+  // Mano de cada rayo que está encima, por su id.
+  const hands = useRef(new Map<number, string>())
+  const release = (id: number) => {
+    const hand = hands.current.get(id)
+    if (hand === undefined) return
+    hands.current.delete(id)
+    aimingHands.set(hand, Math.max((aimingHands.get(hand) ?? 1) - 1, 0))
+    setCount(hands.current.size)
   }
-  return closed ? doorLabels.open : doorLabels.close
+  const releaseAll = () => [...hands.current.keys()].forEach(release)
+  useEffect(() => {
+    if (!interactive) releaseAll()
+  }, [interactive])
+  useEffect(() => releaseAll, [])
+
+  const handlers = interactive
+    ? {
+        userData: { vrAction: true as boolean },
+        onPointerEnter: (e: ThreeEvent<PointerEvent>) => {
+          hit.current.copy(e.point)
+          if (hands.current.has(e.pointerId)) return
+          const hand = handOf(e)
+          hands.current.set(e.pointerId, hand)
+          aimingHands.set(hand, (aimingHands.get(hand) ?? 0) + 1)
+          setCount(hands.current.size)
+        },
+        onPointerMove: (e: ThreeEvent<PointerEvent>) => {
+          hit.current.copy(e.point)
+        },
+        onPointerLeave: (e: ThreeEvent<PointerEvent>) => release(e.pointerId),
+        onClick: (e: ThreeEvent<MouseEvent>) => {
+          e.stopPropagation()
+          onAction()
+        },
+      }
+    : { userData: { vrAction: false as boolean } }
+  return { hovered: interactive && count > 0, hit, handlers }
+}
+
+/**
+ * El cartel de lo que se apunta ("Gatillo: …"): donde da el rayo, un poco
+ * hacia la cabeza y de cara a ella. Siempre del mismo tamaño a la vista,
+ * también en la maqueta AR, donde va a la mitad para no tapar la casa.
+ */
+function AimLabel({ at, text }: { at: React.RefObject<Vector3>; text: string }) {
+  const label = useRef<Mesh>(null)
+  const gl = useThree((s) => s.gl)
+  const tmp = useRef({ head: new Vector3(), toward: new Vector3(), scale: new Vector3() })
+  useFrame(() => {
+    const l = label.current
+    if (!l || !l.parent) return
+    const { head, toward, scale } = tmp.current
+    const world = l.parent.getWorldScale(scale).x || 1
+    const size = world < 0.5 ? 0.5 : 1
+    gl.xr.getCamera().getWorldPosition(head)
+    toward.subVectors(head, at.current).setY(0)
+    if (toward.lengthSq() > 1e-6) toward.normalize().multiplyScalar(0.08 * size)
+    l.position.copy(at.current).add(toward)
+    l.position.y += 0.12 * size
+    l.parent.worldToLocal(l.position)
+    l.scale.setScalar(size / world)
+    l.lookAt(head.x, l.getWorldPosition(toward).y, head.z)
+  })
+  return (
+    <mesh ref={label} renderOrder={999} pointerEvents="none">
+      <planeGeometry args={[0.36, 0.054]} />
+      <meshBasicMaterial map={vrLabelOf(text)} transparent depthTest={false} />
+    </mesh>
+  )
+}
+
+/** A dónde quiere saltar quien está en la VR (un punto del suelo, en el mundo); lo atiende `VRRig`. */
+let teleportRequest: Vector3 | null = null
+
+// Puntos de salto en el suelo: radio del círculo y grueso de su aro.
+const TELEPORT_RADIUS = 0.3
+const TELEPORT_RING = 0.05
+
+/** Un punto de salto de la VR: un círculo en el suelo; apuntándolo, el gatillo te lleva ahí. */
+function TeleportMarker({ point }: { point: TeleportPoint }) {
+  const group = useRef<Group>(null)
+  const { hovered, hit, handlers } = useAim(true, () => {
+    if (group.current) teleportRequest = group.current.getWorldPosition(new Vector3())
+  })
+  const color = hovered ? VR_ACTIVE_COLOR : '#ffffff'
+  return (
+    <>
+      <group ref={group} position={[point.x, point.inside ? SLAB : 0, point.y]} {...handlers}>
+        <mesh rotation-x={-Math.PI / 2} position-y={0.012}>
+          <circleGeometry args={[TELEPORT_RADIUS, 32]} />
+          <meshBasicMaterial color={color} transparent opacity={hovered ? 0.35 : 0.15} depthWrite={false} />
+        </mesh>
+        <mesh rotation-x={-Math.PI / 2} position-y={0.014}>
+          <ringGeometry args={[TELEPORT_RADIUS - TELEPORT_RING, TELEPORT_RADIUS, 32]} />
+          <meshBasicMaterial color={color} transparent opacity={0.9} depthWrite={false} />
+        </mesh>
+      </group>
+      {hovered && <AimLabel at={hit} text="Gatillo: ir aquí" />}
+    </>
+  )
 }
 
 /** Un cartel pequeño, delante de los ojos y siempre encima, que dice cómo salir de la VR. */
@@ -650,7 +764,11 @@ function ARTable({
       v.fwd.set(0, 0, -1).applyQuaternion(v.quat.set(q.x, q.y, q.z, q.w))
       const hand = source.handedness
       // El gatillo y el botón lateral (agarre) hacen lo mismo: colocar la mesa.
-      const place = !!pad.buttons[0]?.pressed || !!pad.buttons[1]?.pressed
+      // Salvo el gatillo apretado apuntando a una puerta: esa pulsación es para ella.
+      const trigger = !!pad.buttons[0]?.pressed
+      if (trigger && !(held.current.get(hand + 'trigger') ?? false)) held.current.set(hand + 'aim', aimsWith(hand))
+      held.current.set(hand + 'trigger', trigger)
+      const place = (trigger && !held.current.get(hand + 'aim')) || !!pad.buttons[1]?.pressed
       const press = !!pad.buttons[4]?.pressed
       const wasPress = held.current.get(hand + 'press') ?? false
       held.current.set(hand + 'press', press)
@@ -756,6 +874,7 @@ function VRRig({ ar }: { ar: boolean }) {
     const hint = ar
       ? exitHint('Pulsa B o Y para salir', [
           'Gatillo o botón lateral: poner la maqueta',
+          'Gatillo apuntando a una puerta: abrirla',
           'Los dos mandos a la vez: escalar y girar',
           'Stick: girarla · A o X: tamaño real',
           __APP_VERSION__,
@@ -763,6 +882,7 @@ function VRRig({ ar }: { ar: boolean }) {
       : exitHint('Pulsa B o Y para salir', [
           'Stick: caminar y girar',
           'Apunta a una puerta y pulsa el gatillo',
+          'Círculos del suelo: apunta y gatillo para ir',
           __APP_VERSION__,
         ])
     camera.add(hint)
@@ -786,9 +906,21 @@ function VRRig({ ar }: { ar: boolean }) {
     if (pressed && !exitHeld.current) void session.end()
     exitHeld.current = pressed
     // En AR no se toca la cámara de la vista normal: la cabeza no está en la casa.
-    if (ar) return
+    if (ar) {
+      teleportRequest = null
+      return
+    }
     const camera = gl.xr.getCamera()
     camera.getWorldPosition(head.current.position)
+    // Un salto pedido: los pies van al punto, y la cabeza queda encima, mirando a donde miraba.
+    const o = origin.current
+    if (teleportRequest && o) {
+      o.position.x += teleportRequest.x - head.current.position.x
+      o.position.z += teleportRequest.z - head.current.position.z
+      o.position.y = teleportRequest.y
+      teleportRequest = null
+      camera.getWorldPosition(head.current.position)
+    }
     camera.getWorldDirection(head.current.direction)
     const { position, direction } = head.current
     last.current = { x: position.x, z: position.z, yaw: Math.atan2(-direction.x, -direction.z) }
@@ -903,7 +1035,7 @@ function JoineryBox({ part }: { part: JoineryPart }) {
  * Hoja de una puerta abatible con sus manillas: gira sobre las bisagras hasta
  * quedar abierta o cerrada. Al cambiar `closed` gira poco a poco; durante la
  * foto en calidad va directa, para que el trazador la vea ya en su sitio.
- * En VR (`interactive`) se apunta con el rayo del mando: se resalta, sale un
+ * En VR y AR (`interactive`) se apunta con el rayo del mando: se resalta, sale un
  * cartel con el botón que hay que pulsar y el gatillo la abre o la cierra.
  */
 function DoorLeaf({
@@ -918,46 +1050,25 @@ function DoorLeaf({
   interactive: boolean
 }) {
   const group = useRef<Group>(null)
-  const label = useRef<Mesh>(null)
-  const gl = useThree((s) => s.gl)
   const target = axis.closed ? 0 : axis.open
   const angle = useRef(target)
-  // Qué mandos apuntan a la hoja, y dónde da el último rayo.
-  const [pointers, setPointers] = useState<Set<number>>(new Set())
-  const hit = useRef(new Vector3())
-  const tmp = useRef({ head: new Vector3(), toward: new Vector3() })
-  const hovered = interactive && pointers.size > 0
+  const { hovered, hit, handlers } = useAim(interactive, () =>
+    useHouse.getState().setDoor(axis.opening, { closed: !axis.closed }),
+  )
 
   useLayoutEffect(() => {
     if (animate || !group.current) return
     angle.current = target
     group.current.rotation.y = target
   }, [animate, target])
-  useEffect(() => {
-    if (!interactive) setPointers(new Set())
-  }, [interactive])
 
   useFrame((_, delta) => {
     const g = group.current
-    if (g) {
-      const left = target - angle.current
-      const step = DOOR_TURN_SPEED * delta
-      if (left !== 0) {
-        angle.current = Math.abs(left) <= step ? target : angle.current + Math.sign(left) * step
-        g.rotation.y = angle.current
-      }
-    }
-    // El cartel, donde da el rayo, un poco hacia la cabeza y de cara a ella.
-    const l = label.current
-    if (!l || !l.parent) return
-    const { head, toward } = tmp.current
-    gl.xr.getCamera().getWorldPosition(head)
-    toward.subVectors(head, hit.current).setY(0)
-    if (toward.lengthSq() > 1e-6) toward.normalize().multiplyScalar(0.08)
-    l.position.copy(hit.current).add(toward)
-    l.position.y += 0.12
-    l.parent.worldToLocal(l.position)
-    l.lookAt(head.x, l.getWorldPosition(toward).y, head.z)
+    const left = target - angle.current
+    if (!g || left === 0) return
+    const step = DOOR_TURN_SPEED * delta
+    angle.current = Math.abs(left) <= step ? target : angle.current + Math.sign(left) * step
+    g.rotation.y = angle.current
   })
 
   // Resalte: las aristas de la hoja, un poco mayores que ella.
@@ -973,37 +1084,9 @@ function DoorLeaf({
   useEffect(() => () => edges?.dispose(), [edges])
 
   const [px, pz] = axis.pivot
-  const handlers = interactive
-    ? {
-        onPointerOver: (e: ThreeEvent<PointerEvent>) => {
-          hit.current.copy(e.point)
-          setPointers((s) => new Set(s).add(e.pointerId))
-        },
-        onPointerMove: (e: ThreeEvent<PointerEvent>) => {
-          hit.current.copy(e.point)
-        },
-        onPointerOut: (e: ThreeEvent<PointerEvent>) =>
-          setPointers((s) => {
-            const next = new Set(s)
-            next.delete(e.pointerId)
-            return next
-          }),
-        onClick: (e: ThreeEvent<MouseEvent>) => {
-          e.stopPropagation()
-          useHouse.getState().setDoor(axis.opening, { closed: !axis.closed })
-        },
-      }
-    : {}
-
   return (
     <>
-      <group
-        ref={group}
-        position={[px, 0, pz]}
-        rotation-y={angle.current}
-        userData={{ vrAction: interactive }}
-        {...handlers}
-      >
+      <group ref={group} position={[px, 0, pz]} rotation-y={angle.current} {...handlers}>
         <group position={[-px, 0, -pz]}>
           {parts.map((part, i) => (
             <JoineryBox key={i} part={part} />
@@ -1020,10 +1103,7 @@ function DoorLeaf({
         </group>
       </group>
       {hovered && (
-        <mesh ref={label} renderOrder={999} pointerEvents="none">
-          <planeGeometry args={[0.36, 0.054]} />
-          <meshBasicMaterial map={doorLabel(axis.closed)} transparent depthTest={false} />
-        </mesh>
+        <AimLabel at={hit} text={axis.closed ? 'Gatillo: abrir la puerta' : 'Gatillo: cerrar la puerta'} />
       )}
     </>
   )
@@ -1561,8 +1641,14 @@ export default function View3D() {
     }
     return [...leaves.values()]
   }, [joinery])
-  // En VR (no en la maqueta AR) las puertas se abren y cierran apuntándolas.
-  const vrDoors = xrSession != null && xrMode === 'vr'
+  // En VR y en la maqueta AR las puertas se abren y cierran apuntándolas; en
+  // VR, además, se salta a los puntos del suelo.
+  const xrDoors = xrSession != null
+  const vrJumps = xrSession != null && xrMode === 'vr'
+  const jumps = useMemo(
+    () => (vrJumps ? teleportPoints(modules, joints, openings, furniture) : []),
+    [vrJumps, modules, joints, openings, furniture],
+  )
 
   // Foto en calidad: trazado de rayos sobre esta misma escena, con un
   // techo que solo existe mientras dura la foto. La luz la dan los focos de cada
@@ -1812,9 +1898,9 @@ export default function View3D() {
       <group
         name="casa"
         position={ar ? [-footprint.cx, 0, -footprint.cy] : [-PLOT.width / 2, 0, -PLOT.depth / 2]}
-        // En VR, todo lo de la casa para el rayo del mando: así no se coge una
+        // En VR y AR, todo lo de la casa para el rayo del mando: así no se coge una
         // puerta que esté detrás de una pared.
-        pointerEvents={vrDoors ? 'auto' : undefined}
+        pointerEvents={xrDoors ? 'auto' : undefined}
       >
         {!ar && (
           <mesh
@@ -1895,8 +1981,12 @@ export default function View3D() {
             axis={axis}
             parts={parts}
             animate={!photo}
-            interactive={vrDoors}
+            interactive={xrDoors}
           />
+        ))}
+        {/* Puntos de salto de la VR. */}
+        {jumps.map((point) => (
+          <TeleportMarker key={point.key} point={point} />
         ))}
         {/* Vinilos: un plano por cada uno; en la foto, una lámina por cara de pared. */}
         {photo

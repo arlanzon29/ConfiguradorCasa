@@ -384,7 +384,14 @@ algo que hacer); el **gatillo** la abre o la cierra y la hoja
 gira en medio segundo (`DoorLeaf`). Cambia el mismo dato que el botón de
 Propiedades (`closed`), así que se guarda en la casa. En VR la casa entera
 para el rayo (`pointerEvents` en el grupo `casa`), para no coger una puerta
-detrás de una pared. En la AR no hay rayo. Al salir, la cámara y el marcador del plano quedan donde
+detrás de una pared. **Puntos de salto** (teletransporte, para quien se marea
+caminando; el stick sigue igual): círculos blancos en el suelo, uno por
+estancia (lo más cerca del centro sin pisar un mueble) y uno a cada lado de
+cada puerta, a 0,6 m de la pared. No se guardan, se deducen
+(`teleportPoints` en `viewer/teleport.ts`). Apuntando a uno se pone naranja,
+sale "Gatillo: ir aquí" y el gatillo te lleva, mirando hacia donde mirabas
+(`TeleportMarker`, `teleportRequest` en `VRRig`). Apuntar, resaltar y el
+cartel son comunes a puertas y puntos (`useAim`, `AimLabel`). Al salir, la cámara y el marcador del plano quedan donde
 dejaste la cabeza. En VR se apaga la cámara de ratón y teclado
 (`DesktopControls`). La foto en calidad no existe en VR. En localhost, si el
 navegador no tiene WebXR, la librería emula unas Quest 3 (solo desarrollo).
@@ -401,7 +408,11 @@ aunque esté lejos (el usuario esperaba que el botón lateral la colocara);
 ellos **agranda o reduce** la maqueta (de 1:100 a 1:1) y girar las manos la
 gira, con la mesa entre las dos manos;
 **stick** izquierda o derecha, la gira poco a poco; **A o X**,
-cambia entre maqueta y tamaño real (1:1); **B o Y** sale. Sin sombras ni fondo.
+cambia entre maqueta y tamaño real (1:1); **B o Y** sale. Las **puertas** se
+abren y cierran como en la VR, con el rayo y el gatillo: un gatillo apretado
+apuntando a una puerta es para ella y no mueve la mesa (`aimingHands`, por
+mano); el botón lateral la mueve siempre. El cartel va a la mitad de tamaño
+en la maqueta. Sin puntos de salto en AR. Sin sombras ni fondo.
 Solo con mandos: las manos (pellizco) no están.
 
 **Arriba del panel izquierdo**: Nuevo plano (crea un módulo vacío de 13 × 4,2 en (0, 0) y abre
@@ -722,6 +733,20 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-17** · **Teletransporte en VR y puertas en la maqueta AR** (el
+  usuario: "teletransporte, para gente que se marea", con el movimiento
+  libre de siempre y "unos puntos en el suelo", y "haz todo", que incluía
+  las puertas en AR). Puntos de salto automáticos, uno por estancia y a cada
+  lado de cada puerta (`viewer/teleport.ts`), que se usan como las puertas:
+  rayo, naranja, "Gatillo: ir aquí". En AR, rayo y puertas con el gatillo,
+  sin que esa pulsación mueva la mesa. Puertas y puntos comparten `useAim` y
+  `AimLabel`. El usuario apuntó a mitad: "igual es mejor poderlos poner en
+  el plano"; queda por decidir si se añaden puntos puestos a mano. **Sin
+  probar**: solo `tsc` y la compilación. Supuesto: tras saltar a un punto
+  de fuera, los pies quedan en el césped, y si se vuelve a entrar con el
+  stick se va 20 cm por debajo del suelo de la casa (no hay alturas al
+  caminar).
 
 - **2026-10-17** · **El rayo de la VR se pone naranja sobre una puerta** (el
   usuario probó lo de las puertas: "va bien"; pidió que el color del rayo
