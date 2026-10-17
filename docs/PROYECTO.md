@@ -373,7 +373,11 @@ VR"** junto a "Foto en calidad". WebXR con `@react-three/xr` 6; pensado para las
 **Meta Quest 3** del usuario, en el navegador de las gafas y con la web
 publicada (HTTPS). Entras donde estaba la cámara y mirando hacia donde miraba,
 con la altura de ojos que da el visor. Con los mandos: stick izquierdo
-camina (2 m/s) y stick derecho gira a saltos de 30°. **B o Y (el botón de
+camina (2 m/s) hacia donde miras y stick derecho gira a saltos de 30° **sobre
+tu cabeza**, sin desplazarte. Los sticks los lee `VRRig` a mano, no con
+`useXRControllerLocomotion`: la librería giraba alrededor del origen del
+espacio (no de la cabeza) y repetía el último empujón al girar, y en AR
+desplazaba el mundo con ese empujón viejo. **B o Y (el botón de
 arriba de cada mando) sale de la VR**; los primeros 10 s hay un cartel delante
 de los ojos que lo dice. Sin paneles. Cada mando lleva un **rayo**
 (`VRController`): al apuntar a una puerta abatible su hoja se resalta en
@@ -407,7 +411,8 @@ aunque esté lejos (el usuario esperaba que el botón lateral la colocara);
 **los dos mandos a la vez** (gatillo o lateral en ambos): la distancia entre
 ellos **agranda o reduce** la maqueta (de 1:100 a 1:1) y girar las manos la
 gira, con la mesa entre las dos manos;
-**stick** izquierda o derecha, la gira poco a poco; **A o X**,
+**stick** izquierda o derecha, la gira poco a poco, y adelante o atrás la
+agranda o la reduce (`AR_ZOOM_SPEED`, de 1:100 a 1:1); **A o X**,
 cambia entre maqueta y tamaño real (1:1); **B o Y** sale. Las **puertas** se
 abren y cierran como en la VR, con el rayo y el gatillo: un gatillo apretado
 apuntando a una puerta es para ella y no mueve la mesa (`aimingHands`, por
@@ -733,6 +738,18 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-17** · **Girar en VR ya no desplaza, y el stick acerca la
+  maqueta AR** (el usuario probó en las Quest: al girar en VR se desplazaba
+  hasta salir de la casa; en AR el stick derecho "solo la aleja"; los puntos
+  de salto le parecen bien puestos y se quedan). La librería
+  (`useXRControllerLocomotion`) giraba el origen del espacio alrededor de sí
+  mismo, no de la cabeza, y reutilizaba el último vector de movimiento al
+  girar. Ahora `VRRig` lee los sticks: el izquierdo camina hacia donde
+  miras y el derecho gira el origen alrededor de la cabeza. En AR, stick
+  adelante o atrás agranda o reduce la maqueta (el usuario lo esperaba así);
+  que "solo la alejara" lo atribuyo, sin comprobarlo, al empujón viejo de la
+  librería. **Sin probar**: solo `tsc` y la compilación.
 
 - **2026-10-17** · **Teletransporte en VR y puertas en la maqueta AR** (el
   usuario: "teletransporte, para gente que se marea", con el movimiento

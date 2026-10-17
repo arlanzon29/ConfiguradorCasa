@@ -5,7 +5,6 @@ import {
   XROrigin,
   createXRStore,
   useXR,
-  useXRControllerLocomotion,
 } from '@react-three/xr'
 import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import {
@@ -14,6 +13,7 @@ import {
   Color,
   EdgesGeometry,
   Float32BufferAttribute,
+  MathUtils,
   Group,
   Mesh,
   MeshBasicMaterial,
@@ -454,6 +454,9 @@ const xrStore = createXRStore({
 // Metros por segundo al andar con el stick en VR, y grados de cada giro a saltos.
 const VR_WALK_SPEED = 2
 const VR_TURN_DEGREES = 30
+// Lo que hay que mover el stick para que cuente, y para que dé un giro a saltos.
+const VR_STICK_DEAD_ZONE = 0.2
+const VR_SNAP_TRIGGER = 0.6
 // Cuánto dura el aviso de cómo salir, en milisegundos.
 const VR_HINT_MS = 10000
 // Hasta dónde llega el rayo del mando, en metros, y a qué velocidad gira una
@@ -667,7 +670,8 @@ function exitHint(title: string, lines: string[]) {
 //    debajo, y gira hacia donde apunta (la trae aunque esté lejos);
 //  · los dos mandos a la vez (gatillo o lateral): la distancia entre ellos
 //    agranda o reduce la maqueta, y girar las manos la gira;
-//  · stick a izquierda o derecha: la gira poco a poco;
+//  · stick a izquierda o derecha: la gira poco a poco; adelante o atrás, la
+//    agranda o la reduce;
 //  · A o X: cambia entre maqueta (1:20) y tamaño real (1:1).
 const AR_SCALE = 1 / 20
 // Lo más pequeña que puede quedar la maqueta (1:100); lo más grande, 1:1.
@@ -675,6 +679,8 @@ const AR_MIN_SCALE = 0.01
 const AR_TABLE_HEIGHT = 0.75
 const AR_TABLE_MARGIN = 0.06
 const AR_TURN_SPEED = 1.5
+// Cuánto agranda o reduce la maqueta el stick por segundo (x2,7 a fondo).
+const AR_ZOOM_SPEED = 1
 
 /**
  * La mesa de la maqueta: lleva dentro la casa, escalada, y se mueve y gira con
@@ -780,6 +786,10 @@ function ARTable({
       }
       const stick = pad.axes[2] ?? 0
       if (Math.abs(stick) > 0.3) t.yaw += -stick * AR_TURN_SPEED * delta
+      // Hacia delante, la agranda; hacia atrás, la reduce.
+      const zoom = pad.axes[3] ?? 0
+      if (Math.abs(zoom) > 0.3)
+        t.scale = Math.min(Math.max(t.scale * Math.exp(-zoom * AR_ZOOM_SPEED * delta), AR_MIN_SCALE), 1)
     }
 
     if (placing.length >= 2) {
@@ -839,12 +849,8 @@ function VRRig({ ar }: { ar: boolean }) {
   const gl = useThree((s) => s.gl)
   const session = useXR((s) => s.session)
   const last = useRef<{ x: number; z: number; yaw: number } | null>(null)
-  // En AR el mundo es la habitación real: ni se mueve el origen ni se camina con el stick.
-  useXRControllerLocomotion(
-    origin,
-    ar ? false : { speed: VR_WALK_SPEED },
-    ar ? false : { type: 'snap', degrees: VR_TURN_DEGREES },
-  )
+  // Giro a saltos con el stick derecho: hasta soltarlo no da otro.
+  const turnHeld = useRef(false)
 
   useEffect(() => {
     const group = origin.current
@@ -876,7 +882,7 @@ function VRRig({ ar }: { ar: boolean }) {
           'Gatillo o botón lateral: poner la maqueta',
           'Gatillo apuntando a una puerta: abrirla',
           'Los dos mandos a la vez: escalar y girar',
-          'Stick: girarla · A o X: tamaño real',
+          'Stick: girarla y acercarla · A o X: tamaño real',
           __APP_VERSION__,
         ])
       : exitHint('Pulsa B o Y para salir', [
@@ -899,7 +905,7 @@ function VRRig({ ar }: { ar: boolean }) {
   // Dónde está la cabeza en cada fotograma, para dejar la cámara ahí al salir.
   const head = useRef({ position: new Vector3(), direction: new Vector3() })
   const exitHeld = useRef(false)
-  useFrame(() => {
+  useFrame((_, delta) => {
     if (!session) return
     // B / Y (el botón de arriba de cada mando) sale de la VR.
     const pressed = Array.from(session.inputSources).some((s) => s.gamepad?.buttons[5]?.pressed)
@@ -923,6 +929,39 @@ function VRRig({ ar }: { ar: boolean }) {
     }
     camera.getWorldDirection(head.current.direction)
     const { position, direction } = head.current
+    // Los sticks, a mano (la librería giraba alrededor del origen del espacio,
+    // no de la cabeza, y te desplazaba en cada giro): el izquierdo camina hacia
+    // donde miras y el derecho gira a saltos sobre ti mismo.
+    // En AR no hacen esto: el mundo es la habitación real (ver `ARTable`).
+    if (o) {
+      const forward = Math.hypot(direction.x, direction.z)
+      const [fx, fz] = forward > 1e-4 ? [direction.x / forward, direction.z / forward] : [0, -1]
+      for (const source of session.inputSources) {
+        const pad = source.gamepad
+        if (!pad) continue
+        const x = pad.axes[2] ?? 0
+        const y = pad.axes[3] ?? 0
+        if (source.handedness === 'left' && Math.hypot(x, y) > VR_STICK_DEAD_ZONE) {
+          // Delante es el stick hacia arriba (y negativo); a la derecha, (-fz, fx).
+          const step = VR_WALK_SPEED * delta
+          o.position.x += (-fz * x - fx * y) * step
+          o.position.z += (fx * x - fz * y) * step
+        }
+        if (source.handedness === 'right') {
+          if (Math.abs(x) < VR_STICK_DEAD_ZONE) turnHeld.current = false
+          else if (!turnHeld.current && Math.abs(x) > VR_SNAP_TRIGGER) {
+            turnHeld.current = true
+            // Gira el origen alrededor de la cabeza, que se queda donde estaba.
+            const angle = (x > 0 ? -1 : 1) * MathUtils.degToRad(VR_TURN_DEGREES)
+            const [dx, dz] = [o.position.x - position.x, o.position.z - position.z]
+            const [c, sn] = [Math.cos(angle), Math.sin(angle)]
+            o.position.x = position.x + dx * c + dz * sn
+            o.position.z = position.z - dx * sn + dz * c
+            o.rotation.y += angle
+          }
+        }
+      }
+    }
     last.current = { x: position.x, z: position.z, yaw: Math.atan2(-direction.x, -direction.z) }
   })
 
