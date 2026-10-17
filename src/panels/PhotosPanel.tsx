@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Photo, downloadPhoto, lensName, photoDate, usePhotos } from '../photos'
+import { Photo, downloadPhoto, lensName, photoDate, replaceImage, usePhotos } from '../photos'
 
 /** Dirección temporal para pintar la imagen de una foto; se libera al dejar de usarla. */
 export function usePhotoUrl(photo: Photo | undefined) {
@@ -39,7 +39,11 @@ export default function PhotosPanel() {
   const cancelRetake = usePhotos((s) => s.cancelRetake)
   // Borrar una foto no tiene vuelta atrás: se confirma en la propia página.
   const [confirming, setConfirming] = useState(false)
-  useEffect(() => setConfirming(false), [currentId])
+  const [uploadError, setUploadError] = useState('')
+  useEffect(() => {
+    setConfirming(false)
+    setUploadError('')
+  }, [currentId])
 
   const index = photos.findIndex((p) => p.id === currentId)
   const current = photos[index]
@@ -94,6 +98,24 @@ export default function PhotosPanel() {
                 Repetir
               </button>
             )}
+            <label
+              className="button-like"
+              title="Sustituye la imagen por otra de tu equipo (p. ej. un render de Blender desde la misma cámara); la foto conserva su sitio y su cámara"
+            >
+              Subir imagen
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={async (e) => {
+                  const file = e.target.files?.[0]
+                  e.target.value = ''
+                  if (!file) return
+                  const r = await replaceImage(current.id, file)
+                  setUploadError(r.error ?? '')
+                }}
+              />
+            </label>
             {confirming ? (
               <div className="confirm">
                 <p>Se borrará esta foto. ¿Continuar?</p>
@@ -106,6 +128,7 @@ export default function PhotosPanel() {
               <button onClick={() => setConfirming(true)}>Eliminar</button>
             )}
           </div>
+          {uploadError && <p className="notice">{uploadError}</p>}
         </section>
       )}
     </>

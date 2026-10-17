@@ -116,7 +116,8 @@ body {
   gap: 6px;
 }
 
-button {
+button,
+.button-like {
   font: inherit;
   font-size: 14px;
   padding: 8px 10px;
@@ -128,7 +129,8 @@ button {
   cursor: pointer;
 }
 
-button:hover {
+button:hover,
+.button-like:hover {
   border-color: var(--accent);
   color: var(--accent);
 }

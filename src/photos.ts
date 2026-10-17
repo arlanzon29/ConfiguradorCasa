@@ -203,6 +203,31 @@ export function downloadPhoto(photo: Photo) {
   URL.revokeObjectURL(link.href)
 }
 
+/**
+ * Cambia la imagen de la foto `id` por otra (p. ej. un render de Blender desde
+ * su misma cámara), pasada a JPEG al 92 % como las demás. Conserva número,
+ * cámara y objetivo. Devuelve el error, si lo hay.
+ */
+export async function replaceImage(id: string, file: Blob) {
+  const old = usePhotos.getState().photos.find((p) => p.id === id)
+  if (!old) return { error: 'Esa foto ya no existe.' }
+  let bitmap: ImageBitmap
+  try {
+    bitmap = await createImageBitmap(file)
+  } catch {
+    return { error: 'No se ha podido leer esa imagen.' }
+  }
+  const canvas = document.createElement('canvas')
+  canvas.width = bitmap.width
+  canvas.height = bitmap.height
+  canvas.getContext('2d')!.drawImage(bitmap, 0, 0)
+  const jpeg = await new Promise<Blob | null>((ok) => canvas.toBlob(ok, 'image/jpeg', 0.92))
+  if (!jpeg) return { error: 'No se ha podido convertir la imagen.' }
+  const { id: _id, takenAt: _t, image: _i, retakenAt: _r, ...shot } = old
+  await usePhotos.getState().replace(id, jpeg, { ...shot, width: bitmap.width, height: bitmap.height })
+  return { width: bitmap.width, height: bitmap.height, bytes: jpeg.size }
+}
+
 const toDataUrl = (blob: Blob) =>
   new Promise<string>((resolve, reject) => {
     const reader = new FileReader()

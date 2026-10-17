@@ -706,6 +706,17 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-17** · **Botón "Subir imagen"** en la foto elegida del panel
+  Fotos (lo pidió el usuario: desde GitHub Pages la página no puede leer
+  archivos del equipo, así que los renders de Blender se suben a mano).
+  Cambia la imagen por la que se elija, en JPEG al 92 %, y conserva número,
+  cámara y objetivo; `replaceImage` en `photos.ts`, que usa también
+  `cambiarImagenFoto`. Renders de las dos fotos de la casa del usuario en
+  Blender (salón 17,8 s, dormitorio 31,7 s, a 100 muestras) dejados en
+  Descargas como `eurocasa-casa-2026-10-17_foto1.jpg` y `_foto2.jpg` (la
+  casa no tiene nombre: se usa el del GLB). Solo `tsc`: en la web local no
+  había fotos para ver el botón.
+
 - **2026-10-16** · **GLB directo a Blender, sin descarga** (lo pidió el
   usuario, también desde GitHub Pages). `descargarGlb({ enviarA })` manda el
   `.glb` por POST a esa dirección (`GlbRequest` en `store.ts`, `GlbExport` en

@@ -12,7 +12,7 @@ import { furnitureName, pieceName, roomName, shellName } from './model/names'
 import { OPPOSITE, Opening, openingCode, swingDoor, validOpeningSize, wallLine } from './model/openings'
 import { deriveWalls, wallOf } from './model/walls'
 import { Plan, parsePhotos, parsePlan, serializePlan } from './model/planFile'
-import { exportPhotos, importPhotos, usePhotos } from './photos'
+import { exportPhotos, importPhotos, replaceImage, usePhotos } from './photos'
 import { redo, undo } from './history'
 import { CameraPose, GLB_EVENT, GlbRequest, PHOTO_EVENT, PHOTO_SAMPLES, furnitureBox, useHouse } from './store'
 
@@ -840,24 +840,17 @@ function verFoto(p: { foto?: number; estancia?: string }) {
  * deshacer: la imagen anterior se pierde.
  */
 async function cambiarImagenFoto(p: { foto: number; imagen: string }) {
-  const { photos, replace } = usePhotos.getState()
-  const old = photos[p.foto - 1]
+  const old = usePhotos.getState().photos[p.foto - 1]
   if (!old) return { error: `No hay ninguna foto ${p.foto}.` } as Fallo
-  let bitmap: ImageBitmap
+  let file: Blob
   try {
-    bitmap = await createImageBitmap(await (await fetch(p.imagen)).blob())
+    file = await (await fetch(p.imagen)).blob()
   } catch {
     return { error: 'No se ha podido leer esa imagen.' } as Fallo
   }
-  const canvas = document.createElement('canvas')
-  canvas.width = bitmap.width
-  canvas.height = bitmap.height
-  canvas.getContext('2d')!.drawImage(bitmap, 0, 0)
-  const jpeg = await new Promise<Blob | null>((ok) => canvas.toBlob(ok, 'image/jpeg', 0.92))
-  if (!jpeg) return { error: 'No se ha podido convertir la imagen.' } as Fallo
-  const { id, takenAt, image, retakenAt, ...shot } = old
-  await replace(id, jpeg, { ...shot, width: bitmap.width, height: bitmap.height })
-  return { foto: p.foto, ancho: bitmap.width, alto: bitmap.height, kb: Math.round(jpeg.size / 1024) }
+  const r = await replaceImage(old.id, file)
+  if ('error' in r) return r as Fallo
+  return { foto: p.foto, ancho: r.width, alto: r.height, kb: Math.round(r.bytes / 1024) }
 }
 
 /**
