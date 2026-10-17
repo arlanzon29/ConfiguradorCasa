@@ -711,6 +711,12 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-17** · **Los colores del sofá llegan a Blender**: el sofá que
+  configuró el usuario en el entorno de pruebas (azul, cojín izquierdo
+  blanco, derecho rojo), enviado directo con `enviarA` y renderizado a 100
+  muestras en 15,3 s con la cámara de la vista. Los tres colores llegan; el
+  rojo sale más claro, casi salmón, por el sol y el brillo de la tela.
+
 - **2026-10-17** · **El mueble detallado elegido ya no se tiñe** (el usuario:
   el sofá azul se veía rosa al abrir sus propiedades; era el naranja del
   resalte sobre el azul). En `DetailedModel` (`Furniture3D.tsx`) el elegido
