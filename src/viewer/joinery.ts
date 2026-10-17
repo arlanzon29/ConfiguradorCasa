@@ -24,13 +24,26 @@ const GLASS = 0.02
 // Ancho aproximado de una hoja de ventana: de él sale cuántas lleva.
 const SASH_WIDTH = 0.7
 
+// Junquillo: el listón que sujeta el cristal por cada cara de la hoja.
+const BEAD = 0.015
+// Manilla de ventana (cremona) y escudo de la de puerta.
+const WINDOW_HANDLE = 0.12
+const ROSE = 0.05
+
 export type JoineryMaterial = 'wood' | 'glass' | 'metal'
+
+/**
+ * Qué pieza es. Va como nombre de la malla ("Carpintería <rol>") en la escena y
+ * en el GLB, para que Blender sepa qué es cada cosa (cristal de verdad, etc.).
+ */
+export type JoineryRole = 'Cerco' | 'Tapajuntas' | 'Hoja' | 'Perfil' | 'Junquillo' | 'Cristal' | 'Manilla'
 
 export interface JoineryPart {
   /** Centro de la caja: x y z del plano, con la altura medida desde el suelo. */
   position: [number, number, number]
   size: [number, number, number]
   material: JoineryMaterial
+  role: JoineryRole
   /** Acabado elegido para el hueco; solo cuenta en las piezas `wood`. */
   finish?: Finish
 }
@@ -52,6 +65,7 @@ export function joineryParts(modules: PlacedModule[], joints: Joints, openings: 
       across: [number, number],
       y: [number, number],
       material: JoineryMaterial = 'wood',
+      role: JoineryRole = 'Cerco',
     ) => {
       const [a0, a1] = along[0] < along[1] ? along : [along[1], along[0]]
       const [c0, c1] = across[0] < across[1] ? across : [across[1], across[0]]
@@ -59,25 +73,37 @@ export function joineryParts(modules: PlacedModule[], joints: Joints, openings: 
       const [a, c, h] = [(a0 + a1) / 2, (c0 + c1) / 2, (y[0] + y[1]) / 2]
       parts.push(
         wall.horizontal
-          ? { position: [a, h, c], size: [a1 - a0, y[1] - y[0], c1 - c0], material, finish }
-          : { position: [c, h, a], size: [c1 - c0, y[1] - y[0], a1 - a0], material, finish },
+          ? { position: [a, h, c], size: [a1 - a0, y[1] - y[0], c1 - c0], material, role, finish }
+          : { position: [c, h, a], size: [c1 - c0, y[1] - y[0], a1 - a0], material, role, finish },
       )
     }
 
-    /** Hoja acristalada: cuatro perfiles y el cristal, centrada en `center` a través de la pared. */
+    /**
+     * Hoja acristalada: cuatro perfiles, el cristal y un junquillo alrededor del
+     * cristal por cada cara, centrada en `center` a través de la pared.
+     */
     const sash = (from: number, to: number, bottom: number, top: number, center: number) => {
       const across: [number, number] = [center - SASH_DEPTH / 2, center + SASH_DEPTH / 2]
-      box([from, from + SASH], across, [bottom, top])
-      box([to - SASH, to], across, [bottom, top])
-      box([from + SASH, to - SASH], across, [bottom, bottom + SASH])
-      box([from + SASH, to - SASH], across, [top - SASH, top])
-      box(
-        [from + SASH, to - SASH],
-        [center - GLASS / 2, center + GLASS / 2],
-        [bottom + SASH, top - SASH],
-        'glass',
-      )
+      box([from, from + SASH], across, [bottom, top], 'wood', 'Perfil')
+      box([to - SASH, to], across, [bottom, top], 'wood', 'Perfil')
+      box([from + SASH, to - SASH], across, [bottom, bottom + SASH], 'wood', 'Perfil')
+      box([from + SASH, to - SASH], across, [top - SASH, top], 'wood', 'Perfil')
+      const [g0, g1] = [from + SASH, to - SASH]
+      const [h0, h1] = [bottom + SASH, top - SASH]
+      box([g0, g1], [center - GLASS / 2, center + GLASS / 2], [h0, h1], 'glass', 'Cristal')
+      // Junquillos: listones en el borde del cristal, entre él y la cara de la hoja.
+      for (const face of [
+        [center - SASH_DEPTH / 2, center - GLASS / 2],
+        [center + GLASS / 2, center + SASH_DEPTH / 2],
+      ] as [number, number][]) {
+        box([g0, g0 + BEAD], face, [h0, h1], 'wood', 'Junquillo')
+        box([g1 - BEAD, g1], face, [h0, h1], 'wood', 'Junquillo')
+        box([g0 + BEAD, g1 - BEAD], face, [h0, h0 + BEAD], 'wood', 'Junquillo')
+        box([g0 + BEAD, g1 - BEAD], face, [h1 - BEAD, h1], 'wood', 'Junquillo')
+      }
     }
+    // Cara de la pared que da a la estancia del hueco (la de dentro).
+    const inside = (o: Opening) => (o.side === 'n' || o.side === 'w' ? acrossMax : acrossMin)
 
     for (const { opening: o, from, to } of openingsOf(wall, modules, walls, openings)) {
       finish = o.finish
@@ -95,9 +121,9 @@ export function joineryParts(modules: PlacedModule[], joints: Joints, openings: 
           [acrossMin - CASING_DEPTH, acrossMin],
           [acrossMax, acrossMax + CASING_DEPTH],
         ] as [number, number][]) {
-          box([from - CASING, from + JAMB], face, [0, casingTop])
-          box([to - JAMB, to + CASING], face, [0, casingTop])
-          box([from + JAMB, to - JAMB], face, [top - JAMB, casingTop])
+          box([from - CASING, from + JAMB], face, [0, casingTop], 'wood', 'Tapajuntas')
+          box([to - JAMB, to + CASING], face, [0, casingTop], 'wood', 'Tapajuntas')
+          box([from + JAMB, to - JAMB], face, [top - JAMB, casingTop], 'wood', 'Tapajuntas')
         }
 
         // Hoja: enrasada con la cara hacia la que abre y girando sobre el canto
@@ -113,6 +139,7 @@ export function joineryParts(modules: PlacedModule[], joints: Joints, openings: 
           v: [number, number],
           y: [number, number],
           material: JoineryMaterial = 'wood',
+          role: JoineryRole = 'Hoja',
         ) =>
           o.closed
             ? box(
@@ -120,22 +147,28 @@ export function joineryParts(modules: PlacedModule[], joints: Joints, openings: 
                 [face - dir * v[0], face - dir * v[1]],
                 y,
                 material,
+                role,
               )
             : box(
                 [pivot + turn * v[0], pivot + turn * v[1]],
                 [face + dir * u[0], face + dir * u[1]],
                 y,
                 material,
+                role,
               )
         leaf([0, width], [0, LEAF], [LEAF_FLOOR_GAP, top - JAMB - LEAF_GAP])
-        // Manilla por las dos caras: el vástago y la palanca.
+        // Manilla por las dos caras: escudo cuadrado, vástago y palanca.
         for (const [near, far] of [
           [0, -0.045],
           [LEAF, LEAF + 0.045],
         ]) {
+          const out = far < near ? -1 : 1
           const lever: [number, number] = near === 0 ? [far, far + 0.015] : [far - 0.015, far]
-          leaf([width - 0.075, width - 0.055], [near, far], [HANDLE_HEIGHT - 0.01, HANDLE_HEIGHT + 0.01], 'metal')
-          leaf([width - 0.18, width - 0.055], lever, [HANDLE_HEIGHT - 0.01, HANDLE_HEIGHT + 0.01], 'metal')
+          const hy: [number, number] = [HANDLE_HEIGHT - 0.01, HANDLE_HEIGHT + 0.01]
+          const cx = width - 0.065
+          leaf([cx - ROSE / 2, cx + ROSE / 2], [near, near + out * 0.006], [HANDLE_HEIGHT - ROSE / 2, HANDLE_HEIGHT + ROSE / 2], 'metal', 'Manilla')
+          leaf([width - 0.075, width - 0.055], [near, far], hy, 'metal', 'Manilla')
+          leaf([width - 0.18, width - 0.055], lever, hy, 'metal', 'Manilla')
         }
         continue
       }
@@ -163,6 +196,14 @@ export function joineryParts(modules: PlacedModule[], joints: Joints, openings: 
         const each = (inTo - inFrom) / count
         for (let i = 0; i < count; i++)
           sash(inFrom + i * each, inFrom + (i + 1) * each, bottom, top - FRAME, axis)
+        // Manilla (cremona) por dentro, en el perfil de cierre de la primera hoja,
+        // a media altura.
+        const off = inside(o) > axis ? 1 : -1
+        const face = axis + off * (SASH_DEPTH / 2)
+        const hx = inFrom + each - SASH / 2
+        const hy = (bottom + top - FRAME) / 2
+        box([hx - 0.015, hx + 0.015], [face, face + off * 0.01], [hy - 0.03, hy + 0.03], 'metal', 'Manilla')
+        box([hx - 0.008, hx + 0.008], [face + off * 0.01, face + off * 0.03], [hy - WINDOW_HANDLE, hy + 0.01], 'metal', 'Manilla')
       }
     }
   }

@@ -63,7 +63,8 @@ const FACADE_COLOR = DEFAULT_WALL_COLOR
 // Piezas de carpintería que no llevan el acabado del hueco.
 const JOINERY_MATERIALS: Record<Exclude<JoineryMaterial, 'wood'>, object> = {
   glass: { color: '#9fc6dd', transparent: true, opacity: 0.35 },
-  metal: { color: '#8d9196', roughness: 0.35, metalness: 0.8 },
+  // A medias: sin entorno que reflejar, el metal sale negro (Blender lo sube a 1).
+  metal: { color: '#a3a7ab', roughness: 0.35, metalness: 0.5 },
 }
 
 interface WallPart {
@@ -791,30 +792,33 @@ function JoineryBox({ part }: { part: JoineryPart }) {
     SLAB + part.position[1],
     part.position[2],
   ]
+  // El nombre viaja en el GLB: Blender lo usa para saber qué pieza es.
+  const name = `Carpintería ${part.role}`
   if (part.material !== 'wood') {
     return (
-      <mesh position={position} receiveShadow={part.material === 'metal'}>
+      <mesh name={name} position={position} receiveShadow={part.material === 'metal'}>
         <boxGeometry args={part.size} />
-        <meshStandardMaterial {...JOINERY_MATERIALS[part.material]} />
+        <meshStandardMaterial name={name} {...JOINERY_MATERIALS[part.material]} />
       </mesh>
     )
   }
   const finish = resolveFinish(part.finish, DEFAULT_JOINERY_FINISH)
   const plain = (
-    <mesh position={position} receiveShadow>
+    <mesh name={name} position={position} receiveShadow>
       <boxGeometry args={part.size} />
-      <meshStandardMaterial color={finish.color} roughness={0.55} />
+      <meshStandardMaterial name={name} color={finish.color} roughness={0.55} />
     </mesh>
   )
   if (!finish.texture) return plain
   return (
     <Suspense fallback={plain}>
-      <TexturedBox position={position} size={part.size} url={finish.texture} scale={finish.size ?? [1, 1]} />
+      <TexturedBox name={name} position={position} size={part.size} url={finish.texture} scale={finish.size ?? [1, 1]} />
     </Suspense>
   )
 }
 
 interface TexturedBoxProps {
+  name?: string
   position: [number, number, number]
   size: [number, number, number]
   url: string
@@ -823,7 +827,7 @@ interface TexturedBoxProps {
 }
 
 /** Caja con una textura a escala real en sus seis caras. */
-function TexturedBox({ position, size, url, scale }: TexturedBoxProps) {
+function TexturedBox({ name, position, size, url, scale }: TexturedBoxProps) {
   const image = useLoader(TextureLoader, url)
   const texture = useMemo(() => {
     const t = image.clone()
@@ -855,8 +859,8 @@ function TexturedBox({ position, size, url, scale }: TexturedBoxProps) {
   useEffect(() => () => geometry.dispose(), [geometry])
 
   return (
-    <mesh position={position} geometry={geometry} receiveShadow>
-      <meshStandardMaterial map={texture} roughness={0.7} />
+    <mesh name={name} position={position} geometry={geometry} receiveShadow>
+      <meshStandardMaterial name={name} map={texture} roughness={0.7} />
     </mesh>
   )
 }

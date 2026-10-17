@@ -91,11 +91,19 @@ usuario, con Blender abierto y "Start MCP Server" pulsado):
    descarga) y `blender_casa.py` lo encuentra solo; antes borra el
    `eurocasa-casa.glb` de la carpeta temporal para que no coja uno viejo.
 2. Lee `casa().fotos`.
-3. Abre `blender_casa.py` (junto a esta skill), sustituye `FOTOS = []` por
+3. Abre `blender_casa.py` (junto a esta skill) **como UTF-8** (en
+   PowerShell, `Get-Content -Raw -Encoding utf8`, y escribir sin BOM: si no,
+   la "í" de "Carpintería" llega rota y no reconoce las ventanas),
+   sustituye `FOTOS = []` por
    esas fotos (JSON tal cual) y, si hace falta, `GLB` por la ruta; mándalo
    entero con `execute_blender_code`. Quita la casa anterior (colección "Casa
-   EuroCasa" y lo marcado con `eurocasa`), importa el GLB, pone Cycles en GPU
-   (CUDA), cielo y sol, techo, una luz por foco y una cámara por foto.
+   EuroCasa", "Paisaje" y lo marcado con `eurocasa`), importa el GLB, pone
+   Cycles en GPU (CUDA), cielo y sol, techo, una luz por foco, la
+   carpintería mejorada (cristal de verdad que deja pasar el sol, cantos
+   suavizados, manillas de metal; reconoce las piezas por su nombre
+   "Carpintería <rol>"), el paisaje (`PAISAJE = True`: césped hasta el
+   horizonte, 70 árboles y 40 arbustos fuera de la parcela) y una cámara por
+   foto.
    Devuelve un resumen; mira el resultado con `look` (`mode: camera`).
 4. Si piden render: cámara activa (`scene.camera`) y su `resolucion`,
    `render.render(write_still=True)` a un archivo. Para que el usuario vea

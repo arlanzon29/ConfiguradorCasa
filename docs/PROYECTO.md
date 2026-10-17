@@ -711,6 +711,27 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-17** · **Ventanas y puertas mejores, y paisaje en Blender** (el
+  usuario: "haz todo" de las tres opciones). En la web (`joinery.ts`): cada
+  pieza lleva su `role` (Cerco, Tapajuntas, Hoja, Perfil, Junquillo,
+  Cristal, Manilla) y la malla se llama "Carpintería <rol>" (`JoineryBox`,
+  `TexturedBox`), y así llega al GLB; **junquillos** alrededor del cristal
+  por las dos caras de cada hoja; **manilla de ventana** (cremona) por
+  dentro, en el perfil de cierre de la primera hoja (la cara de dentro sale
+  del lado del hueco, `inside`); **escudo** cuadrado en las manillas de
+  puerta; el metal de la carpintería a 0,5 (salía negro). En Blender
+  (`blender_casa.py`): cristal de verdad (vidrio con reflejo; transparente
+  para las sombras, para que siga entrando el sol), bisel en las demás
+  piezas y manillas metálicas; y **paisaje** (`PAISAJE`): césped de 200 m,
+  70 árboles y 40 arbustos de primitivas con ruido, fuera de la parcela,
+  siempre los mismos (semilla fija). Las ventanas siguen saliendo de cada
+  hueco, sin modelo fijo. Probado: la ventana del dormitorio de "Test 2" en
+  la web (junquillos y cremona) y en Blender (234 piezas tratadas, árboles
+  por la ventana, 19,3 s). Trampa: PowerShell leía el guion sin UTF-8 y la
+  "í" de "Carpintería" llegaba rota (anotado en la skill). Sin probar: una
+  puerta de cerca, la corredera, la foto en calidad de la web con los
+  junquillos, ni el paisaje visto desde fuera.
+
 - **2026-10-17** · **El resto de muebles, detallados** (el usuario: "hazme
   el resto de muebles… camas, sillas, armarios, televisiones"). Nueve
   modelos más de Claude en Blender (escena "Salón y dormitorio"): mesa de
