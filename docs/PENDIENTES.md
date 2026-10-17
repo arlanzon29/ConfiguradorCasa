@@ -3,6 +3,30 @@
 Cosas que el usuario quiere tratar más adelante. Aquí solo se apuntan: nada de esto
 está decidido ni empezado. Lo más reciente, arriba.
 
+## Anotado el 2026-10-17
+
+### 19. Conectar sesiones con Supabase
+
+- **Idea del usuario (2026-10-17):** "otro día, posibilidad de usar Supabase
+  para conectar sesiones". Nada decidido.
+- Choca con una decisión anterior: **no hay servidor**, cada casa vive en su
+  navegador. Supabase no obliga a montar un servidor propio (la web seguiría
+  en GitHub Pages), pero los datos pasarían por un servicio de fuera.
+- Opinión mía, sin estudiar, para hablarlo:
+  - **Primer paso, sesión en directo sin guardar nada:** una sala con un
+    código; quien la abre manda la casa y los demás la ven igual. Por
+    ejemplo, el comercial en el ordenador y el cliente con las Quest, o
+    varias gafas a la vez viéndose como una figura simple. Con Realtime
+    (*broadcast* para los cambios y la cabeza de cada uno, *presence* para
+    saber quién está), sin tablas ni datos guardados.
+  - **Después, guardar las casas en Supabase** (base de datos y fotos en
+    Storage) en lugar del navegador y de la carpeta `comercial/`. Eso pide
+    usuarios para los comerciales, reglas de acceso (RLS: el repositorio es
+    público y la clave del navegador también) y cuidado con los datos de
+    clientes (protección de datos).
+- Alternativas que mirar: WebRTC directo entre navegadores (no pasa nada por
+  un servidor salvo el contacto inicial), Liveblocks o Firebase.
+
 ## Anotado el 2026-10-10
 
 ### 18. Rehacer la interfaz: árbol de la casa
