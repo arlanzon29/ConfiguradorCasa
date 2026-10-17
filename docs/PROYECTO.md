@@ -742,6 +742,10 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-17** · **AR: el stick derecho gira al otro lado** (el usuario,
+  con `c1b3760` cargada: "funciona bien el stick izquierdo, el derecho rota
+  al revés"). Invertido el signo del giro en `ARTable`. **Sin probar**.
+
 - **2026-10-17** · **AR: el stick derecho solo gira** (el usuario: al girar
   "la casa baja"; "solo tiene que girar, que no haga nada más", que para
   agrandar están los dos mandos). Fuera el zum del stick. Del izquierdo, el

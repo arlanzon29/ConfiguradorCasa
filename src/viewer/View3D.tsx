@@ -802,8 +802,9 @@ function ARTable({
         t.pos.z -= (fx * sx - fz * sy) * step
         continue
       }
-      // Stick derecho: solo gira (lo pidió el usuario: agrandar es cosa de los dos mandos).
-      if (Math.abs(sx) > 0.3) t.yaw += -sx * AR_TURN_SPEED * delta
+      // Stick derecho: solo gira (lo pidió el usuario: agrandar es cosa de los dos
+      // mandos). El sentido, al revés del primero que hubo: lo probó el usuario.
+      if (Math.abs(sx) > 0.3) t.yaw += sx * AR_TURN_SPEED * delta
     }
 
     if (placing.length >= 2) {
