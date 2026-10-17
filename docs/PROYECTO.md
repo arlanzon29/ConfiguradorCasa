@@ -711,6 +711,14 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-17** · **Taburete detallado rehecho** (el usuario: "el taburete
+  no es correcto"). Las patas asomaban fuera del asiento, iban inclinadas al
+  revés (abiertas arriba), eran más gruesas abajo y el aro no las tocaba.
+  Ahora salen de debajo del asiento (a 9,5 cm del centro), se abren hacia el
+  suelo (14 cm), son más finas abajo y el aro pasa por ellas a 0,25 m.
+  `taburete.glb` y `taburete.blend` vueltos a guardar; visto de cerca en
+  Blender.
+
 - **2026-10-17** · **Toda la cocina detallada** (el usuario: "hazme todo",
   tras quedar en cajas horno, vitro, fregadero, armario pequeño, mesa con
   armarios y taburete). Seis modelos más de Claude en Blender, con la misma
