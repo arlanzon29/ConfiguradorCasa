@@ -137,6 +137,14 @@ for o in list(col.all_objects):
             lo.location = (p.x, p.y, p.z - 0.02)
             break
 
+# La web deja el metal de los muebles detallados a medias (sin entorno, el
+# acero puro le sale negro) y así llega en el GLB: aquí vuelve a ser metal.
+for m in bpy.data.materials:
+    if m.name.startswith("Acero") and m.use_nodes:
+        b = next((n for n in m.node_tree.nodes if n.type == "BSDF_PRINCIPLED"), None)
+        if b:
+            b.inputs["Metallic"].default_value = 1.0
+
 # Una cámara por foto de la web: plano (x, y) -> Blender (x, -y).
 cams = []
 for f in FOTOS:
