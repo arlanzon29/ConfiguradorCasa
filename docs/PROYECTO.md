@@ -711,6 +711,14 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-17** · **El mueble detallado elegido ya no se tiñe** (el usuario:
+  el sofá azul se veía rosa al abrir sus propiedades; era el naranja del
+  resalte sobre el azul). En `DetailedModel` (`Furniture3D.tsx`) el elegido
+  se marca con una caja de líneas naranjas a su alrededor y conserva sus
+  colores; los muebles de cajas siguen tiñéndose como antes. Probado en el
+  entorno de pruebas (5185): el sofá azul elegido sigue azul. Si se exporta
+  el GLB con el sofá elegido, la caja de líneas va dentro.
+
 - **2026-10-17** · **Colores por partes de un mueble, prueba con el sofá**
   (el usuario: elegir el color del sofá entre azul, blanco y rosa, y cada
   cojín por separado en azul, blanco y rojo; antes pidió que se guarde qué se

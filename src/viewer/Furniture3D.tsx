@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useMemo } from 'react'
 import { useLoader } from '@react-three/fiber'
-import { Box3, Mesh, MeshStandardMaterial, Vector3 } from 'three'
+import { Box3, BoxGeometry, EdgesGeometry, Mesh, MeshStandardMaterial, Vector3 } from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { FurnitureItem, FurnitureType, furnitureType, liftOf, partChoices } from '../model/furniture'
 import { useHouse } from '../store'
@@ -268,12 +268,25 @@ function DetailedModel({ item, type, selected }: { item: FurnitureItem; type: Fu
       const m = o.material as MeshStandardMaterial
       const choice = colors.find((c) => c.part.material === m.name)
       if (choice) m.color.set(choice.option.color)
-      m.emissive.set(selected ? '#d9480f' : '#000000')
-      m.emissiveIntensity = 0.25
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [model, selected, colorKey])
-  return <primitive object={model} />
+  }, [model, colorKey])
+  // Elegido, se marca con una caja de líneas y no tiñendo: así se ven sus colores
+  // de verdad mientras se eligen (el naranja volvía rosa el azul).
+  const outline = useMemo(
+    () => new EdgesGeometry(new BoxGeometry(type.width + 0.04, type.height + 0.04, type.depth + 0.04)),
+    [type],
+  )
+  return (
+    <>
+      <primitive object={model} />
+      {selected && (
+        <lineSegments geometry={outline} position={[0, type.height / 2, 0]}>
+          <lineBasicMaterial color="#d9480f" />
+        </lineSegments>
+      )}
+    </>
+  )
 }
 
 function BoxModel({ item, type, selected }: { item: FurnitureItem; type: FurnitureType; selected: boolean }) {
