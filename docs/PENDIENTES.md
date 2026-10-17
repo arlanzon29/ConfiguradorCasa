@@ -27,6 +27,52 @@ está decidido ni empezado. Lo más reciente, arriba.
 - Alternativas que mirar: WebRTC directo entre navegadores (no pasa nada por
   un servidor salvo el contacto inicial), Liveblocks o Firebase.
 
+#### Hablado después (2026-10-17): mandar la casa a las Quest por una dirección
+
+Propuesta del usuario. **Hecho el 2026-10-17** (ver el registro de
+`PROYECTO.md`); falta probar la subida con su proyecto de Supabase. Es sobre todo una **demo
+técnica**: trabajar desde Claude en el ordenador y ver el resultado en las
+Quest. Va antes que la sesión en directo de arriba.
+
+- **Dos piezas independientes** (lo dijo el usuario: "una cosa es independiente
+  de la otra"):
+  - **La web no sabe nada de Supabase.** Solo aprende a cargar una casa desde
+    una dirección: `…/ConfiguradorCasa/?url=https://…/casa.json`. Baja el
+    `.json`, comprueba que es un plano y, si ya hay una casa en ese navegador,
+    pregunta antes de sustituirla. Sirve cualquier sitio que deje leer el
+    archivo desde otra web (CORS).
+  - **Claude sabe subir.** Coge el `.json` (del navegador con `bajarCasa` o de
+    un archivo de `comercial/`), lo sube a una plataforma (hoy Supabase; mañana
+    otra, sin tocar la web) y da la dirección completa y su **QR**. Va en la
+    skill `crear-casas`, con su guion.
+- **Supabase:** bucket público (`casas`): descargar es libre con la
+  dirección; subir y borrar no, salvo con la clave secreta (`service_role`),
+  que se queda en el equipo, en un archivo fuera de git. Sin reglas de subida,
+  nadie más escribe ni lista. Subir **sin caché**: Supabase guarda los públicos
+  en caché (una hora por defecto) y al volver a subir con el mismo nombre se
+  vería la versión vieja. Para la demo, `demo.json`; para un cliente real, un
+  nombre al azar. Sin fotos (en las gafas no hacen falta; unos 10 KB).
+- **Refrescar a mano, no detectar cambios** (decisión del usuario, "para evitar
+  problemas", aunque se le explicó que una consulta cada 5 s es poco): botón
+  **"Recargar casa"** en la web, y en la VR un botón del mando (propuesta mía:
+  A o X, que hoy no hacen nada en VR; en AR cambian de escala y habría que
+  elegir otro) con un cartel "Casa actualizada" / "No hay cambios". Recargar
+  machaca lo tocado en las gafas (una puerta abierta, por ejemplo).
+- **El QR en las Quest:** el sistema de las Quest 3 no lee QR con una
+  dirección (respuestas de Meta de 2024). Probar una app de la tienda ("QR
+  Scanner VR" o "QR Scanner") con un QR cualquiera. Si no vale: subir siempre
+  con el mismo nombre y guardar la dirección en favoritos de las gafas una
+  vez.
+- **Ojo con el plan gratuito de Supabase:** el proyecto se pausa tras 7 días
+  sin actividad (puede que bajar archivos no cuente) y la dirección deja de
+  funcionar hasta reactivarlo desde su panel. Comprobarlo antes de una demo.
+- **Falta, del usuario:** crear el proyecto de Supabase con el bucket público
+  y dejar la dirección del proyecto y la clave en un archivo local (p. ej.
+  `supabase.local.json`, que entra en `.gitignore` antes del primer commit).
+- **Orden previsto:** primero la web (`?url=`, "Recargar casa" y el botón del
+  mando), que se puede probar con `ejemplos/ejemplo2.json`; luego la parte de
+  Claude con Supabase.
+
 ## Anotado el 2026-10-10
 
 ### 18. Rehacer la interfaz: árbol de la casa

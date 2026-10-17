@@ -9,3 +9,6 @@ comercial/
 
 # Conector de Blender: rutas de este equipo
 .mcp.json
+
+# Conexión de Claude con Supabase (clave secreta): solo en este equipo
+supabase.local.json

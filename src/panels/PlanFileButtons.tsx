@@ -3,6 +3,7 @@ import { Plan, parsePhotos, parsePlan, serializePlan } from '../model/planFile'
 import { exportPhotos, importPhotos, usePhotos } from '../photos'
 import { useHouse } from '../store'
 import { redo, undo, useHistory } from '../history'
+import { hasPlan } from '../remoteHouse'
 
 // Sin barra inicial: la web puede colgar de una subcarpeta (GitHub Pages).
 // Para añadir otro: su archivo en public/ejemplos y una línea aquí.
@@ -23,17 +24,6 @@ export default function PlanFileButtons() {
   // Acción que sustituiría el plano actual y espera confirmación. Se pregunta en
   // la propia página: los cuadros de diálogo del navegador pueden estar bloqueados.
   const [pending, setPending] = useState<{ message: string; run: () => void } | null>(null)
-
-  // Un único módulo vacío es el punto de partida: ahí no hay nada que perder.
-  const hasPlan = () => {
-    const { modules, furniture, shells } = useHouse.getState()
-    return (
-      modules.length > 0 ||
-      furniture.length > 0 ||
-      shells.length > 1 ||
-      usePhotos.getState().photos.length > 0
-    )
-  }
 
   const startNew = () => {
     newPlan()

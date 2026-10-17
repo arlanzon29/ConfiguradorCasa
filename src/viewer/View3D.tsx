@@ -52,6 +52,7 @@ import { VINYLS, VinylSheet, vinylPlacement, vinylSheets, vinylType } from '../m
 import { OPPOSITE, Opening } from '../model/openings'
 import { Joints, Wall, deriveWalls, openingsOf, wallAcross } from '../model/walls'
 import { Shot, usePhotos } from '../photos'
+import { REMOTE_URL, reloadRemote } from '../remoteHouse'
 import { GLB_EVENT, GlbRequest, LENSES, PHOTO_EVENT, PHOTO_SAMPLES, cameraFlying, samePose, stopCameraFlight, useHouse } from '../store'
 import Furniture3D from './Furniture3D'
 import { DoorLeafAxis, JoineryMaterial, JoineryPart, joineryParts } from './joinery'
@@ -459,6 +460,8 @@ const VR_STICK_DEAD_ZONE = 0.2
 const VR_SNAP_TRIGGER = 0.6
 // Cuánto dura el aviso de cómo salir, en milisegundos.
 const VR_HINT_MS = 10000
+// Lo que dura a la vista el aviso de recargar la casa ("Casa actualizada"…).
+const VR_NOTICE_MS = 2500
 // Hasta dónde llega el rayo del mando, en metros, y a qué velocidad gira una
 // hoja de puerta al abrirla o cerrarla (radianes por segundo: 90° en medio segundo).
 const VR_RAY_LENGTH = 6
@@ -925,12 +928,14 @@ function VRRig({ ar }: { ar: boolean }) {
           'Stick izquierdo: moverla',
           'Stick derecho: girarla',
           'A o X: tamaño real',
+          ...(REMOTE_URL ? ['Pulsar un stick: recargar la casa'] : []),
           __APP_VERSION__,
         ])
       : exitHint('Pulsa B o Y para salir', [
           'Stick: caminar y girar',
           'Apunta a una puerta y pulsa el gatillo',
           'Círculos del suelo: apunta y gatillo para ir',
+          ...(REMOTE_URL ? ['A o X: recargar la casa'] : []),
           __APP_VERSION__,
         ])
     camera.add(hint)
@@ -947,12 +952,53 @@ function VRRig({ ar }: { ar: boolean }) {
   // Dónde está la cabeza en cada fotograma, para dejar la cámara ahí al salir.
   const head = useRef({ position: new Vector3(), direction: new Vector3() })
   const exitHeld = useRef(false)
+  const reloadHeld = useRef(false)
+  // Un aviso corto delante de los ojos al recargar la casa; uno nuevo quita el anterior.
+  const notice = useRef<{ mesh: Mesh; timer: number } | null>(null)
+  const hideNotice = () => {
+    const n = notice.current
+    if (!n) return
+    clearTimeout(n.timer)
+    n.mesh.removeFromParent()
+    n.mesh.geometry.dispose()
+    ;(n.mesh.material as MeshBasicMaterial).map?.dispose()
+    ;(n.mesh.material as MeshBasicMaterial).dispose()
+    notice.current = null
+  }
+  const showNotice = (text: string) => {
+    hideNotice()
+    const mesh = exitHint(text, [])
+    gl.xr.getCamera().add(mesh)
+    notice.current = { mesh, timer: window.setTimeout(hideNotice, VR_NOTICE_MS) }
+  }
+  useEffect(() => hideNotice, [session])
   useFrame((_, delta) => {
     if (!session) return
     // B / Y (el botón de arriba de cada mando) sale de la VR.
     const pressed = Array.from(session.inputSources).some((s) => s.gamepad?.buttons[5]?.pressed)
     if (pressed && !exitHeld.current) void session.end()
     exitHeld.current = pressed
+    // Con una casa de una dirección (?url=…), recargarla sin salir: A o X en la VR;
+    // en la AR, que ya usa A o X para el tamaño real, pulsar un stick.
+    if (REMOTE_URL) {
+      const button = ar ? 3 : 4
+      const reload = Array.from(session.inputSources).some((s) => s.gamepad?.buttons[button]?.pressed)
+      if (reload && !reloadHeld.current) {
+        showNotice('Cargando la casa…')
+        void reloadRemote().then((result) =>
+          showNotice(
+            result === 'updated'
+              ? 'Casa actualizada'
+              : result === 'same'
+                ? 'No hay cambios'
+                : result === 'ask'
+                  ? 'Confírmalo fuera de la VR'
+                  : 'No se ha podido cargar',
+          ),
+        )
+      }
+      reloadHeld.current = reload
+    }
     // En AR no se toca la cámara de la vista normal: la cabeza no está en la casa.
     if (ar) {
       teleportRequest = null

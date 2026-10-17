@@ -251,6 +251,47 @@ el disco; el puente eres tú:
 - **Listar**: mira qué hay en `comercial/` con Glob. Nombra los archivos con
   letras minúsculas y guiones (`casa-garcia.json`).
 
+## Mandar la casa a otro navegador (las Quest): por una dirección
+
+Dos piezas que no se conocen (decisión del usuario, 2026-10-17):
+
+- **La web** abre una casa desde cualquier dirección:
+  `https://arlanzon29.github.io/ConfiguradorCasa/?url=<dirección del .json>`.
+  Arranca en la vista 3D, carga la casa (la primera vez pregunta si sustituye
+  la que hubiera en ese navegador, salvo que viniera de esa misma dirección) y
+  enseña **"Recargar casa"** en la barra de las vistas. En la VR recarga **A o
+  X**; en la maqueta AR, **pulsar un stick**. No mira sola si ha cambiado (el
+  usuario lo prefiere a mano). Recargar machaca lo tocado en ese navegador.
+- **Tú** subes el `.json` a una plataforma y das la dirección. Hoy es
+  **Supabase**, con `subir_casa.mjs` (junto a esta skill):
+
+  1. Consigue el plano: de `comercial/`, o de la página con
+     `JSON.stringify(await window.eurocasa.bajarCasa())`, escrito con Write en
+     el scratchpad. **Sin fotos** (en las gafas no hacen falta; ~10 KB).
+  2. `node .claude/skills/crear-casas/subir_casa.mjs <plano.json> [nombre] [qr.png]`.
+     Nombre por defecto `demo`: con el mismo nombre se sobrescribe y la
+     dirección no cambia, así que las gafas solo tienen que pulsar "Recargar
+     casa". Para la casa de un cliente real, un nombre al azar (que no se
+     pueda adivinar: quien tenga la dirección la ve).
+  3. Devuelve `archivo`, `web` (la dirección para abrir), `qr` (PNG con `web`
+     dentro), `seLeeIgual` y `cors`. Si `seLeeIgual` es `false` o `cors` no
+     trae `*` o el origen de la web, la web no podrá leerlo: dilo.
+  4. Da al usuario la dirección `web` y enséñale el QR (SendUserFile).
+
+- La conexión está en `supabase.local.json`, en la raíz y **fuera de git**:
+  `{ "url": "https://xxxx.supabase.co", "clave": "<secreta>", "bucket": "casas" }`.
+  La clave secreta (`service_role` o `sb_secret_…`) **nunca** va a la web, a
+  la conversación ni al repositorio. El bucket es público: leer es libre,
+  subir solo con la clave. Si no existe el archivo, pídeselo al usuario.
+- **El QR en las Quest**: el sistema no lo lee; hace falta una app de la
+  tienda (p. ej. "QR Scanner VR"). Si no la tiene, que guarde la dirección en
+  favoritos de las gafas una vez y luego solo recargue.
+- **Plan gratuito de Supabase**: el proyecto se pausa tras 7 días sin
+  actividad y la dirección deja de responder hasta reactivarlo desde su panel.
+  Si la subida falla sin motivo claro, sospecha eso.
+- Para cambiar de plataforma basta otro guion que suba y dé una dirección que
+  se lea desde otra web (CORS); la web no cambia.
+
 ## Cómo trabajar con el comercial
 
 - **Si la petición tiene más de una lectura, pregunta antes de montar.** "La

@@ -15,6 +15,8 @@ npm run build    # tsc --noEmit && vite build
 ```
 
 - Vista 3D sola (para otra ventana): `http://localhost:5173/?vista=3d`
+- Casa de una dirección: `…/?url=<dirección de un .json de plano>` (ver "Casa de
+  una dirección" en Interfaz).
 - **Publicada en GitHub Pages** (de verdad desde el 2026-10-12, ejecución 25):
   `https://arlanzon29.github.io/ConfiguradorCasa/`. La compila y publica sola
   `.github/workflows/pages.yml` cada vez que algo entra en `main`; tarda
@@ -175,6 +177,7 @@ src/
   store.ts                       estado global y TODAS las acciones (zustand)
   photos.ts                      fotos en calidad guardadas (IndexedDB) y su estado
   api.ts                         funciones para manejar la casa sin la interfaz (`window.eurocasa`)
+  remoteHouse.ts                 casa de una dirección (?url=…) y "Recargar casa"
   model/                         lógica pura, sin React
     house.ts        parcela, rejilla, estancias, módulos de fábrica, encaje
     walls.ts        paredes deducidas, encaje de huecos en paredes
@@ -422,6 +425,19 @@ cambia entre maqueta y tamaño real (1:1); **B o Y** sale. Las **puertas** se
 abren y cierran como en la VR, con el rayo y el gatillo. El cartel va a la mitad de tamaño
 en la maqueta. Sin puntos de salto en AR. Sin sombras ni fondo.
 Solo con mandos: las manos (pellizco) no están.
+
+**Casa de una dirección** (2026-10-17, `remoteHouse.ts` y
+`RemoteHouseBar.tsx`): con `?url=…` la página arranca en la vista 3D y carga
+la casa del `.json` de esa dirección. La primera vez pregunta si sustituye la
+casa del navegador, salvo que viniera de esa misma dirección (se recuerda en
+`localStorage`, clave `eurocasa-url-cargada`). En la barra de las vistas,
+**"Recargar casa"** y lo que pasó ("Casa actualizada", "No hay cambios"…);
+en la VR recarga **A o X** y en la maqueta AR **pulsar un stick**, con un
+aviso delante de los ojos. **No mira sola** si ha cambiado (lo decidió el
+usuario). La web **no sabe nada de Supabase**: quien sube el archivo es
+Claude (`subir_casa.mjs` en la skill `crear-casas`), y sirve cualquier sitio
+que deje leerlo desde otra web (CORS). Recargar machaca lo tocado en ese
+navegador, fotos incluidas.
 
 **Arriba del panel izquierdo**: Nuevo plano (crea un módulo vacío de 13 × 4,2 en (0, 0) y abre
 el modo Módulos), Guardar plano y Cargar plano (archivo `.json`).
@@ -741,6 +757,22 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-17** · **Mandar la casa a las Quest por una dirección** (idea del
+  usuario: Claude sube el `.json` a Supabase, da una dirección con su QR y la
+  web carga la casa de ella; "una cosa es independiente de la otra", y
+  recargar a mano, no detectar cambios). Web: `?url=…`, "Recargar casa", A o X
+  en VR y pulsar un stick en AR (`remoteHouse.ts`, `RemoteHouseBar.tsx`,
+  `VRRig`); `hasPlan` pasa de `PlanFileButtons` a `remoteHouse.ts`. Claude:
+  `.claude/skills/crear-casas/subir_casa.mjs` (sube sin caché, comprueba que
+  se lee igual y con CORS, y saca el QR con `qrcode`, nueva dependencia de
+  desarrollo) y su parte en la skill. `supabase.local.json` (dirección y clave
+  secreta) en `.gitignore`. Probado en el servidor aparte (5185) con
+  `?url=ejemplos/…`: carga sin preguntar en un navegador vacío, "No hay
+  cambios", la pregunta con otra dirección (cancelar y aceptar), volver a
+  abrir la misma sin preguntar y una dirección sin plano. **Sin probar**: la
+  subida a Supabase (falta el proyecto y `supabase.local.json`), los botones
+  del mando en VR y AR, y las Quest.
 
 - **2026-10-17** · **AR: la mesa, solo con el botón lateral, y sin saltar**
   (el usuario: el gatillo sin apuntar a una puerta movía la casa "al

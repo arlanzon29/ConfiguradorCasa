@@ -465,6 +465,20 @@ button:hover,
   font-size: 13px;
 }
 
+/* Casa de una dirección (?url=…): "Recargar casa" y lo que ha pasado. */
+.remote-house {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.remote-house .danger {
+  background: var(--highlight);
+  border-color: var(--highlight);
+  color: #fff;
+}
+
 .view-toggle .active {
   background: var(--accent);
   border-color: var(--accent);

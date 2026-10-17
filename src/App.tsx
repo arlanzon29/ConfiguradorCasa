@@ -5,7 +5,9 @@ import HouseTree from './panels/HouseTree'
 import PhotoViewer from './panels/PhotoViewer'
 import PlanFileButtons from './panels/PlanFileButtons'
 import PropertiesPanel from './panels/PropertiesPanel'
+import RemoteHouseBar from './panels/RemoteHouseBar'
 import { usePhotos } from './photos'
+import { REMOTE_URL } from './remoteHouse'
 import { PLAN_LAYERS, useHouse } from './store'
 
 // Three.js pesa bastante: solo se descarga al abrir la vista 3D.
@@ -35,7 +37,8 @@ export default function App() {
   const setWalkMode = useHouse((s) => s.setWalkMode)
   const planLayers = useHouse((s) => s.planLayers)
   const setPlanLayer = useHouse((s) => s.setPlanLayer)
-  const [view, setView] = useState<'2d' | '3d' | 'split'>('2d')
+  // Con una casa de una dirección (?url=…) se abre en la vista 3D: es para verla, sobre todo en las Quest.
+  const [view, setView] = useState<'2d' | '3d' | 'split'>(REMOTE_URL ? '3d' : '2d')
   const [hidden, setHidden] = useState(readHiddenPanels)
 
   // Repetir una foto necesita la vista 3D a la vista: es ella la que la traza.
@@ -98,7 +101,10 @@ export default function App() {
   if (STANDALONE_3D) {
     return (
       <div className="standalone">
-        <div className="view-toggle">{walkButton}</div>
+        <div className="view-toggle">
+          <RemoteHouseBar />
+          {walkButton}
+        </div>
         <Suspense fallback={<p className="muted">Cargando vista 3D…</p>}>
           <View3D />
         </Suspense>
@@ -167,6 +173,7 @@ export default function App() {
           <button onClick={() => window.open('?vista=3d', 'eurocasa-3d', 'popup,width=1100,height=750')}>
             3D en otra ventana
           </button>
+          <RemoteHouseBar />
           {view !== '2d' && walkButton}
           {view !== '3d' && (
             <div className="plan-layers">
