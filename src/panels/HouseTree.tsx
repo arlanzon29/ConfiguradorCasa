@@ -16,7 +16,7 @@ import {
   wallName,
 } from '../model/names'
 import { deriveWalls, openingsOf, wallOf } from '../model/walls'
-import { usePhotos } from '../photos'
+import { photoDate, usePhotos } from '../photos'
 import { useHouse } from '../store'
 
 // Panel izquierdo: la casa como un árbol. Casa → módulos → estancias, y en cada
@@ -109,7 +109,9 @@ export default function HouseTree() {
     setNotice('')
     setMenu(menu === key ? null : key)
   }
-  const photoCount = usePhotos((s) => s.photos.length)
+  const photos = usePhotos((s) => s.photos)
+  const photoId = usePhotos((s) => s.currentId)
+  const goToPhoto = usePhotos((s) => s.goTo)
   // Estancias y carpetas abiertas o cerradas a mano; las demás se abren solas si tienen lo elegido.
   const [opened, setOpened] = useState<Record<string, boolean>>({})
 
@@ -421,10 +423,28 @@ export default function HouseTree() {
       <Row
         level={0}
         label="Fotos"
-        detail={String(photoCount)}
-        active={mode === 'photos'}
+        detail={String(photos.length)}
+        active={mode === 'photos' && !photoId}
+        open={photos.length ? (opened.fotos ?? mode === 'photos') : undefined}
+        onToggle={() => setOpened({ ...opened, fotos: !(opened.fotos ?? mode === 'photos') })}
         onPick={() => pick('photos')}
       />
+      {/* Cada foto: elegirla lleva la cámara a su sitio y deja en Propiedades
+          sus botones (Ver, Descargar, Subir imagen…), sin abrir el visor. */}
+      {(opened.fotos ?? mode === 'photos') &&
+        photos.map((p, i) => (
+          <Row
+            key={p.id}
+            level={1}
+            label={`Foto ${i + 1}`}
+            detail={photoDate(p)}
+            active={mode === 'photos' && p.id === photoId}
+            onPick={() => {
+              pick('photos')
+              goToPhoto(p.id)
+            }}
+          />
+        ))}
     </nav>
   )
 }
