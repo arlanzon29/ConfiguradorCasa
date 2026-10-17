@@ -706,6 +706,23 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-17** · **Sofá detallado (alta) en la web, sin perder el sencillo**
+  (el usuario: "vamos a poner el sofá high en la web… pero no perdemos el
+  sofá low"; antes se habló de tener dos modelos por mueble, uno ligero para
+  la web y otro detallado). Sofá modelado por Claude en Blender (escena
+  "Sofá": cojines sueltos, cantos redondeados, patas de roble, dos cojines
+  beige), exportado a `public/modelos/sofa.glb` (430 KB, 28.000 triángulos).
+  Campo `model` en `FurnitureType` (solo el sofá lo tiene),
+  `detailedFurniture` en `store.ts` (se guarda en el navegador, por defecto
+  apagado) y botones **"Sencillos / Detallados"** en la barra de la vista 3D.
+  `Furniture3D` carga el modelo con `GLTFLoader`, lo ajusta a las medidas del
+  catálogo y lo resalta al elegirlo; mientras descarga, las cajas. Probado en
+  el entorno de pruebas (5185) con "Test 2": se ve en la vista 3D y en la
+  **foto en calidad** (100 muestras). En la foto la tela sale más gris y con
+  un borde claro (el brillo aterciopelado), sin ajustar. Sin probar: VR,
+  AR, el GLB de Blender con el sofá detallado, ni el rendimiento con
+  muchos.
+
 - **2026-10-17** · **Las fotos se despliegan en el árbol** (lo pidió el
   usuario: para subir una imagen tenía que abrir la foto en el visor y
   salir con Esc). "Fotos" lleva flecha y, dentro, "Foto N" con su fecha;

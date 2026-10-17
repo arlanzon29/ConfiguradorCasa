@@ -1,4 +1,9 @@
+import { Suspense, useEffect, useMemo } from 'react'
+import { useLoader } from '@react-three/fiber'
+import { Box3, Mesh, MeshStandardMaterial, Vector3 } from 'three'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { FurnitureItem, FurnitureType, furnitureType, liftOf } from '../model/furniture'
+import { useHouse } from '../store'
 
 const WOOD = '#b08d62'
 const FABRIC = '#8fa3b0'
@@ -232,12 +237,42 @@ interface Props {
   selected: boolean
 }
 
-export default function Furniture3D({ item, floorY, selected }: Props) {
-  const type = furnitureType(item.typeId)
-  if (!type) return null
+/**
+ * Modelo detallado de un mueble (hecho en Blender), ajustado a las medidas de su
+ * tipo: centrado en x/z, apoyado en y = 0. Cada mueble lleva su copia, con los
+ * materiales propios para poder resaltarlo al elegirlo.
+ */
+function DetailedModel({ type, selected }: { type: FurnitureType; selected: boolean }) {
+  const gltf = useLoader(GLTFLoader, type.model!)
+  const model = useMemo(() => {
+    const root = gltf.scene.clone(true)
+    const box = new Box3().setFromObject(root)
+    const size = box.getSize(new Vector3())
+    root.scale.set(type.width / size.x, type.height / size.y, type.depth / size.z)
+    const center = box.getCenter(new Vector3())
+    root.position.set(-center.x * root.scale.x, -box.min.y * root.scale.y, -center.z * root.scale.z)
+    root.traverse((o) => {
+      if (!(o instanceof Mesh)) return
+      o.castShadow = true
+      o.receiveShadow = true
+      o.material = (o.material as MeshStandardMaterial).clone()
+    })
+    return root
+  }, [gltf, type])
+  useEffect(() => {
+    model.traverse((o) => {
+      if (!(o instanceof Mesh)) return
+      const m = o.material as MeshStandardMaterial
+      m.emissive.set(selected ? '#d9480f' : '#000000')
+      m.emissiveIntensity = 0.25
+    })
+  }, [model, selected])
+  return <primitive object={model} />
+}
+
+function BoxModel({ type, selected }: { type: FurnitureType; selected: boolean }) {
   return (
-    // En el plano el giro es horario con y hacia abajo; en 3D eso es un giro negativo sobre y.
-    <group position={[item.x, floorY + liftOf(item), item.y]} rotation-y={(-item.rotation * Math.PI) / 180}>
+    <>
       {boxes(type).map((box, i) => (
         <mesh key={i} position={box.position} rotation-x={box.round ? Math.PI / 2 : 0} castShadow receiveShadow>
           {box.flat ? (
@@ -250,6 +285,26 @@ export default function Furniture3D({ item, floorY, selected }: Props) {
           <meshStandardMaterial color={box.color} emissive={selected ? '#d9480f' : '#000000'} emissiveIntensity={0.25} />
         </mesh>
       ))}
+    </>
+  )
+}
+
+export default function Furniture3D({ item, floorY, selected }: Props) {
+  const type = furnitureType(item.typeId)
+  const detailed = useHouse((s) => s.detailedFurniture)
+  if (!type) return null
+  const boxModel = <BoxModel type={type} selected={selected} />
+  return (
+    // En el plano el giro es horario con y hacia abajo; en 3D eso es un giro negativo sobre y.
+    <group position={[item.x, floorY + liftOf(item), item.y]} rotation-y={(-item.rotation * Math.PI) / 180}>
+      {detailed && type.model ? (
+        // Mientras se descarga el modelo, las cajas.
+        <Suspense fallback={boxModel}>
+          <DetailedModel type={type} selected={selected} />
+        </Suspense>
+      ) : (
+        boxModel
+      )}
     </group>
   )
 }

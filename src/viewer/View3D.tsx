@@ -1340,6 +1340,8 @@ export default function View3D() {
   // estancia, el sol y el cielo.
   const cameraFov = useHouse((s) => s.cameraFov)
   const setCameraFov = useHouse((s) => s.setCameraFov)
+  const detailedFurniture = useHouse((s) => s.detailedFurniture)
+  const setDetailedFurniture = useHouse((s) => s.setDetailedFurniture)
   const photoSamples = useHouse((s) => s.photoSamples)
   const setPhotoSamples = useHouse((s) => s.setPhotoSamples)
   const [photo, setPhoto] = useState(false)
@@ -1487,6 +1489,17 @@ export default function View3D() {
           </>
         )}
         {saved && <span>{saved}</span>}
+        <div
+          className="lens-toggle"
+          title="Muebles: sencillos (cajas, más ligeros) o detallados (los que tienen modelo hecho en Blender)"
+        >
+          <button className={detailedFurniture ? '' : 'active'} onClick={() => setDetailedFurniture(false)}>
+            Sencillos
+          </button>
+          <button className={detailedFurniture ? 'active' : ''} onClick={() => setDetailedFurniture(true)}>
+            Detallados
+          </button>
+        </div>
         <div className="lens-toggle" title="Objetivo: cuánto abarca la cámara">
           {LENSES.map((lens) => (
             <button

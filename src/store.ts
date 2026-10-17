@@ -305,6 +305,12 @@ interface HouseState {
   /** Si los muebles se imantan a las paredes al arrastrarlos. */
   furnitureMagnet: boolean
   setFurnitureMagnet: (on: boolean) => void
+  /**
+   * Muebles detallados: los que tienen modelo propio (`model` en el catálogo)
+   * se dibujan con él en la vista 3D y la foto; si no, con sus cajas.
+   */
+  detailedFurniture: boolean
+  setDetailedFurniture: (on: boolean) => void
 
   /**
    * Elemento del catálogo pendiente de colocar con un clic en el plano: un tipo
@@ -983,6 +989,8 @@ export const useHouse = create<HouseState>()(
         furniture: [],
         furnitureMagnet: true,
         setFurnitureMagnet: (furnitureMagnet) => set({ furnitureMagnet }),
+        detailedFurniture: false,
+        setDetailedFurniture: (detailedFurniture) => set({ detailedFurniture }),
 
         addFurniture: (typeId, x, y) => {
           if (!furnitureType(typeId)) return
@@ -1374,6 +1382,7 @@ export const useHouse = create<HouseState>()(
         joints: s.joints,
         furniture: s.furniture,
         furnitureMagnet: s.furnitureMagnet,
+        detailedFurniture: s.detailedFurniture,
         cameraPose: s.cameraPose,
         walkMode: s.walkMode,
         cameraFov: s.cameraFov,

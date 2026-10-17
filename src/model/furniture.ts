@@ -30,6 +30,12 @@ export interface FurnitureType {
   height: number
   /** Altura sobre el suelo a la que va colocada (una placa de cocina, sobre la encimera). */
   lift?: number
+  /**
+   * Modelo detallado (`.glb` en `public/modelos/`, ruta sin barra inicial), hecho
+   * en Blender. Solo se usa con "Muebles detallados"; si no, las cajas de siempre.
+   * Debe apoyar en el suelo, con la espalda hacia -z, y se ajusta a las medidas.
+   */
+  model?: string
 }
 
 export const FURNITURE: FurnitureType[] = [
@@ -38,7 +44,7 @@ export const FURNITURE: FurnitureType[] = [
   { id: 'mesa-centro', code: 'MOB-MESA-CENTRO', family: 'salon', name: 'Mesa de centro', shape: 'table', width: 1.1, depth: 0.6, height: 0.4 },
   { id: 'television', code: 'MOB-TELEVISION', family: 'salon', name: 'Televisión', shape: 'tv', width: 1.2, depth: 0.25, height: 0.75 },
   { id: 'silla', code: 'MOB-SILLA', family: 'comedor', name: 'Silla', shape: 'chair', width: 0.45, depth: 0.45, height: 0.9 },
-  { id: 'sofa', code: 'MOB-SOFA', family: 'salon', name: 'Sofá', shape: 'sofa', width: 2, depth: 0.9, height: 0.8 },
+  { id: 'sofa', code: 'MOB-SOFA', family: 'salon', name: 'Sofá', shape: 'sofa', width: 2, depth: 0.9, height: 0.8, model: 'modelos/sofa.glb' },
   { id: 'cama-doble', code: 'MOB-CAMA-DOBLE', family: 'dormitorio', name: 'Cama doble', shape: 'bed', width: 1.6, depth: 2, height: 0.5 },
   { id: 'cama-individual', code: 'MOB-CAMA-INDIVIDUAL', family: 'dormitorio', name: 'Cama individual', shape: 'bed', width: 0.9, depth: 2, height: 0.5 },
   { id: 'mesilla', code: 'MOB-MESILLA', family: 'dormitorio', name: 'Mesilla', shape: 'table', width: 0.45, depth: 0.4, height: 0.5 },
