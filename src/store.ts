@@ -1381,6 +1381,9 @@ export const useHouse = create<HouseState>()(
         const state = { ...current, ...(saved as Partial<HouseState>) }
         // Una capa añadida después de guardar sale a la vista.
         state.planLayers = { ...ALL_PLAN_LAYERS, ...state.planLayers }
+        // No viene de lo guardado (lo de antes de que dejara de guardarse no
+        // cuenta): al abrir, "Sencillos"; al releer por otra ventana, lo que hubiera.
+        state.detailedFurniture = current.detailedFurniture
         return { ...state, ...withParents(state) }
       },
       partialize: (s) => ({
@@ -1390,7 +1393,8 @@ export const useHouse = create<HouseState>()(
         joints: s.joints,
         furniture: s.furniture,
         furnitureMagnet: s.furnitureMagnet,
-        detailedFurniture: s.detailedFurniture,
+        // `detailedFurniture` no se guarda: la vista 3D arranca siempre en
+        // "Sencillos" (lo pidió el usuario).
         cameraPose: s.cameraPose,
         walkMode: s.walkMode,
         cameraFov: s.cameraFov,

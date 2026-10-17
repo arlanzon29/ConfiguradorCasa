@@ -711,6 +711,15 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-17** · **La vista 3D arranca siempre en "Sencillos"** (el
+  usuario: "por defecto quiero el 3d en modo sencillo"). Ya era el valor de
+  partida, pero se guardaba en el navegador y volvía "Detallados" si se dejó
+  así. Ahora `detailedFurniture` no se guarda (`partialize` de `store.ts`) y
+  `merge` no lo toma de lo guardado: al abrir, "Sencillos"; al releer por un
+  cambio de otra ventana, se queda como estaba. Consecuencia: la ventana
+  `?vista=3d` no copia la elección de la otra. Solo `tsc`: al ir a probarlo
+  el usuario estaba usando la pestaña del entorno de pruebas.
+
 - **2026-10-17** · **Fuera las rayas verticales de las paredes en Blender**
   (el usuario: se veían líneas verticales en las ventanas, "parece un
   problema del modelo"). Venían del solape de 2 mm de dintel y antepecho con
