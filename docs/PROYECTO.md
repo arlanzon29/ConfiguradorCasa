@@ -719,9 +719,12 @@ Se anota aquí cada cosa que se hace, la más reciente arriba.
   catálogo y lo resalta al elegirlo; mientras descarga, las cajas. Probado en
   el entorno de pruebas (5185) con "Test 2": se ve en la vista 3D y en la
   **foto en calidad** (100 muestras). En la foto la tela sale más gris y con
-  un borde claro (el brillo aterciopelado), sin ajustar. Sin probar: VR,
-  AR, el GLB de Blender con el sofá detallado, ni el rendimiento con
-  muchos.
+  un borde claro (el brillo aterciopelado), sin ajustar. Después, la misma
+  vista en Blender: GLB enviado directo desde 5185 (`enviarA`, 4,5 MB, ya
+  con el sofá detallado dentro), `blender_casa.py` con la cámara de la vista
+  (no de una foto guardada) y render a 100 muestras en 15,7 s; la tela sale
+  azulada como en la escena "Sofá". Sin probar: VR, AR ni el rendimiento
+  con muchos.
 
 - **2026-10-17** · **Las fotos se despliegan en el árbol** (lo pidió el
   usuario: para subir una imagen tenía que abrir la foto en el visor y
