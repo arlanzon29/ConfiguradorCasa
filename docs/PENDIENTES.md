@@ -302,6 +302,11 @@ el imán a paredes y el objetivo de la cámara.
   de fachada, cubierta (plana o inclinada), carpintería exterior, porche o
   terraza, y el terreno alrededor. Se cruza con los paisajes tras las ventanas
   (tema 3) y con el techo (tema 4).
+- **Hecho el 2026-10-18, primer paso:** la **solera** de cada módulo (lo que
+  sobresale y su grosor, que levanta la casa) y el **terreno** de toda la
+  parcela con un acabado (el usuario eligió toda la parcela, no una franja
+  alrededor de la casa). Sigue sin hacer: fachada, cubierta, porche, terraza
+  y acera perimetral.
 
 ### 10. Encimera variable
 

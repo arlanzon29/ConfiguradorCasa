@@ -809,6 +809,14 @@ button:disabled {
   stroke-width: 0.09;
 }
 
+.slab {
+  /* Solera del módulo: lo que sobresale se ve como una franja gris. */
+  fill: #d8d4cc;
+  stroke: #b9b5ad;
+  stroke-width: 0.03;
+  pointer-events: none;
+}
+
 .shell-outline {
   /* Sin relleno, para que la rejilla se siga viendo dentro del módulo. */
   fill: none;

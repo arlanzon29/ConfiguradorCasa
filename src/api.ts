@@ -3,7 +3,19 @@
 // Claude": pocas funciones, con parámetros en el idioma del comercial, que
 // devuelven lo creado o el motivo por el que no se ha podido.
 
-import { PLOT, PlacedModule, Shell, Side, WALL_HEIGHT, fits, roundSize, sideLength, validSize } from './model/house'
+import {
+  PLOT,
+  PlacedModule,
+  Shell,
+  Side,
+  WALL_HEIGHT,
+  fits,
+  roomLevel,
+  roundSize,
+  sideLength,
+  slabOf,
+  validSize,
+} from './model/house'
 import { MECHANISMS, MECHANISM_HEIGHT, mechanismSize, mechanismType } from './model/mechanisms'
 import { wallFace } from './model/vinyls'
 import { BASE_FLOOR, MATERIALS, WALL_COLORS, floorOf, interiorFinish } from './model/finishes'
@@ -71,6 +83,7 @@ function casa() {
   const { shells, modules } = state()
   return {
     nombre: houseName(state().houseName),
+    terreno: state().ground ?? 'césped',
     modulos: shells.map((s) => ({
       id: s.id,
       nombre: shellName(shells, s),
@@ -78,6 +91,7 @@ function casa() {
       y: s.y,
       ancho: s.width,
       fondo: s.depth,
+      solera: { sobresale: slabOf(s).margin, grosor: slabOf(s).height },
       estancias: modules.filter((m) => m.shellId === s.id).map((m) => describeRoom(m, s)),
     })),
     estanciasSueltas: modules.filter((m) => !m.shellId).map((m) => describeRoom(m)),
@@ -117,6 +131,32 @@ function nombrarCasa(nombre: string) {
   if (typeof nombre !== 'string') return { error: 'El nombre tiene que ser un texto.' } as Fallo
   state().rename('house', '', nombre)
   return casa()
+}
+
+/**
+ * Solera de un módulo (por defecto, el primero), en metros: lo que sobresale
+ * del módulo por los cuatro lados y su grosor, que es la altura del suelo de
+ * la casa sobre el terreno. Lo que no se diga no cambia.
+ */
+function cambiarSolera(p: { modulo?: string; sobresale?: number; grosor?: number }) {
+  const shell = findShell(p.modulo)
+  if (!shell) return { error: `No hay ningún módulo "${p.modulo ?? ''}".` } as Fallo
+  const error = state().setShellSlab(shell.id, { margin: p.sobresale, height: p.grosor })
+  if (error) return { error } as Fallo
+  const now = state().shells.find((s) => s.id === shell.id)
+  return { modulo: shellName(state().shells, shell), sobresale: slabOf(now).margin, grosor: slabOf(now).height }
+}
+
+/**
+ * Terreno de toda la parcela: un acabado (por nombre o id, o `#rrggbb`), o
+ * "césped" para volver al de siempre.
+ */
+function ponerTerreno(p: { acabado: string }) {
+  const grass = p.acabado.trim().toLowerCase() === 'césped' || p.acabado.trim().toLowerCase() === 'cesped'
+  const finish = grass ? undefined : findFinish(p.acabado)
+  if (!grass && !finish) return { error: `No hay ningún acabado "${p.acabado}".` } as Fallo
+  state().setGround(finish)
+  return { terreno: finish ?? 'césped' }
 }
 
 /** Cambia las medidas de un módulo (por defecto, el primero). */
@@ -756,7 +796,7 @@ function describeWalls(m: PlacedModule) {
   return { estancia: roomName(state().modules, m.id), paredes }
 }
 
-// Altura de los ojos y distancia a la pared de detrás, en metros.
+// Altura de los ojos (sobre el suelo de la estancia) y distancia a la pared de detrás, en metros.
 const EYES = 1.6
 const BACK_OFF = 0.5
 const ESQUINAS: Record<string, { north: boolean; west: boolean }> = {
@@ -784,7 +824,7 @@ function llevarCamara(p: { estancia: string; mirando?: string; desde?: string })
     const x = corner.west ? room.x + BACK_OFF : room.x + room.width - BACK_OFF
     const y = corner.north ? room.y + BACK_OFF : room.y + room.depth - BACK_OFF
     state().flyCamera({
-      position: [x - PLOT.width / 2, EYES, y - PLOT.depth / 2],
+      position: [x - PLOT.width / 2, roomLevel(state().shells, room) + EYES, y - PLOT.depth / 2],
       yaw: Math.atan2(x - (room.x + room.width / 2), y - (room.y + room.depth / 2)),
       pitch: 0,
     })
@@ -806,7 +846,7 @@ function llevarCamara(p: { estancia: string; mirando?: string; desde?: string })
   const y = side === 's' ? room.y + BACK_OFF : side === 'n' ? room.y + room.depth - BACK_OFF : room.y + room.depth / 2
   state().flyCamera({
     // La escena tiene la parcela centrada en el origen; el giro 0 mira al norte y crece hacia el oeste.
-    position: [x - PLOT.width / 2, EYES, y - PLOT.depth / 2],
+    position: [x - PLOT.width / 2, roomLevel(state().shells, room) + EYES, y - PLOT.depth / 2],
     yaw: { n: 0, w: Math.PI / 2, s: Math.PI, e: -Math.PI / 2 }[side],
     pitch: 0,
   })
@@ -939,6 +979,8 @@ const eurocasa = {
   nuevoPlano,
   nombrarCasa,
   medirModulo,
+  cambiarSolera,
+  ponerTerreno,
   crearEstancia,
   eliminarEstancia,
   ponerHueco,

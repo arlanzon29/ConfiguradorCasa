@@ -8,6 +8,9 @@ import {
 } from './model/furniture'
 import {
   MAX_SHELLS,
+  MAX_SLAB_HEIGHT,
+  MAX_SLAB_MARGIN,
+  MIN_SLAB_HEIGHT,
   PLOT,
   PlacedModule,
   SHELL_MAX_LONG,
@@ -152,6 +155,15 @@ interface HouseState {
   shells: Shell[]
   /** El nombre de la casa, si se le ha puesto; si no, se llama "Casa" (`houseName` de names.ts). */
   houseName?: string
+  /** Acabado del terreno de toda la parcela; si falta, el césped (DEFAULT_GROUND). */
+  ground?: string
+  /** Cambia el terreno de la parcela; sin acabado vuelve al césped. */
+  setGround: (finish?: string) => void
+  /**
+   * Solera de un módulo: grosor y lo que sobresale, en metros. Lo que falte no
+   * cambia. Devuelve un mensaje de error, o '' si se ha aplicado.
+   */
+  setShellSlab: (id: string, slab: { height?: number; margin?: number }) => string
   selectedShellId: string | null
   selectShell: (id: string | null) => void
   /** Añade un módulo vacío del tamaño máximo. False si ya están todos o no cabe. */
@@ -803,6 +815,32 @@ export const useHouse = create<HouseState>()(
           return ''
         },
 
+        setShellSlab: (id, { height, margin }) => {
+          const { shells } = get()
+          const current = shells.find((s) => s.id === id)
+          if (!current) return ''
+          if (height !== undefined && !(height >= MIN_SLAB_HEIGHT && height <= MAX_SLAB_HEIGHT)) {
+            return `El grosor de la solera va de ${formatMeters(MIN_SLAB_HEIGHT)} a ${formatMeters(MAX_SLAB_HEIGHT)} m.`
+          }
+          if (margin !== undefined && !(margin >= 0 && margin <= MAX_SLAB_MARGIN)) {
+            return `La solera sobresale de 0 a ${formatMeters(MAX_SLAB_MARGIN)} m.`
+          }
+          set({
+            shells: shells.map((s) =>
+              s.id === id
+                ? {
+                    ...s,
+                    ...(height !== undefined && { slabHeight: roundSize(height) }),
+                    ...(margin !== undefined && { slabMargin: roundSize(margin) }),
+                  }
+                : s,
+            ),
+          })
+          return ''
+        },
+
+        setGround: (finish) => set({ ground: finish }),
+
         removeShell: (id) => {
           const { shells, modules, openings } = get()
           const removed = shells.find((s) => s.id === id)
@@ -973,6 +1011,7 @@ export const useHouse = create<HouseState>()(
         clear: () =>
           set({
             houseName: undefined,
+            ground: undefined,
             modules: [],
             shells: [],
             openings: [],
@@ -982,9 +1021,10 @@ export const useHouse = create<HouseState>()(
             ...NO_SELECTION,
           }),
 
-        loadPlan: ({ houseName, modules, shells, openings, joints, furniture }) =>
+        loadPlan: ({ houseName, ground, modules, shells, openings, joints, furniture }) =>
           set({
             houseName,
+            ground,
             ...withParents({ modules, shells, furniture }),
             shells,
             joints,
@@ -1393,6 +1433,7 @@ export const useHouse = create<HouseState>()(
       },
       partialize: (s) => ({
         houseName: s.houseName,
+        ground: s.ground,
         modules: s.modules,
         shells: s.shells,
         openings: s.openings,

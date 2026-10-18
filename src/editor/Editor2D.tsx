@@ -7,6 +7,7 @@ import {
   PlacedModule,
   Rect,
   formatMeters,
+  slabRect,
   roundSize,
   snap,
 } from '../model/house'
@@ -267,7 +268,7 @@ export default function Editor2D() {
   // Colocando módulos se ve toda la parcela; en los demás modos el plano se
   // encuadra en la casa, para trabajar su interior más de cerca.
   const view = useMemo(
-    () => (mode === 'shells' || shells.length === 0 ? FULL_VIEW : fitView(shells)),
+    () => (mode === 'shells' || shells.length === 0 ? FULL_VIEW : fitView(shells.map(slabRect))),
     [mode, shells],
   )
 
@@ -479,6 +480,11 @@ export default function Editor2D() {
       }}
     >
       <rect className="plot" width={PLOT.width} height={PLOT.depth} />
+      {/* Solera de cada módulo, debajo de todo: la rejilla se sigue viendo encima. */}
+      {shells.map((sh) => {
+        const r = slabRect(sh)
+        return <rect key={`solera-${sh.id}`} className="slab" x={r.x} y={r.y} width={r.width} height={r.depth} />
+      })}
       {layers.grid && gridLines(PLOT.width).map(({ at, major }) => (
         <line
           key={`v${at}`}
@@ -503,7 +509,7 @@ export default function Editor2D() {
       {shells.map((sh) => (
         <g key={sh.id} className={sh.id === selectedShellId ? 'shell selected' : 'shell'}>
           <rect className="shell-outline" x={sh.x} y={sh.y} width={sh.width} height={sh.depth} />
-          <text className="shell-label" x={sh.x} y={sh.y - 0.2}>
+          <text className="shell-label" x={sh.x} y={slabRect(sh).y - 0.2}>
             Módulo {formatMeters(sh.width)} × {formatMeters(sh.depth)} m
           </text>
         </g>

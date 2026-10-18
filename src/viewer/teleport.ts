@@ -22,6 +22,8 @@ export interface TeleportPoint {
   y: number
   /** Dentro de una estancia (sobre el suelo de la casa) o fuera (sobre el césped). */
   inside: boolean
+  /** La estancia en la que cae, si está dentro: da la altura del suelo. */
+  room?: string
 }
 
 export function teleportPoints(
@@ -58,7 +60,7 @@ export function teleportPoints(
         }
       }
     }
-    if (best) points.push({ key: `room:${m.id}`, x: best[0], y: best[1], inside: true })
+    if (best) points.push({ key: `room:${m.id}`, x: best[0], y: best[1], inside: true, room: m.id })
   }
 
   const walls = deriveWalls(modules, joints)
@@ -74,7 +76,8 @@ export function teleportPoints(
       ] as const) {
         const [x, y] = wall.horizontal ? [along, across] : [across, along]
         if (x < 0 || y < 0 || x > PLOT.width || y > PLOT.depth || !free(x, y)) continue
-        points.push({ key: `door:${opening.id}:${side}`, x, y, inside: !!room(x, y) })
+        const under = room(x, y)
+        points.push({ key: `door:${opening.id}:${side}`, x, y, inside: !!under, room: under?.id })
       }
     }
   }

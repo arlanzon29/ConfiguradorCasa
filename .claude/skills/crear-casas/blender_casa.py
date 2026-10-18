@@ -5,13 +5,13 @@
 #
 # Qué hace: quita la casa anterior (colección "Casa ConfiguradorCasa" y lo que puso
 # este script), importa el GLB en esa colección, pone Cycles en GPU (CUDA),
-# cielo físico y sol, techo a 2,9 m sobre los suelos, una luz de área en cada
+# cielo físico y sol, techo a 2,7 m sobre los suelos, una luz de área en cada
 # disco emisivo de los focos y una cámara por foto ("Foto N <estancia>").
 import bpy, glob, math, os, mathutils
 
 GLB = None  # ruta del .glb; None = el más reciente de Descargas
 FOTOS = []  # casa().fotos tal cual: [{foto, estancia, x, y, camara: {...}}]
-TECHO = 2.9  # cara de abajo del techo: suelo de 0,2 m + pared de 2,7 m
+PARED = 2.7  # alto de pared: el techo va a esta altura sobre cada suelo
 
 import tempfile
 recibido = os.path.join(tempfile.gettempdir(), "eurocasa-casa.glb")  # de blender_receptor.py
@@ -93,31 +93,31 @@ def box(o):
     return [o.matrix_world @ mathutils.Vector(c) for c in o.bound_box]
 
 
-# Techo: un tablero sobre el rectángulo que cubren los suelos (mallas finas
-# apoyadas en z = 0, sin contar el césped de la parcela, que es plano).
-floors = [
-    box(o)
-    for o in col.all_objects
-    if o.type == "MESH" and 0.01 < o.dimensions.z < 0.25 and min(o.dimensions.x, o.dimensions.y) > 0.9
-    and abs(min(v.z for v in box(o))) < 0.01
-]
-pts = [v for b in floors for v in b]
-x0, x1 = min(v.x for v in pts), max(v.x for v in pts)
-y0, y1 = min(v.y for v in pts), max(v.y for v in pts)
-mesh = bpy.data.meshes.new("Techo")
-roof = tag(bpy.data.objects.new("Techo", mesh))
-bpy.context.view_layer.objects.active = roof
+# Techo: un tablero a 2,7 m sobre los suelos de las estancias (las mallas
+# "Suelo" del GLB, a la altura de la solera de su módulo), uno por cada altura
+# de suelo, sobre el rectángulo que cubren los de esa altura.
+floors = {}
+for o in col.all_objects:
+    if o.type == "MESH" and o.name.startswith("Suelo"):
+        b = box(o)
+        floors.setdefault(round(min(v.z for v in b) - 0.003, 2), []).extend(b)
 import bmesh
-bm = bmesh.new()
-bmesh.ops.create_cube(bm, size=1)
-bm.to_mesh(mesh)
-bm.free()
-roof.location = ((x0 + x1) / 2, (y0 + y1) / 2, TECHO + 0.025)
-roof.scale = (x1 - x0 + 0.3, y1 - y0 + 0.3, 0.05)
 mat = bpy.data.materials.new("Techo")
 mat.use_nodes = True
 next(n for n in mat.node_tree.nodes if n.type == "BSDF_PRINCIPLED").inputs["Base Color"].default_value = (0.9, 0.9, 0.88, 1)
-mesh.materials.append(mat)
+for nivel, pts in floors.items():
+    x0, x1 = min(v.x for v in pts), max(v.x for v in pts)
+    y0, y1 = min(v.y for v in pts), max(v.y for v in pts)
+    mesh = bpy.data.meshes.new("Techo")
+    roof = tag(bpy.data.objects.new("Techo", mesh))
+    bpy.context.view_layer.objects.active = roof
+    bm = bmesh.new()
+    bmesh.ops.create_cube(bm, size=1)
+    bm.to_mesh(mesh)
+    bm.free()
+    roof.location = ((x0 + x1) / 2, (y0 + y1) / 2, nivel + PARED + 0.025)
+    roof.scale = (x1 - x0 + 0.3, y1 - y0 + 0.3, 0.05)
+    mesh.materials.append(mat)
 
 # Una luz en cada foco: los discos pequeños con material emisivo claro.
 lights = 0

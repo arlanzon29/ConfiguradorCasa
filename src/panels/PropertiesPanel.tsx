@@ -2,7 +2,10 @@ import { ReactNode, useMemo, useState } from 'react'
 import { FurnitureItem, furnitureType, liftOf, partChoices } from '../model/furniture'
 import {
   MAX_SKIRTING_HEIGHT,
+  MAX_SLAB_HEIGHT,
+  MAX_SLAB_MARGIN,
   MAX_WALL_THICKNESS,
+  MIN_SLAB_HEIGHT,
   MIN_SIZE,
   MIN_WALL_THICKNESS,
   PLOT,
@@ -14,6 +17,7 @@ import {
   WALL_HEIGHT,
   formatMeters,
   roundSize,
+  slabOf,
   validShellSize,
   validSize,
   validWallThickness,
@@ -34,7 +38,7 @@ import {
 } from '../model/names'
 import { ARTICLES } from '../model/articles'
 import { openingCode } from '../model/openings'
-import { finishCode, DEFAULT_CEILING, BASE_FLOOR, floorOf } from '../model/finishes'
+import { finishCode, DEFAULT_CEILING, DEFAULT_GROUND, BASE_FLOOR, floorOf } from '../model/finishes'
 import { ArticleCode, Field, Fields, NameField } from './Field'
 import { BoardsSection } from './BoardsSection'
 import { ColorPicker, FaceFinishes, FinishPicker, RoomFinishes } from './FinishesPanel'
@@ -61,7 +65,9 @@ function ShellProperties({ shell }: { shell: Shell }) {
   const resizeShell = useHouse((s) => s.resizeShell)
   const rotateShell = useHouse((s) => s.rotateShell)
   const removeShell = useHouse((s) => s.removeShell)
+  const setShellSlab = useHouse((s) => s.setShellSlab)
   const [notice, setNotice] = useState('')
+  const slab = slabOf(shell)
   const shells = useHouse((s) => s.shells)
   const rename = useHouse((s) => s.rename)
 
@@ -85,7 +91,7 @@ function ShellProperties({ shell }: { shell: Shell }) {
         fallback={defaultShellName(shells, shell.id)}
         onApply={(name) => rename('shell', shell.id, name)}
       />
-      <ArticleCode codes={[{ code: ARTICLES.shell }]} />
+      <ArticleCode codes={[{ code: ARTICLES.shell }, { label: 'Solera', code: ARTICLES.slab }]} />
       <p>Módulo · {formatMeters(shell.width * shell.depth)} m²</p>
       <Fields title="Distancia al borde de la parcela">
         <Field label="Izquierda (m)" value={shell.x} onApply={(x) => move(x, shell.y)} />
@@ -94,6 +100,27 @@ function ShellProperties({ shell }: { shell: Shell }) {
       <Fields title="Medidas">
         <Field label="Ancho (m)" value={shell.width} onApply={(w) => resize(w, shell.depth)} />
         <Field label="Fondo (m)" value={shell.depth} onApply={(d) => resize(shell.width, d)} />
+      </Fields>
+      <Fields title="Solera">
+        <Field
+          label="Sobresale (cm)"
+          value={Math.round(slab.margin * 100)}
+          onApply={(cm) => {
+            const meters = Math.round(cm) / 100
+            if (!(meters >= 0 && meters <= MAX_SLAB_MARGIN)) return `Entre 0 y ${MAX_SLAB_MARGIN * 100} cm.`
+            return setShellSlab(shell.id, { margin: meters })
+          }}
+        />
+        <Field
+          label="Grosor (cm)"
+          value={Math.round(slab.height * 100)}
+          onApply={(cm) => {
+            const meters = Math.round(cm) / 100
+            if (!(meters >= MIN_SLAB_HEIGHT && meters <= MAX_SLAB_HEIGHT))
+              return `Entre ${MIN_SLAB_HEIGHT * 100} y ${MAX_SLAB_HEIGHT * 100} cm.`
+            return setShellSlab(shell.id, { height: meters })
+          }}
+        />
       </Fields>
       <div className="actions spaced">
         <button onClick={() => setNotice(rotateShell(shell.id))}>Girar 90° (R)</button>
@@ -561,12 +588,29 @@ interface Props {
 /** La casa entera: su nombre (sale en el árbol y en los archivos que se descargan). */
 function HouseProperties() {
   const name = useHouse((s) => s.houseName)
+  const ground = useHouse((s) => s.ground)
+  const setGround = useHouse((s) => s.setGround)
   return (
-    <NameField
-      value={name}
-      fallback={DEFAULT_HOUSE_NAME}
-      onApply={(text) => useHouse.getState().rename('house', '', text)}
-    />
+    <>
+      <NameField
+        value={name}
+        fallback={DEFAULT_HOUSE_NAME}
+        onApply={(text) => useHouse.getState().rename('house', '', text)}
+      />
+      <h2>Terreno de la parcela</h2>
+      <ArticleCode
+        codes={[
+          { code: ARTICLES.ground },
+          { label: 'Acabado', code: finishCode(ground, DEFAULT_GROUND) },
+        ]}
+      />
+      <FinishPicker value={ground ?? DEFAULT_GROUND} onChange={(f) => setGround(f)} />
+      {ground && (
+        <div className="actions spaced">
+          <button onClick={() => setGround(undefined)}>Volver al césped</button>
+        </div>
+      )}
+    </>
   )
 }
 

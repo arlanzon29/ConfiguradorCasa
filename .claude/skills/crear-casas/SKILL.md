@@ -32,7 +32,11 @@ cambio.
   arriba. La posición de una estancia se da desde la esquina de arriba a la
   izquierda de su módulo.
 - Las estancias deben **llenar el módulo**: lo que queda sin estancia no tiene
-  suelo ni paredes en 3D.
+  suelo ni paredes en 3D (se ve la solera).
+- **Solera**: cada módulo se apoya en la suya, que sobresale lo mismo por los
+  cuatro lados (0,5 m por defecto) y tiene un grosor (0,2 m por defecto), que
+  es la altura del suelo de la casa sobre el terreno. Alrededor, el **terreno**
+  de toda la parcela (césped si no se elige otro).
 - Grosor de pared: 0,15 m las exteriores, 0,10 m las compartidas (0,05 m a
   cada lado). Descuéntalo al juzgar si una estancia es habitable: una de
   1,6 m de fondo entre fachada y tabique deja 1,4 m libres.
@@ -46,10 +50,12 @@ su id; los huecos, por su id.
 
 | Función | Parámetros | Notas |
 |---|---|---|
-| `casa()` | — | Lee la casa: su `nombre`, `modulos` con sus `estancias`, y `huecos`, `muebles`, `mecanismos` (interruptores y enchufes) y `fotos`. Llámala antes de tocar una casa que no has montado tú |
+| `casa()` | — | Lee la casa: su `nombre`, su `terreno`, `modulos` con su `solera` (`sobresale` y `grosor`) y sus `estancias`, y `huecos`, `muebles`, `mecanismos` (interruptores y enchufes) y `fotos`. Llámala antes de tocar una casa que no has montado tú |
 | `nuevoPlano()` | — | Borra todo (también el nombre) y deja un módulo vacío de 13 × 4,2 m |
 | `nombrarCasa` | `nombre` | Pone nombre a la casa (sale en el árbol, en el archivo de plano y en los nombres de lo que se descarga). Vacío, vuelve a "Casa". Al montar una casa para un cliente, ponle nombre ("Casa García") |
 | `medirModulo` | `{ modulo?, ancho, fondo }` | Sin `modulo`, el primero. Falla si alguna estancia dejaría de caber |
+| `cambiarSolera` | `{ modulo?, sobresale?, grosor? }` | En metros. Sin `modulo`, el primero. `sobresale`: de 0 a 3 (lo que sale la solera del módulo por cada lado); `grosor`: de 0,05 a 1, y **sube o baja toda la casa** de ese módulo. Lo que no se diga no cambia. Si hay dos módulos, ponles el mismo grosor salvo que pidan otra cosa: con grosores distintos la casa queda a dos alturas |
+| `ponerTerreno` | `{ acabado }` | El suelo de **toda la parcela** alrededor de la casa: un material o un color (como `ponerSuelo`), o `césped` para volver al de siempre. Solo se ve en 3D |
 | `crearEstancia` | `{ nombre?, ancho, fondo, x?, y?, modulo? }` | Con `x` e `y`, en ese sitio; sin ellos, en el primer hueco libre |
 | `eliminarEstancia` | `{ estancia }` | Se lleva sus huecos y muebles |
 | `ponerHueco` | `{ tipo, estancia, lado, con?, posicion?, ancho?, alto?, altura?, abreHacia?, cerrada? }` | `tipo`: `puerta` (0,9 m), `corredera` (2,4 m) o `ventana` (1,2 × 1,2 m a 0,9 m del suelo). `lado`: `norte`, `sur`, `este`, `oeste`. `con`: la estancia vecina, para la pared compartida. `posicion`: metros desde el extremo oeste (lados norte y sur) o norte (lados este y oeste) del lado hasta el **centro** del hueco; sin ella, centrado |
@@ -68,7 +74,7 @@ su id; los huecos, por su id.
 | `catalogoAcabados()` | — | `materiales` (con textura; hoy solo `pino`, "Madera de pino") y `colores` de la paleta (Blanco roto, Blanco, Gris perla, Arena, Salvia, Azul grisáceo, Terracota, Antracita). Si preguntan qué opciones hay, léelas de aquí y cuéntalas |
 | `ponerSuelo` | `{ estancia, acabado, girado? }` | `acabado`: nombre o id de un material o color del catálogo, un color `#rrggbb`, o `sin acabado`. `girado`: la veta girada 90°. El suelo es por estancia; `casa()` da el `suelo` de cada una |
 | `pintarParedes` | `{ estancia, acabado, lado? }` | Las caras **interiores** de las paredes de esa estancia, con un color o un material (igual que en `ponerSuelo`, salvo `sin acabado`). Con `lado`, solo esa pared; sin él, las cuatro, y se pierden los colores propios que tuviera alguna. Una pared compartida tiene dos caras: pintar el salón no cambia la cara que da a la habitación. `casa()` da las `paredes` de cada estancia |
-| `llevarCamara` | `{ estancia, mirando?, desde? }` | Lleva la cámara de la vista 3D a esa estancia, de pie (ojos a 1,6 m). Con `desde` (`noroeste`, `noreste`, `suroeste`, `sureste`) se pone en esa **esquina** y mira en diagonal al centro: es la vista que mejor enseña una estancia. Con `mirando` (`norte`, `sur`, `este`, `oeste`), centrada en la pared contraria y mirando recto. **Sin nada, va a la vista de la última foto guardada de esa estancia** (con su objetivo; devuelve `foto` con su número) y, si no hay ninguna, mira recto a lo largo del lado más largo. Una foto es de la estancia a la que mira la cámara, aunque esté sacada desde el umbral de la puerta; `casa().fotos` dice de cuál es cada una. La cámara vuela, tarda algo más de un segundo: espera antes de capturar. Úsala para enseñar o comprobar a la vista lo que has cambiado en una estancia |
+| `llevarCamara` | `{ estancia, mirando?, desde? }` | Lleva la cámara de la vista 3D a esa estancia, de pie (ojos a 1,6 m sobre el suelo de la estancia). Con `desde` (`noroeste`, `noreste`, `suroeste`, `sureste`) se pone en esa **esquina** y mira en diagonal al centro: es la vista que mejor enseña una estancia. Con `mirando` (`norte`, `sur`, `este`, `oeste`), centrada en la pared contraria y mirando recto. **Sin nada, va a la vista de la última foto guardada de esa estancia** (con su objetivo; devuelve `foto` con su número) y, si no hay ninguna, mira recto a lo largo del lado más largo. Una foto es de la estancia a la que mira la cámara, aunque esté sacada desde el umbral de la puerta; `casa().fotos` dice de cuál es cada una. La cámara vuela, tarda algo más de un segundo: espera antes de capturar. Úsala para enseñar o comprobar a la vista lo que has cambiado en una estancia |
 | `hacerFoto` | `{ muestras? }` | Empieza una **foto en calidad** de lo que ve la cámara (llévala antes con `llevarCamara`). `muestras`: 50, 100 o 200; sin decirlo, las que estén elegidas. Hace falta la vista 3D a la vista ("Vista 3D", "Plano + 3D" o la ventana `?vista=3d`). La primera foto tarda alrededor de un minuto en arrancar. **No la guarda**: al terminar, la página pregunta "¿Guardar la foto?" y lo decide quien la mira |
 | `verFoto` | `{ foto?, estancia? }` | Abre el **visor** con una foto guardada: la de ese número (como en `casa().fotos`) o la última de esa estancia. El visor tiene Anterior, Siguiente, Descargar y Cerrar. Si piden "la foto" de una estancia, es esto. El archivo no se puede sacar de la página desde aquí: para tenerlo, el botón "Descargar" del visor |
 | `descargarGlb` | `{ enviarA? }` | Con `enviarA`, en vez de descargar manda el GLB por POST a esa dirección (el receptor de Blender, ver "Pasar la casa a Blender"); devuelve una promesa. Sin nada: descarga la casa como `configuradorcasa-<nombre de la casa>-<fecha>.glb` (lo mismo que el botón "Descargar GLB" de la vista 3D), para abrirla en Blender o Unity. Hace falta la vista 3D a la vista. El archivo cae en la carpeta de descargas del navegador; los focos van como discos emisivos, sin luz |
@@ -215,7 +221,7 @@ Cada elemento de catálogo lleva un `codigo` (campo `code` en el código), para
 asociarlo a la base de costes de `comercial/`, que **la web no conoce**. Salen
 en `catalogoMuebles`, `catalogoAcabados`, `catalogoMecanismos` y, por
 instancia, en `casa().muebles`, `casa().huecos` y `casa().mecanismos`. Lo que
-no es catálogo (módulo, paredes, rodapié, techo, focos, tablero, espejo) tiene su código en `src/model/articles.ts`. **Todos son
+no es catálogo (módulo, solera, terreno, paredes, rodapié, techo, focos, tablero, espejo) tiene su código en `src/model/articles.ts`. **Todos son
 inventados por Claude**, a falta de los de la empresa: no los des por reales.
 
 ## Casas guardadas: la carpeta `comercial/`

@@ -72,6 +72,23 @@ Las paredes siguen deducidas.
 
 Otros elementos:
 
+- **Solera** (2026-10-18): cada módulo se apoya en la suya, una losa de
+  hormigón que **sobresale** lo mismo por los cuatro lados (`slabMargin`, por
+  defecto 0,5 m, lo dijo el usuario) y tiene un **grosor** (`slabHeight`, por
+  defecto 0,2 m, inventado) que es la altura del suelo de la casa sobre el
+  terreno: **sustituye a la losa fija de 20 cm** que había bajo cada estancia
+  (`SLAB` en `View3D.tsx`, decisión del usuario). Se guarda en el módulo
+  (`Shell`); `slabOf`, `slabRect`, `roomLevel` y `levelAt` en `house.ts`.
+  Todo lo de una estancia (suelo, paredes, carpintería, piezas de pared,
+  focos, techo, muebles) va a la altura de la solera de su módulo (`Level` y
+  `useLevel` en `View3D.tsx`); la cámara a pie y la VR, a la del módulo que
+  tienen debajo (`floorUnder`). Una estancia sin módulo (planos antiguos)
+  sigue sobre su losa de 20 cm. `setShellSlab` en `store.ts`. Color fijo
+  (`SLAB_COLOR`). En el plano, una franja gris alrededor del módulo.
+- **Terreno** (2026-10-18): el suelo de **toda la parcela** (lo eligió el
+  usuario), un acabado de la casa (`ground` en `store.ts` y arriba del
+  archivo de plano), césped si no tiene (`DEFAULT_GROUND`). Solo se ve en 3D.
+  `Ground` en `View3D.tsx`.
 - **Huecos** (`Opening`, puertas y ventanas): anclados a un lado de una estancia
   (`moduleId`, `side`, `offset`). En qué pared caen se deduce; uno puesto en una
   pared compartida da paso entre las dos estancias. Al cambiar las estancias se
@@ -217,6 +234,7 @@ fotos/                           fotos de referencia que pasa el usuario (exteri
 | `GRID` | 0,2 m | Rejilla visible y paso de arrastre. 13 × 4,2 = 65 × 21 cuadros |
 | `SHELL_MAX_LONG/SHORT`, `MAX_SHELLS` | 13 / 4,2 / 2 | Límite de fabricación |
 | `WALL_HEIGHT` | 2,7 m | Inventado; pendiente de confirmar |
+| `DEFAULT_SLAB_MARGIN`, `DEFAULT_SLAB_HEIGHT` | 0,5 / 0,2 m | Solera: lo que sobresale (del usuario) y grosor (inventado). Grosor de 0,05 a 1 m; vuelo de 0 a 3 m |
 | `DEFAULT_WALL_THICKNESS` | 0,15 m | Exterior. Compartida: 0,10 m (`walls.ts`) |
 | `MIN_SIZE` | 1 m | Lado mínimo de estancia o módulo |
 | `DEFAULT_SKIRTING_HEIGHT/COLOR`, `MAX_SKIRTING_HEIGHT` | 0,07 m / blanco / 0,30 m | Rodapié. Sobresale 1,2 cm (`SKIRTING_DEPTH` en `View3D.tsx`) |
@@ -301,8 +319,8 @@ Casa
 
 | Elegido | Arriba (datos) | Debajo (añadir y acabados) |
 |---|---|---|
-| Casa | nombre | Añadir módulo horizontal o vertical. Se ve toda la parcela |
-| Módulo | distancia al borde izquierdo y superior de la parcela; ancho y fondo; girar, eliminar | Añadir estancia (catálogo y medida personalizada) y el resumen |
+| Casa | nombre; terreno de la parcela (acabado, "Volver al césped") | Añadir módulo horizontal o vertical. Se ve toda la parcela |
+| Módulo | distancia al borde izquierdo y superior de la parcela; ancho y fondo; solera (cuánto sobresale y grosor, en cm); girar, eliminar | Añadir estancia (catálogo y medida personalizada) y el resumen |
 | Estancia | distancia al borde de su módulo; ancho y fondo; girar, eliminar | Suelo, techo (si lo lleva en la foto y su acabado), acabado de todas sus paredes, "Añadir luz" (foco de techo) y el catálogo de **mobiliario** con el icono de imán |
 | Foco | distancia a la izquierda y arriba, "Centrar en la estancia", potencia (%), tono, color de emisión, eliminar | — |
 | Pared | grosor (cm); rodapié (alto y color); quitar/poner | Añadir hueco (puerta, corredera, ventana); en una compartida, de qué estancia es **la cara** que se viste; color de esa cara, y añadir vinilo, espejo o tablero |
@@ -691,7 +709,20 @@ que la textura "Madera de pino" cubre 2 × 2 m (supuesto, sin confirmar).
   estaban, y el que quedaría fuera se lleva al borde y no vuelve si se
   ensancha otra vez. El límite al arrastrar es el rectángulo de la estancia,
   sin descontar paredes, salvo con el imán puesto.
-- Un módulo sin estancias no se ve en 3D (suelo y paredes salen de las estancias).
+- Un módulo sin estancias solo se ve en 3D como su solera (suelo y paredes salen de las estancias).
+- Solera: puede salirse de la parcela (el módulo se encaja sin contar lo que
+  sobresale) y la de dos módulos juntos se solapa. Con grosores distintos la
+  casa queda a dos alturas: una pared compartida entre estancias de módulos
+  distintos va a la altura de la del norte u oeste, y no hay escalón. No se
+  elige su acabado. La cámara de `llevarCamara` queda ahora a 1,6 m sobre el
+  suelo de la estancia (antes, a 1,6 m del terreno, 20 cm más baja). Probado en
+  el servidor aparte (5185) con "Ejemplo 2": las funciones y sus errores, la
+  vista 3D desde fuera y por dentro con 0,45 m de grosor, el plano, las
+  casillas con el teclado (y su aviso), girar el módulo cuatro veces, el
+  archivo de plano con terreno y solera, deshacer el terreno y "Volver al
+  césped". Sin probar: la VR, la AR, la foto en calidad, dos módulos, el GLB
+  y el techo de Blender (`blender_casa.py` lo pone ahora a 2,7 m sobre las
+  mallas "Suelo" del GLB, una por cada altura).
 - Fachada sin configurar (color fijo): dependerá del aislante y el revestimiento.
 - "Guardar/Cargar plano" no se ha probado pulsando los botones (sí el formato,
   también con fotos dentro).
@@ -781,6 +812,19 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-18** · **Solera de cada módulo y terreno de la parcela** (el
+  usuario: "la casa se debe apoyar con una solera de un determinado ancho",
+  propiedad del módulo, y "el suelo que puede rodear la casa"). Eligió: lo
+  que sobresale, igual en los cuatro lados; que la solera **sustituya** a los
+  20 cm fijos bajo cada estancia, con grosor propio que sube o baja la casa;
+  y para el suelo de fuera, **toda la parcela** con un acabado. "Pon 50 cm por
+  defecto" lo entendí como lo que sobresale; el grosor se queda en 0,2 m.
+  Panel del módulo (Solera, en cm), de la Casa (Terreno de la parcela), franja
+  en el plano, `cambiarSolera` y `ponerTerreno` en `window.eurocasa` y en la
+  skill `crear-casas`, códigos `SOL-BASE` y `TER-BASE` (inventados). Las
+  mallas del GLB se llaman "Suelo", "Solera" y "Terreno", y `blender_casa.py`
+  pone el techo sobre los suelos. Ver limitaciones.
 
 - **2026-10-18** · **La pregunta de sustituir, en la ventana "Cargar URL"** (el
   usuario: "el texto de sustituir debe aparecer en la pantalla de carga"). Al

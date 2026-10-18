@@ -41,6 +41,8 @@ export type JoineryRole = 'Cerco' | 'Tapajuntas' | 'Hoja' | 'Perfil' | 'Junquill
 export interface JoineryPart {
   /** Centro de la caja: x y z del plano, con la altura medida desde el suelo. */
   position: [number, number, number]
+  /** Estancia de la que sale la pared del hueco: de ella se toma la altura del suelo. */
+  room: string
   size: [number, number, number]
   material: JoineryMaterial
   role: JoineryRole
@@ -90,8 +92,8 @@ export function joineryParts(modules: PlacedModule[], joints: Joints, openings: 
       const [a, c, h] = [(a0 + a1) / 2, (c0 + c1) / 2, (y[0] + y[1]) / 2]
       parts.push(
         wall.horizontal
-          ? { position: [a, h, c], size: [a1 - a0, y[1] - y[0], c1 - c0], material, role, finish, leaf: leafAxis }
-          : { position: [c, h, a], size: [c1 - c0, y[1] - y[0], a1 - a0], material, role, finish, leaf: leafAxis },
+          ? { position: [a, h, c], size: [a1 - a0, y[1] - y[0], c1 - c0], room: wall.moduleId, material, role, finish, leaf: leafAxis }
+          : { position: [c, h, a], size: [c1 - c0, y[1] - y[0], a1 - a0], room: wall.moduleId, material, role, finish, leaf: leafAxis },
       )
     }
 

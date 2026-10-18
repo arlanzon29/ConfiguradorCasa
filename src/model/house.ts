@@ -140,7 +140,48 @@ export interface Shell {
   y: number
   width: number
   depth: number
+  /** Grosor de la solera en metros: la casa se apoya encima. Si falta, DEFAULT_SLAB_HEIGHT. */
+  slabHeight?: number
+  /** Lo que sobresale la solera del módulo, igual en los cuatro lados. Si falta, DEFAULT_SLAB_MARGIN. */
+  slabMargin?: number
 }
+
+// --- Solera -------------------------------------------------------------------
+// Cada módulo se apoya en su solera, que sobresale de él lo mismo por los cuatro
+// lados. Su grosor es la altura del suelo de la casa sobre el terreno.
+// Valores por defecto inventados (el vuelo de 50 cm lo dijo el usuario).
+
+export const DEFAULT_SLAB_HEIGHT = 0.2
+export const DEFAULT_SLAB_MARGIN = 0.5
+export const MIN_SLAB_HEIGHT = 0.05
+export const MAX_SLAB_HEIGHT = 1
+export const MAX_SLAB_MARGIN = 3
+
+export const slabOf = (shell?: Pick<Shell, 'slabHeight' | 'slabMargin'>) => ({
+  height: shell?.slabHeight ?? DEFAULT_SLAB_HEIGHT,
+  margin: shell?.slabMargin ?? DEFAULT_SLAB_MARGIN,
+})
+
+/** Rectángulo que ocupa la solera de un módulo en el plano. */
+export const slabRect = (shell: Shell): Rect => {
+  const { margin } = slabOf(shell)
+  return {
+    x: shell.x - margin,
+    y: shell.y - margin,
+    width: shell.width + 2 * margin,
+    depth: shell.depth + 2 * margin,
+  }
+}
+
+/** Altura del suelo de una estancia: el grosor de la solera de su módulo. */
+export const roomLevel = (shells: Shell[], room?: Pick<PlacedModule, 'shellId'>) =>
+  slabOf(shells.find((sh) => sh.id === room?.shellId)).height
+
+/** Altura del suelo de la casa en un punto del plano: la de la solera del módulo que lo cubre. */
+export const levelAt = (shells: Shell[], x: number, y: number) =>
+  slabOf(
+    shells.find((sh) => x >= sh.x && x <= sh.x + sh.width && y >= sh.y && y <= sh.y + sh.depth),
+  ).height
 
 export const validShellSize = (width: number, depth: number) =>
   Math.min(width, depth) >= MIN_SIZE &&

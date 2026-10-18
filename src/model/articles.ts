@@ -11,6 +11,10 @@
 export const ARTICLES = {
   /** Módulo de fábrica (la pieza que sale de fábrica). */
   shell: 'MOD-FABRICA',
+  /** Solera de un módulo, por metro cuadrado. */
+  slab: 'SOL-BASE',
+  /** Terreno de la parcela, por metro cuadrado (el acabado lleva su propio código). */
+  ground: 'TER-BASE',
   /** Pared exterior, por metro lineal. */
   wallExterior: 'PAR-EXTERIOR',
   /** Pared compartida entre estancias, por metro lineal. */

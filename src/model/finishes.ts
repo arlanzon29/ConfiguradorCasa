@@ -95,6 +95,12 @@ export function resolveFinish(finish: Finish | undefined, fallback: Finish): Omi
 /** Techo, mientras no se elija otro. */
 export const DEFAULT_CEILING: Finish = '#ffffff'
 
+/** Terreno de la parcela si no se elige otro: el verde de césped de siempre. */
+export const DEFAULT_GROUND: Finish = '#b7c7a3'
+
+/** Color de la solera de los módulos (hormigón; no se elige). Inventado. */
+export const SLAB_COLOR = '#b9b5ad'
+
 /** Suelo sin acabado: la losa vista. */
 export const BASE_FLOOR = FLOORS[0]
 

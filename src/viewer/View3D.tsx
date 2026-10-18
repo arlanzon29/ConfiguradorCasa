@@ -32,13 +32,27 @@ import {
   Finish,
   BASE_FLOOR,
   DEFAULT_CEILING,
+  DEFAULT_GROUND,
+  SLAB_COLOR,
   FloorFinish,
   floorOf,
   interiorFinish,
   interiorColor,
   resolveFinish,
 } from '../model/finishes'
-import { PLOT, PlacedModule, SIDES, Side, WALL_HEIGHT } from '../model/house'
+import {
+  DEFAULT_SLAB_HEIGHT,
+  PLOT,
+  PlacedModule,
+  SIDES,
+  Shell,
+  Side,
+  WALL_HEIGHT,
+  levelAt,
+  roomLevel,
+  slabOf,
+  slabRect,
+} from '../model/house'
 import { BOARD_FALLBACK_COLOR } from '../model/boards'
 import { LIGHT_SIZE, lightColor } from '../model/lights'
 import { MIRROR_THICKNESS } from '../model/mirrors'
@@ -60,8 +74,27 @@ import { TeleportPoint, teleportPoints } from './teleport'
 import { fileSlug, houseName } from '../model/names'
 import PhotoTracer from './PhotoTracer'
 
-// Grosor de la losa, en metros.
-const SLAB = 0.2
+/**
+ * Altura del suelo de una estancia sobre el terreno: el grosor de la solera de
+ * su módulo (house.ts). Sin estancia (o sin módulos, en los planos antiguos), la
+ * de por defecto.
+ */
+type Level = (roomId?: string) => number
+
+const levelFn = (modules: PlacedModule[], shells: Shell[]): Level => (roomId) =>
+  roomLevel(shells, modules.find((m) => m.id === roomId))
+
+/** La función de altura del suelo, al día con la casa. */
+function useLevel(): Level {
+  const modules = useHouse((s) => s.modules)
+  const shells = useHouse((s) => s.shells)
+  return useMemo(() => levelFn(modules, shells), [modules, shells])
+}
+
+/** Altura del suelo de la casa bajo un punto del mundo 3D (la parcela va centrada en el origen). */
+const floorUnder = (x: number, z: number) =>
+  levelAt(useHouse.getState().shells, x + PLOT.width / 2, z + PLOT.depth / 2)
+
 // Grosor, en metros, del techo de la foto en calidad.
 const CEILING = 0.1
 // Lo que alumbra un foco al 100 %: lo mismo que el panel de luz provisional que
@@ -128,6 +161,7 @@ function wallParts(
   joints: Joints,
   openings: Opening[],
   facadeColor: string,
+  level: Level,
 ) {
   const walls = deriveWalls(modules, joints)
   const room = (id?: string) => modules.find((m) => m.id === id)
@@ -174,7 +208,7 @@ function wallParts(
       const along = to - from
       const mid = (from + to) / 2
       const across = grow ? wall.thickness - 2 * JOINT_RECESS : wall.thickness
-      const y = SLAB + (bottom + top) / 2
+      const y = level(wall.moduleId) + (bottom + top) / 2
       const neutral = DEFAULT_WALL_COLOR
       const skins: WallSkin[] = []
       // `toward` es 1 en la cara sur o este de la caja y -1 en la norte u oeste.
@@ -236,7 +270,7 @@ interface SkirtingPart {
  * una compartida, la de dentro de una exterior), cortada en los huecos que
  * llegan hasta ella, que en la práctica son las puertas.
  */
-function skirtingParts(modules: PlacedModule[], joints: Joints, openings: Opening[]) {
+function skirtingParts(modules: PlacedModule[], joints: Joints, openings: Opening[], level: Level) {
   const walls = deriveWalls(modules, joints)
   const parts: SkirtingPart[] = []
   for (const wall of walls) {
@@ -252,7 +286,7 @@ function skirtingParts(modules: PlacedModule[], joints: Joints, openings: Openin
     const add = (from: number, to: number) => {
       if (to - from < 1e-3) return
       const mid = (from + to) / 2
-      const y = SLAB + height / 2
+      const y = level(wall.moduleId) + height / 2
       for (const across of faces) {
         parts.push(
           wall.horizontal
@@ -275,8 +309,8 @@ function skirtingParts(modules: PlacedModule[], joints: Joints, openings: Openin
 // Velocidad de desplazamiento con WASD, en m/s: volando y a pie.
 const MOVE_SPEED = 4
 const WALK_SPEED = 1.5
-// Altura de los ojos a pie: 1,6 m sobre la losa.
-const EYE_HEIGHT = SLAB + 1.6
+// Altura de los ojos a pie: 1,6 m sobre el suelo de la casa.
+const EYES = 1.6
 const MIN_CAMERA_HEIGHT = 0.5
 const MOVE_KEYS = ['KeyW', 'KeyA', 'KeyS', 'KeyD']
 
@@ -393,7 +427,7 @@ function FirstPersonControls() {
   // Solo al cambiar de modo: al reabrir la vista ya a pie se respeta la pose guardada.
   useEffect(() => {
     if (walk && !wasWalking.current) {
-      camera.position.y = EYE_HEIGHT
+      camera.position.y = floorUnder(camera.position.x, camera.position.z) + EYES
       camera.rotation.x = 0
       useHouse.getState().setCameraPose({
         position: camera.position.toArray() as [number, number, number],
@@ -602,13 +636,14 @@ const TELEPORT_RING = 0.05
 /** Un punto de salto de la VR: un círculo en el suelo; apuntándolo, el gatillo te lleva ahí. */
 function TeleportMarker({ point }: { point: TeleportPoint }) {
   const group = useRef<Group>(null)
+  const level = useLevel()
   const { hovered, hit, handlers } = useAim(true, () => {
     if (group.current) teleportRequest = group.current.getWorldPosition(new Vector3())
   })
   const color = hovered ? VR_ACTIVE_COLOR : '#ffffff'
   return (
     <>
-      <group ref={group} position={[point.x, point.inside ? SLAB : 0, point.y]} {...handlers}>
+      <group ref={group} position={[point.x, point.room ? level(point.room) : 0, point.y]} {...handlers}>
         <mesh rotation-x={-Math.PI / 2} position-y={0.012}>
           <circleGeometry args={[TELEPORT_RADIUS, 32]} />
           <meshBasicMaterial color={color} transparent opacity={hovered ? 0.35 : 0.15} depthWrite={false} />
@@ -907,13 +942,14 @@ function VRRig({ ar }: { ar: boolean }) {
     }
     stopCameraFlight()
     const pose = useHouse.getState().cameraPose
-    group.position.set(pose?.position[0] ?? 0, SLAB, pose?.position[2] ?? 0)
+    const [x, z] = [pose?.position[0] ?? 0, pose?.position[2] ?? 0]
+    group.position.set(x, floorUnder(x, z), z)
     group.rotation.set(0, pose?.yaw ?? 0, 0)
     last.current = null
     return () => {
       const at = last.current
       if (!at) return
-      useHouse.getState().setCameraPose({ position: [at.x, EYE_HEIGHT, at.z], yaw: at.yaw, pitch: 0 })
+      useHouse.getState().setCameraPose({ position: [at.x, floorUnder(at.x, at.z) + EYES, at.z], yaw: at.yaw, pitch: 0 })
     }
   }, [session, ar])
 
@@ -1129,9 +1165,10 @@ function WallSkinPlane({ skin }: { skin: WallSkin }) {
  * el acabado de su hueco, que es un color liso o un material con textura.
  */
 function JoineryBox({ part }: { part: JoineryPart }) {
+  const level = useLevel()
   const position: [number, number, number] = [
     part.position[0],
-    SLAB + part.position[1],
+    level(part.room) + part.position[1],
     part.position[2],
   ]
   // El nombre viaja en el GLB: Blender lo usa para saber qué pieza es.
@@ -1178,6 +1215,7 @@ function DoorLeaf({
   interactive: boolean
 }) {
   const group = useRef<Group>(null)
+  const level = useLevel()
   const target = axis.closed ? 0 : axis.open
   const angle = useRef(target)
   const { hovered, hit, handlers } = useAim(interactive, () =>
@@ -1223,7 +1261,7 @@ function DoorLeaf({
             <lineSegments
               geometry={edges}
               pointerEvents="none"
-              position={[panel.position[0], SLAB + panel.position[1], panel.position[2]]}
+              position={[panel.position[0], level(panel.room) + panel.position[1], panel.position[2]]}
             >
               <lineBasicMaterial color={VR_ACTIVE_COLOR} />
             </lineSegments>
@@ -1298,7 +1336,7 @@ interface VinylPart {
 }
 
 /** Vinilos de todas las estancias, cada uno como un plano pegado a su cara de pared. */
-function vinylParts(modules: PlacedModule[], joints: Joints) {
+function vinylParts(modules: PlacedModule[], joints: Joints, level: Level) {
   const walls = deriveWalls(modules, joints)
   const parts: VinylPart[] = []
   for (const room of modules) {
@@ -1307,7 +1345,7 @@ function vinylParts(modules: PlacedModule[], joints: Joints) {
         const type = vinylType(v.typeId)
         const place = vinylPlacement(room, side, v, walls)
         if (!type || !place) continue
-        const y = SLAB + v.y + v.height / 2
+        const y = level(room.id) + v.y + v.height / 2
         parts.push({
           key: v.id,
           url: type.image,
@@ -1359,7 +1397,7 @@ const MIRROR_BODY_COLOR = '#3a3d40'
  * Espejos de todas las estancias. Cada uno son dos piezas: el cuerpo, que es
  * geometría, y la superficie reflectante, que va aparte como un acabado suyo.
  */
-function mirrorParts(modules: PlacedModule[], joints: Joints) {
+function mirrorParts(modules: PlacedModule[], joints: Joints, level: Level) {
   const walls = deriveWalls(modules, joints)
   const parts: MirrorPart[] = []
   for (const room of modules) {
@@ -1368,7 +1406,7 @@ function mirrorParts(modules: PlacedModule[], joints: Joints) {
         const body = vinylPlacement(room, side, v, walls, MIRROR_THICKNESS / 2)
         const front = vinylPlacement(room, side, v, walls, MIRROR_THICKNESS + MIRROR_GAP)
         if (!body || !front) continue
-        const y = SLAB + v.y + v.height / 2
+        const y = level(room.id) + v.y + v.height / 2
         parts.push({
           key: v.id,
           body: body.horizontal
@@ -1417,7 +1455,7 @@ interface BoardPart {
 }
 
 /** Tableros de todas las estancias, cada uno como una caja pegada a su cara de pared. */
-function boardParts(modules: PlacedModule[], joints: Joints) {
+function boardParts(modules: PlacedModule[], joints: Joints, level: Level) {
   const walls = deriveWalls(modules, joints)
   const parts: BoardPart[] = []
   for (const room of modules) {
@@ -1425,7 +1463,7 @@ function boardParts(modules: PlacedModule[], joints: Joints) {
       for (const v of room.boards?.[side] ?? []) {
         const place = vinylPlacement(room, side, v, walls, v.depth / 2)
         if (!place) continue
-        const y = SLAB + v.y + v.height / 2
+        const y = level(room.id) + v.y + v.height / 2
         parts.push({
           key: v.id,
           position: place.horizontal ? [place.along, y, place.across] : [place.across, y, place.along],
@@ -1470,7 +1508,7 @@ const MECHANISM_HOLE_COLOR = '#2b2b2b'
  * pegada a su cara de pared y, encima, el detalle de cada módulo suyo: un
  * pulsador en el interruptor y dos agujeros en el enchufe.
  */
-function mechanismParts(modules: PlacedModule[], joints: Joints) {
+function mechanismParts(modules: PlacedModule[], joints: Joints, level: Level) {
   const walls = deriveWalls(modules, joints)
   const parts: { key: string; boxes: MechanismBox[] }[] = []
   for (const room of modules) {
@@ -1484,7 +1522,7 @@ function mechanismParts(modules: PlacedModule[], joints: Joints) {
         const add = (dx: number, y: number, w: number, h: number, thick: number, depth: number, color: string) => {
           const place = vinylPlacement(room, side, { x: v.x + dx, width: w }, walls, depth)
           if (!place) return
-          const cy = SLAB + v.y + y + h / 2
+          const cy = level(room.id) + v.y + y + h / 2
           boxes.push({
             position: place.horizontal ? [place.along, cy, place.across] : [place.across, cy, place.along],
             size: place.horizontal ? [w, h, thick] : [thick, h, w],
@@ -1542,6 +1580,7 @@ const SHEET_GAP = 0.0005
  */
 function VinylSheetPlane({ sheet, walls }: { sheet: VinylSheet; walls: Wall[] }) {
   const { box, holes, vinyls, room, side } = sheet
+  const level = useLevel()
   const types = vinyls.map((v) => vinylType(v.typeId))
   const images = useLoader(
     TextureLoader,
@@ -1590,7 +1629,7 @@ function VinylSheetPlane({ sheet, walls }: { sheet: VinylSheet; walls: Wall[] })
     SHEET_GAP,
   )
   if (!place) return null
-  const y = SLAB + (box.y0 + box.y1) / 2
+  const y = level(room.id) + (box.y0 + box.y1) / 2
   return (
     <mesh
       position={place.horizontal ? [place.along, y, place.across] : [place.across, y, place.along]}
@@ -1604,9 +1643,9 @@ function VinylSheetPlane({ sheet, walls }: { sheet: VinylSheet; walls: Wall[] })
 }
 
 /** Techo de una estancia, solo durante la foto: una losa con su acabado. */
-function Ceiling({ room }: { room: PlacedModule }) {
+function Ceiling({ room, level }: { room: PlacedModule; level: number }) {
   const finish = resolveFinish(room.ceiling, DEFAULT_CEILING)
-  const position: [number, number, number] = [0, SLAB + WALL_HEIGHT + CEILING / 2, 0]
+  const position: [number, number, number] = [0, level + WALL_HEIGHT + CEILING / 2, 0]
   const size: [number, number, number] = [room.width, CEILING, room.depth]
   const plain = (
     <mesh position={position}>
@@ -1622,11 +1661,18 @@ function Ceiling({ room }: { room: PlacedModule }) {
   )
 }
 
-/** Acabado del suelo de una estancia: una lámina sobre la losa, con la textura a escala real. */
-function Floor({ room }: { room: PlacedModule }) {
-  const finish = resolveFinish(floorOf(room), BASE_FLOOR.color)
+// Suelo sin acabado de la estancia elegida.
+const SELECTED_FLOOR_COLOR = '#b9cdb4'
+
+/**
+ * Suelo de una estancia: una lámina sobre la solera, a la altura `level`, con
+ * la textura a escala real. Sin acabado, el color base; elegida, resaltado.
+ */
+function Floor({ room, level, selected }: { room: PlacedModule; level: number; selected: boolean }) {
+  const finish = resolveFinish(floorOf(room), selected ? SELECTED_FLOOR_COLOR : BASE_FLOOR.color)
   return (
-    <mesh rotation-x={-Math.PI / 2} position-y={SLAB + 0.003} receiveShadow>
+    // El nombre viaja en el GLB: Blender pone el techo sobre los suelos.
+    <mesh name="Suelo" rotation-x={-Math.PI / 2} position-y={level + 0.003} receiveShadow>
       <planeGeometry args={[room.width, room.depth]} />
       {finish.texture ? (
         <FloorTexture room={room} url={finish.texture} size={finish.size ?? [1, 1]} />
@@ -1637,8 +1683,41 @@ function Floor({ room }: { room: PlacedModule }) {
   )
 }
 
+/** Terreno de toda la parcela, con su acabado (césped si no tiene). */
+function Ground({ finish }: { finish?: Finish }) {
+  const { color, texture, size } = resolveFinish(finish, DEFAULT_GROUND)
+  const plain = <meshStandardMaterial color={color} />
+  return (
+    <mesh name="Terreno" rotation-x={-Math.PI / 2} position={[PLOT.width / 2, 0, PLOT.depth / 2]} receiveShadow>
+      <planeGeometry args={[PLOT.width, PLOT.depth]} />
+      {texture ? (
+        <Suspense fallback={plain}>
+          <FloorTexture room={PLOT} url={texture} size={size ?? [1, 1]} />
+        </Suspense>
+      ) : (
+        plain
+      )}
+    </mesh>
+  )
+}
+
+/**
+ * Solera de un módulo: una losa de hormigón del grosor de la solera, que
+ * sobresale del módulo por los cuatro lados.
+ */
+function Slab({ shell }: { shell: Shell }) {
+  const r = slabRect(shell)
+  const { height } = slabOf(shell)
+  return (
+    <mesh name="Solera" position={[r.x + r.width / 2, height / 2, r.y + r.depth / 2]} castShadow receiveShadow>
+      <boxGeometry args={[r.width, height, r.depth]} />
+      <meshStandardMaterial color={SLAB_COLOR} roughness={0.9} />
+    </mesh>
+  )
+}
+
 interface FloorTextureProps {
-  room: PlacedModule
+  room: Pick<PlacedModule, 'width' | 'depth' | 'floorTurned'>
   url: string
   size: [number, number]
 }
@@ -1717,6 +1796,9 @@ function GlbExport({ onDone }: { onDone: (message: string) => void }) {
 
 export default function View3D() {
   const modules = useHouse((s) => s.modules)
+  const shells = useHouse((s) => s.shells)
+  const ground = useHouse((s) => s.ground)
+  const level = useLevel()
   const selectedId = useHouse((s) => s.selectedId)
   const openings = useHouse((s) => s.openings)
   const joints = useHouse((s) => s.joints)
@@ -1730,26 +1812,28 @@ export default function View3D() {
   )
   const ar = xrSession != null && xrMode === 'ar'
   // Lo que ocupa la casa en la parcela: su centro y sus medidas, para la maqueta.
+  // Con las soleras, que sobresalen de los módulos.
   const footprint = useMemo(() => {
-    if (modules.length === 0) return { cx: PLOT.width / 2, cy: PLOT.depth / 2, w: 1, d: 1 }
-    const x0 = Math.min(...modules.map((m) => m.x))
-    const y0 = Math.min(...modules.map((m) => m.y))
-    const x1 = Math.max(...modules.map((m) => m.x + m.width))
-    const y1 = Math.max(...modules.map((m) => m.y + m.depth))
+    const rects = [...modules, ...shells.map(slabRect)]
+    if (rects.length === 0) return { cx: PLOT.width / 2, cy: PLOT.depth / 2, w: 1, d: 1 }
+    const x0 = Math.min(...rects.map((m) => m.x))
+    const y0 = Math.min(...rects.map((m) => m.y))
+    const x1 = Math.max(...rects.map((m) => m.x + m.width))
+    const y1 = Math.max(...rects.map((m) => m.y + m.depth))
     return { cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, w: x1 - x0, d: y1 - y0 }
-  }, [modules])
+  }, [modules, shells])
   const parts = useMemo(
-    () => wallParts(modules, joints, openings, FACADE_COLOR),
-    [modules, joints, openings],
+    () => wallParts(modules, joints, openings, FACADE_COLOR, level),
+    [modules, joints, openings, level],
   )
   const skirtings = useMemo(
-    () => skirtingParts(modules, joints, openings),
-    [modules, joints, openings],
+    () => skirtingParts(modules, joints, openings, level),
+    [modules, joints, openings, level],
   )
-  const vinyls = useMemo(() => vinylParts(modules, joints), [modules, joints])
-  const mirrors = useMemo(() => mirrorParts(modules, joints), [modules, joints])
-  const boards = useMemo(() => boardParts(modules, joints), [modules, joints])
-  const mechanisms = useMemo(() => mechanismParts(modules, joints), [modules, joints])
+  const vinyls = useMemo(() => vinylParts(modules, joints, level), [modules, joints, level])
+  const mirrors = useMemo(() => mirrorParts(modules, joints, level), [modules, joints, level])
+  const boards = useMemo(() => boardParts(modules, joints, level), [modules, joints, level])
+  const mechanisms = useMemo(() => mechanismParts(modules, joints, level), [modules, joints, level])
   const walls = useMemo(() => deriveWalls(modules, joints), [modules, joints])
   const vinylSheetList = useMemo(
     () => vinylSheets(modules, walls, openings),
@@ -2031,31 +2115,28 @@ export default function View3D() {
         // puerta que esté detrás de una pared.
         pointerEvents={xrDoors ? 'auto' : undefined}
       >
-        {!ar && (
-          <mesh
-            rotation-x={-Math.PI / 2}
-            position={[PLOT.width / 2, 0, PLOT.depth / 2]}
-            receiveShadow
-          >
-            <planeGeometry args={[PLOT.width, PLOT.depth]} />
-            <meshStandardMaterial color="#b7c7a3" />
-          </mesh>
-        )}
+        {!ar && <Ground finish={ground} />}
+
+        {/* Cada módulo se apoya en su solera; también uno sin estancias. */}
+        {shells.map((sh) => (
+          <Slab key={sh.id} shell={sh} />
+        ))}
 
         {modules.map((m) => (
           <group key={m.id} position={[m.x + m.width / 2, 0, m.y + m.depth / 2]}>
-            <mesh position-y={SLAB / 2} castShadow receiveShadow>
-              <boxGeometry args={[m.width, SLAB, m.depth]} />
-              <meshStandardMaterial
-                color={m.id === selectedId && !photo ? '#b9cdb4' : '#c9b79a'}
-              />
-            </mesh>
-            {photo && !m.noCeiling && <Ceiling room={m} />}
+            {/* Estancia sin módulo (planos antiguos): la losa de antes, bajo ella sola. */}
+            {!shells.some((sh) => sh.id === m.shellId) && (
+              <mesh position-y={DEFAULT_SLAB_HEIGHT / 2} castShadow receiveShadow>
+                <boxGeometry args={[m.width, DEFAULT_SLAB_HEIGHT, m.depth]} />
+                <meshStandardMaterial color={SLAB_COLOR} roughness={0.9} />
+              </mesh>
+            )}
+            {photo && !m.noCeiling && <Ceiling room={m} level={level(m.id)} />}
             {/* Focos del techo: la pieza se ve siempre; alumbran solo en la foto. */}
             {(m.lights ?? []).map((l) => (
               <group
                 key={l.id}
-                position={[l.x - m.width / 2, SLAB + WALL_HEIGHT, l.y - m.depth / 2]}
+                position={[l.x - m.width / 2, level(m.id) + WALL_HEIGHT, l.y - m.depth / 2]}
               >
                 <mesh position-y={-0.005}>
                   <cylinderGeometry args={[LIGHT_SIZE / 2, LIGHT_SIZE / 2, 0.01, 24]} />
@@ -2073,11 +2154,9 @@ export default function View3D() {
                 )}
               </group>
             ))}
-            {floorOf(m) && (
-              <Suspense fallback={null}>
-                <Floor room={m} />
-              </Suspense>
-            )}
+            <Suspense fallback={null}>
+              <Floor room={m} level={level(m.id)} selected={m.id === selectedId && !photo} />
+            </Suspense>
           </group>
         ))}
 
@@ -2085,7 +2164,7 @@ export default function View3D() {
           <Furniture3D
             key={item.id}
             item={item}
-            floorY={SLAB}
+            floorY={item.roomId ? level(item.roomId) : levelAt(shells, item.x, item.y)}
             selected={item.id === selectedFurnitureId && !photo}
           />
         ))}
