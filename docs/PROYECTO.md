@@ -96,8 +96,10 @@ Otros elementos:
   decidió el usuario así. La pendiente se mide por dentro: la cara de abajo
   del tejado toca el canto de dentro de las paredes de los aleros. Lo cierran
   los **hastiales** (y a un agua la pared alta sube hasta él), del grosor de
-  la pared exterior por defecto y del color de fachada. Tejado gris fijo
-  (`ROOF_COLOR`), 15 cm de grueso, sin acabado a elegir. `roofLayout` da las
+  la pared exterior por defecto y del color de fachada. Tejado gris fijo por
+  fuera (`ROOF_COLOR`) y **blanco por dentro**, la cara de abajo, también la
+  del alero (`ROOF_UNDER_COLOR`; lo pidió el usuario), con el color por
+  vértice como las paredes; 15 cm de grueso, sin acabado a elegir. `roofLayout` da las
   secciones y `RoofOf` en `View3D.tsx` las extruye. Se ve en la vista 3D, la
   foto, la VR y la AR; **"Con tejado / Sin tejado"** en la barra de la vista
   3D (`showRoofs` en `store.ts`, en `localStorage`) lo quita para mirar por
@@ -844,6 +846,15 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-18** · **El tejado, blanco por dentro** (el usuario: "el techo
+  del tejado blanco… por la parte de adentro"). La cara de abajo, la que
+  mira al suelo, pasa a blanco (`ROOF_UNDER_COLOR` y `under` en `RoofPrism`,
+  `View3D.tsx`); arriba sigue gris. También sale blanca la cara de abajo del
+  alero, vista desde fuera. Visto en el servidor aparte (5186) desde dentro
+  del salón y desde fuera, en la vista normal, donde se ve gris claro porque
+  ahí no da el sol. En la foto en calidad no se ve desde dentro: lo tapa el
+  techo plano de cada estancia.
 
 - **2026-10-18** · **Tejado de cada módulo** (el usuario: "cada módulo
   tiene su techo… a un agua o dos aguas… tendrá que tener una altura").

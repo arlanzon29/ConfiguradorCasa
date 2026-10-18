@@ -1707,11 +1707,16 @@ function Ground({ finish }: { finish?: Finish }) {
 
 // Tejado y hastiales, colores fijos de momento (no se elige su acabado).
 const ROOF_COLOR = '#5b5f66'
+/** Cara de abajo del tejado, la que se ve desde dentro (lo pidió el usuario). */
+const ROOF_UNDER_COLOR = '#ffffff'
 
 /**
  * Una sección (u, h) del tejado extruida a lo largo de su eje, desde `from`
  * hasta `to` del plano, a la altura `base`. Con el eje en x, la sección se
- * dibuja en espejo y se gira 90°, para que `u` caiga en la z del plano.
+ * dibuja en espejo y se gira 90°, para que `u` caiga en la z del plano. Con
+ * `under`, las caras que miran hacia abajo llevan ese color; va por vértice,
+ * como en las paredes, porque el trazador de la foto no admite varios
+ * materiales en una malla.
  */
 function RoofPrism({
   name,
@@ -1721,6 +1726,7 @@ function RoofPrism({
   to,
   base,
   color,
+  under = color,
 }: {
   name: string
   profile: ProfilePoint[]
@@ -1729,11 +1735,23 @@ function RoofPrism({
   to: number
   base: number
   color: string
+  under?: string
 }) {
   const geometry = useMemo(() => {
     const shape = new Shape(profile.map(([u, h]) => new Vector2(axis === 'x' ? -u : u, h)))
-    return new ExtrudeGeometry(shape, { depth: to - from, bevelEnabled: false })
-  }, [profile, axis, from, to])
+    const g = new ExtrudeGeometry(shape, { depth: to - from, bevelEnabled: false })
+    // Girar alrededor del eje vertical no cambia qué cara mira hacia abajo.
+    const normals = g.getAttribute('normal')
+    const top = [...new Color(color).toArray(), 1]
+    const bottom = [...new Color(under).toArray(), 1]
+    const colors: number[] = []
+    for (let i = 0; i < normals.count; i += 3) {
+      const down = normals.getY(i) + normals.getY(i + 1) + normals.getY(i + 2) < -0.03
+      for (let k = 0; k < 3; k++) colors.push(...(down ? bottom : top))
+    }
+    g.setAttribute('color', new Float32BufferAttribute(colors, 4))
+    return g
+  }, [profile, axis, from, to, color, under])
   useEffect(() => () => geometry.dispose(), [geometry])
   return (
     <mesh
@@ -1744,7 +1762,7 @@ function RoofPrism({
       castShadow
       receiveShadow
     >
-      <meshStandardMaterial color={color} roughness={0.8} />
+      <meshStandardMaterial vertexColors roughness={0.8} />
     </mesh>
   )
 }
@@ -1761,7 +1779,7 @@ function RoofOf({ shell }: { shell: Shell }) {
   const o = layout.overhang
   return (
     <group>
-      <RoofPrism name="Tejado" profile={layout.roof} axis={layout.axis} from={a - o} to={b + o} base={base} color={ROOF_COLOR} />
+      <RoofPrism name="Tejado" profile={layout.roof} axis={layout.axis} from={a - o} to={b + o} base={base} color={ROOF_COLOR} under={ROOF_UNDER_COLOR} />
       <RoofPrism name="Hastial" profile={layout.gable} axis={layout.axis} from={a} to={a + GABLE_THICKNESS} base={base} color={FACADE_COLOR} />
       <RoofPrism name="Hastial" profile={layout.gable} axis={layout.axis} from={b - GABLE_THICKNESS} to={b} base={base} color={FACADE_COLOR} />
       {layout.strip && (
