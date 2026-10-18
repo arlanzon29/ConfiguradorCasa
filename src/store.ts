@@ -49,6 +49,7 @@ import {
 } from './model/lights'
 import { Board, BoardPose, DEFAULT_BOARD, boardProblem, boardReach, posedBoard } from './model/boards'
 import { DEFAULT_MIRROR, Mirror } from './model/mirrors'
+import { MAX_ROOF_OVERHANG, MAX_ROOF_RISE, MIN_ROOF_RISE, Roof, roofOf } from './model/roofs'
 import { Mechanism, mechanismSize, mechanismType } from './model/mechanisms'
 import { Vinyl, vinylProblem, vinylType, wallFace } from './model/vinyls'
 import { JointSettings, Joints, Wall, deriveWalls, fitOpening, pairKey, refitOpenings, wallOf } from './model/walls'
@@ -164,6 +165,15 @@ interface HouseState {
    * cambia. Devuelve un mensaje de error, o '' si se ha aplicado.
    */
   setShellSlab: (id: string, slab: { height?: number; margins?: Partial<Record<Side, number>> }) => string
+  /**
+   * Tejado de un módulo (roofs.ts): tipo, lo que sube, alero, hacia dónde cae
+   * o por dónde va la cumbrera. Lo que falte no cambia. Devuelve un mensaje de
+   * error, o '' si se ha aplicado.
+   */
+  setShellRoof: (id: string, roof: Roof) => string
+  /** Si los tejados se ven en la vista 3D, la foto, la VR y la AR. */
+  showRoofs: boolean
+  setShowRoofs: (on: boolean) => void
   selectedShellId: string | null
   selectShell: (id: string | null) => void
   /** Añade un módulo vacío del tamaño máximo. False si ya están todos o no cabe. */
@@ -772,6 +782,12 @@ export const useHouse = create<HouseState>()(
                 n: current.slabMargins.w,
               },
             }),
+            // A un agua, el lado hacia el que cae gira también; la cumbrera va
+            // a lo largo o a lo ancho, que no cambia al girar.
+            roof: {
+              ...current.roof,
+              side: ({ n: 'e', e: 's', s: 'w', w: 'n' } as const)[roofOf(current).side],
+            },
           }
           if (!shellFits(rotated, shells.filter((s) => s.id !== id))) {
             return 'Girado pisaría el otro módulo; sepáralos antes.'
@@ -852,6 +868,25 @@ export const useHouse = create<HouseState>()(
           })
           return ''
         },
+
+        setShellRoof: (id, roof) => {
+          const { shells } = get()
+          const current = shells.find((s) => s.id === id)
+          if (!current) return ''
+          if (roof.rise !== undefined && !(roof.rise >= MIN_ROOF_RISE && roof.rise <= MAX_ROOF_RISE)) {
+            return `El tejado sube de ${formatMeters(MIN_ROOF_RISE)} a ${formatMeters(MAX_ROOF_RISE)} m.`
+          }
+          if (roof.overhang !== undefined && !(roof.overhang >= 0 && roof.overhang <= MAX_ROOF_OVERHANG)) {
+            return `El alero va de 0 a ${formatMeters(MAX_ROOF_OVERHANG)} m.`
+          }
+          const patch = { ...roof }
+          if (patch.rise !== undefined) patch.rise = roundSize(patch.rise)
+          if (patch.overhang !== undefined) patch.overhang = roundSize(patch.overhang)
+          set({ shells: shells.map((s) => (s.id === id ? { ...s, roof: { ...s.roof, ...patch } } : s)) })
+          return ''
+        },
+        showRoofs: true,
+        setShowRoofs: (showRoofs) => set({ showRoofs }),
 
         setGround: (finish) => set({ ground: finish }),
 
@@ -1454,6 +1489,7 @@ export const useHouse = create<HouseState>()(
         joints: s.joints,
         furniture: s.furniture,
         furnitureMagnet: s.furnitureMagnet,
+        showRoofs: s.showRoofs,
         // `detailedFurniture` no se guarda: la vista 3D arranca siempre en
         // "Sencillos" (lo pidió el usuario).
         cameraPose: s.cameraPose,

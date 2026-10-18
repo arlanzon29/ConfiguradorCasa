@@ -6,12 +6,14 @@ import {
   PLOT,
   PlacedModule,
   Rect,
+  Shell,
   formatMeters,
   slabRect,
   roundSize,
   snap,
 } from '../model/house'
 import { LIGHT_MARGIN } from '../model/lights'
+import { roofLayout, roofOf } from '../model/roofs'
 import { OPENING_CATALOG, Opening, swingDoor, swingSign } from '../model/openings'
 import { Wall, deriveWalls, nearestWall, openingsOf, wallAcross } from '../model/walls'
 import { vinylPlacement } from '../model/vinyls'
@@ -177,6 +179,45 @@ const FULL_VIEW: View = {
 const FIT_MARGIN = 2
 
 /** Encuadre ajustado a los módulos de la casa. */
+/**
+ * Tejado de un módulo visto desde arriba: su contorno con el alero, a trazos,
+ * y la cumbrera; a un agua, el canto alto y una flecha hacia donde cae.
+ */
+function RoofSymbol({ shell }: { shell: Shell }) {
+  const { axis, along, overhang: o, roof, top } = roofLayout(shell)
+  // (a lo largo, a lo ancho) del tejado → (x, y) del plano.
+  const at = (a: number, u: number) => (axis === 'x' ? { x: a, y: u } : { x: u, y: a })
+  const us = roof.map(([u]) => u)
+  const p0 = at(along[0] - o, Math.min(...us))
+  const p1 = at(along[1] + o, Math.max(...us))
+  const r0 = at(along[0] - o, top)
+  const r1 = at(along[1] + o, top)
+  const twoSided = roofOf(shell).type === 'two'
+  const mid = (along[0] + along[1]) / 2
+  // A un agua, la flecha va del canto alto hacia el bajo.
+  const low = us[0] === top ? us[1] : us[0]
+  const tip = at(mid, top + (low - top) * 0.6)
+  const from = at(mid, top + (low - top) * 0.15)
+  const head = 0.35
+  const back = at(mid, top + (low - top) * 0.6 - Math.sign(low - top) * head)
+  const side = (d: number) => (axis === 'x' ? { x: back.x + d, y: back.y } : { x: back.x, y: back.y + d })
+  return (
+    <g className="roof-symbol">
+      <rect x={Math.min(p0.x, p1.x)} y={Math.min(p0.y, p1.y)} width={Math.abs(p1.x - p0.x)} height={Math.abs(p1.y - p0.y)} />
+      <line className="roof-ridge" x1={r0.x} y1={r0.y} x2={r1.x} y2={r1.y} />
+      {!twoSided && (
+        <>
+          <line className="roof-ridge" x1={from.x} y1={from.y} x2={tip.x} y2={tip.y} />
+          <polygon
+            className="roof-arrow"
+            points={`${tip.x},${tip.y} ${side(head / 2).x},${side(head / 2).y} ${side(-head / 2).x},${side(-head / 2).y}`}
+          />
+        </>
+      )}
+    </g>
+  )
+}
+
 function fitView(shells: Rect[]): View {
   const left = Math.min(...shells.map((s) => s.x)) - FIT_MARGIN
   const top = Math.min(...shells.map((s) => s.y)) - FIT_MARGIN
@@ -509,6 +550,7 @@ export default function Editor2D() {
       {shells.map((sh) => (
         <g key={sh.id} className={sh.id === selectedShellId ? 'shell selected' : 'shell'}>
           <rect className="shell-outline" x={sh.x} y={sh.y} width={sh.width} height={sh.depth} />
+          {mode === 'shells' && <RoofSymbol shell={sh} />}
           <text className="shell-label" x={sh.x} y={slabRect(sh).y - 0.2}>
             Módulo {formatMeters(sh.width)} × {formatMeters(sh.depth)} m
           </text>

@@ -1193,3 +1193,23 @@ button:disabled {
 .dialog .confirm {
   margin-bottom: 8px;
 }
+
+/* Tejado del módulo visto desde arriba (con "Casa" o un módulo elegido). */
+.roof-symbol rect {
+  fill: none;
+  stroke: #5b5f66;
+  stroke-width: 0.04;
+  stroke-dasharray: 0.15 0.12;
+  pointer-events: none;
+}
+
+.roof-ridge {
+  stroke: #5b5f66;
+  stroke-width: 0.05;
+  pointer-events: none;
+}
+
+.roof-arrow {
+  fill: #5b5f66;
+  pointer-events: none;
+}

@@ -12,6 +12,9 @@ import {
   CanvasTexture,
   Color,
   EdgesGeometry,
+  ExtrudeGeometry,
+  Shape,
+  Vector2,
   Float32BufferAttribute,
   MathUtils,
   Group,
@@ -56,6 +59,7 @@ import {
 import { BOARD_FALLBACK_COLOR } from '../model/boards'
 import { LIGHT_SIZE, lightColor } from '../model/lights'
 import { MIRROR_THICKNESS } from '../model/mirrors'
+import { GABLE_THICKNESS, ProfilePoint, roofLayout } from '../model/roofs'
 import {
   MECHANISM_MODULE,
   MECHANISM_THICKNESS,
@@ -1701,6 +1705,72 @@ function Ground({ finish }: { finish?: Finish }) {
   )
 }
 
+// Tejado y hastiales, colores fijos de momento (no se elige su acabado).
+const ROOF_COLOR = '#5b5f66'
+
+/**
+ * Una sección (u, h) del tejado extruida a lo largo de su eje, desde `from`
+ * hasta `to` del plano, a la altura `base`. Con el eje en x, la sección se
+ * dibuja en espejo y se gira 90°, para que `u` caiga en la z del plano.
+ */
+function RoofPrism({
+  name,
+  profile,
+  axis,
+  from,
+  to,
+  base,
+  color,
+}: {
+  name: string
+  profile: ProfilePoint[]
+  axis: 'x' | 'y'
+  from: number
+  to: number
+  base: number
+  color: string
+}) {
+  const geometry = useMemo(() => {
+    const shape = new Shape(profile.map(([u, h]) => new Vector2(axis === 'x' ? -u : u, h)))
+    return new ExtrudeGeometry(shape, { depth: to - from, bevelEnabled: false })
+  }, [profile, axis, from, to])
+  useEffect(() => () => geometry.dispose(), [geometry])
+  return (
+    <mesh
+      name={name}
+      geometry={geometry}
+      position={axis === 'x' ? [from, base, 0] : [0, base, from]}
+      rotation-y={axis === 'x' ? Math.PI / 2 : 0}
+      castShadow
+      receiveShadow
+    >
+      <meshStandardMaterial color={color} roughness={0.8} />
+    </mesh>
+  )
+}
+
+/**
+ * Tejado de un módulo, a un agua o a dos aguas, apoyado en lo alto de las
+ * paredes, con los hastiales que cierran los extremos y, a un agua, la pared
+ * alta subida hasta él.
+ */
+function RoofOf({ shell }: { shell: Shell }) {
+  const layout = useMemo(() => roofLayout(shell), [shell])
+  const base = slabOf(shell).height + WALL_HEIGHT
+  const [a, b] = layout.along
+  const o = layout.overhang
+  return (
+    <group>
+      <RoofPrism name="Tejado" profile={layout.roof} axis={layout.axis} from={a - o} to={b + o} base={base} color={ROOF_COLOR} />
+      <RoofPrism name="Hastial" profile={layout.gable} axis={layout.axis} from={a} to={a + GABLE_THICKNESS} base={base} color={FACADE_COLOR} />
+      <RoofPrism name="Hastial" profile={layout.gable} axis={layout.axis} from={b - GABLE_THICKNESS} to={b} base={base} color={FACADE_COLOR} />
+      {layout.strip && (
+        <RoofPrism name="Hastial" profile={layout.strip} axis={layout.axis} from={a} to={b} base={base} color={FACADE_COLOR} />
+      )}
+    </group>
+  )
+}
+
 /**
  * Solera de un módulo: una losa de hormigón del grosor de la solera, que
  * sobresale del módulo por los cuatro lados.
@@ -1870,6 +1940,8 @@ export default function View3D() {
   const setCameraFov = useHouse((s) => s.setCameraFov)
   const detailedFurniture = useHouse((s) => s.detailedFurniture)
   const setDetailedFurniture = useHouse((s) => s.setDetailedFurniture)
+  const showRoofs = useHouse((s) => s.showRoofs)
+  const setShowRoofs = useHouse((s) => s.setShowRoofs)
   const photoSamples = useHouse((s) => s.photoSamples)
   const setPhotoSamples = useHouse((s) => s.setPhotoSamples)
   const [photo, setPhoto] = useState(false)
@@ -2017,6 +2089,14 @@ export default function View3D() {
           </>
         )}
         {saved && <span>{saved}</span>}
+        <div className="lens-toggle" title="Tejado de los módulos: quítalo para mirar la casa por dentro desde arriba">
+          <button className={showRoofs ? 'active' : ''} onClick={() => setShowRoofs(true)}>
+            Con tejado
+          </button>
+          <button className={showRoofs ? '' : 'active'} onClick={() => setShowRoofs(false)}>
+            Sin tejado
+          </button>
+        </div>
         <div
           className="lens-toggle"
           title="Muebles: sencillos (cajas, más ligeros) o detallados (los que tienen modelo hecho en Blender)"
@@ -2121,6 +2201,8 @@ export default function View3D() {
         {shells.map((sh) => (
           <Slab key={sh.id} shell={sh} />
         ))}
+        {/* Tejado de cada módulo; el botón "Sin tejado" lo quita para mirar por dentro. */}
+        {showRoofs && shells.map((sh) => <RoofOf key={sh.id} shell={sh} />)}
 
         {modules.map((m) => (
           <group key={m.id} position={[m.x + m.width / 2, 0, m.y + m.depth / 2]}>
@@ -2236,7 +2318,7 @@ export default function View3D() {
         <PhotoTracer
           // Al repetir se empieza de cero aunque ya hubiera una foto terminada a la vista.
           key={retakeId ?? 'libre'}
-          revision={[modules, parts, skirtings, joinery, furniture, vinyls, mirrors, boards, mechanisms]}
+          revision={[modules, shells, showRoofs, parts, skirtings, joinery, furniture, vinyls, mirrors, boards, mechanisms]}
           goal={photoSamples}
           filter={filter}
           onProgress={onProgress}

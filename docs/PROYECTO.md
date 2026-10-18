@@ -85,6 +85,27 @@ Otros elementos:
   tienen debajo (`floorUnder`). Una estancia sin módulo (planos antiguos)
   sigue sobre su losa de 20 cm. `setShellSlab` en `store.ts`. Color fijo
   (`SLAB_COLOR`). En el plano, una franja gris alrededor del módulo.
+- **Tejado** (2026-10-18, `model/roofs.ts`): cada módulo tiene el suyo,
+  guardado en el módulo (`Shell.roof`). **A un agua o a dos aguas**
+  (`type`), **lo que sube** por encima de lo alto de las paredes hasta la
+  cumbrera, o hasta la pared alta a un agua (`rise`, por defecto 1 m,
+  inventado; de 0,1 a 3), **alero** igual por los cuatro lados (`overhang`,
+  0,3 m; de 0 a 1,5), y hacia dónde va la pendiente: a un agua, **hacia qué
+  lado cae** (`side`; si no se dice, a un lado largo; gira con el módulo), y a
+  dos aguas, **cumbrera a lo largo o a lo ancho** del módulo (`ridge`). Lo
+  decidió el usuario así. La pendiente se mide por dentro: la cara de abajo
+  del tejado toca el canto de dentro de las paredes de los aleros. Lo cierran
+  los **hastiales** (y a un agua la pared alta sube hasta él), del grosor de
+  la pared exterior por defecto y del color de fachada. Tejado gris fijo
+  (`ROOF_COLOR`), 15 cm de grueso, sin acabado a elegir. `roofLayout` da las
+  secciones y `RoofOf` en `View3D.tsx` las extruye. Se ve en la vista 3D, la
+  foto, la VR y la AR; **"Con tejado / Sin tejado"** en la barra de la vista
+  3D (`showRoofs` en `store.ts`, en `localStorage`) lo quita para mirar por
+  dentro. Por debajo, en la foto, sigue el techo plano de cada estancia. En el
+  plano, con "Casa" o un módulo elegido, su contorno a trazos con el alero y
+  la cumbrera (a un agua, el canto alto y una flecha hacia donde cae).
+  `setShellRoof` en `store.ts`, apartado "Tejado" en el panel del módulo,
+  código `TEJ-BASE` (inventado).
 - **Terreno** (2026-10-18): el suelo de **toda la parcela** (lo eligió el
   usuario), un acabado de la casa (`ground` en `store.ts` y arriba del
   archivo de plano), césped si no tiene (`DEFAULT_GROUND`). Solo se ve en 3D.
@@ -320,7 +341,7 @@ Casa
 | Elegido | Arriba (datos) | Debajo (añadir y acabados) |
 |---|---|---|
 | Casa | nombre; terreno de la parcela (acabado, "Volver al césped") | Añadir módulo horizontal o vertical. Se ve toda la parcela |
-| Módulo | distancia al borde izquierdo y superior de la parcela; ancho y fondo; solera (grosor y lo que sobresale por cada lado, en metros); girar, eliminar | Añadir estancia (catálogo y medida personalizada) y el resumen |
+| Módulo | distancia al borde izquierdo y superior de la parcela; ancho y fondo; solera (grosor y lo que sobresale por cada lado, en metros); tejado (un agua o dos aguas, lo que sube, alero, hacia dónde cae o cumbrera); girar, eliminar | Añadir estancia (catálogo y medida personalizada) y el resumen |
 | Estancia | distancia al borde de su módulo; ancho y fondo; girar, eliminar | Suelo, techo (si lo lleva en la foto y su acabado), acabado de todas sus paredes, "Añadir luz" (foco de techo) y el catálogo de **mobiliario** con el icono de imán |
 | Foco | distancia a la izquierda y arriba, "Centrar en la estancia", potencia (%), tono, color de emisión, eliminar | — |
 | Pared | grosor (cm); rodapié (alto y color); quitar/poner | Añadir hueco (puerta, corredera, ventana); en una compartida, de qué estancia es **la cara** que se viste; color de esa cara, y añadir vinilo, espejo o tablero |
@@ -724,6 +745,17 @@ que la textura "Madera de pino" cubre 2 × 2 m (supuesto, sin confirmar).
   y el techo de Blender (`blender_casa.py` lo pone ahora a 2,7 m sobre las
   mallas "Suelo" del GLB, una por cada altura).
 - Fachada sin configurar (color fijo): dependerá del aislante y el revestimiento.
+- Tejado: medidas inventadas (sube 1 m, 15 cm de grueso, hastiales de
+  15 cm). Color fijo, sin teja ni canalón, y no se elige su acabado. Los
+  hastiales van en el borde del módulo aunque ahí no haya estancia (en un
+  módulo sin estancias, o con huecos entre ellas, quedan colgando), y su
+  grueso no sigue el de la pared que tienen debajo. Con dos módulos, cada uno
+  lleva su tejado y en la unión no se juntan. No hay tejado plano. El
+  interior sigue con el techo plano a 2,7 m en la foto (no hay techo
+  inclinado por dentro). En un módulo cuadrado, "a lo largo" va de oeste a
+  este y no gira con él. Sin probar: la foto en calidad por dentro, la
+  VR y la AR, el GLB en Blender (sus mallas se llaman "Tejado" y "Hastial") y
+  dos módulos.
 - "Guardar/Cargar plano" no se ha probado pulsando los botones (sí el formato,
   también con fotos dentro).
 - Fotos: sin probar pulsando "Descargar" ni "Eliminar" con su confirmación. La
@@ -812,6 +844,23 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-18** · **Tejado de cada módulo** (el usuario: "cada módulo
+  tiene su techo… a un agua o dos aguas… tendrá que tener una altura").
+  Eligió: la altura es lo que sube sobre las paredes; se ve en 3D con un
+  botón para quitarlo; la pendiente se elige (a un agua, hacia qué lado cae;
+  a dos aguas, cumbrera a lo largo o a lo ancho); y alero en metros. Nuevo
+  `model/roofs.ts`, `roof` en `Shell`, `setShellRoof` y `showRoofs` en
+  `store.ts`, apartado "Tejado" en el panel del módulo, `RoofOf` en
+  `View3D.tsx`, `RoofSymbol` en `Editor2D.tsx`, `cambiarTejado` y `tejado`
+  en `casa()` en `window.eurocasa` y en la skill `crear-casas`. Las casas de
+  antes salen con el tejado por defecto (dos aguas, 1 m, alero 0,3). Probado
+  en el servidor aparte (5186) con "Ejemplo 2": las funciones y sus errores,
+  la vista 3D a dos aguas y a un agua (hacia el norte y el este), "Sin
+  tejado", el panel (botones y el aviso de la casilla), el símbolo del plano
+  (dos aguas a lo largo y a lo ancho, un agua con su flecha), cuatro giros
+  del módulo, el archivo de plano con el tejado y una foto en calidad desde
+  fuera a 50 muestras. Ver limitaciones.
 
 - **2026-10-18** · **Solera en metros en el panel** (lo pidió el usuario),
   como las medidas del módulo. Visto en el servidor aparte (5185).

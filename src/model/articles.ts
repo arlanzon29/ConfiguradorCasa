@@ -13,6 +13,8 @@ export const ARTICLES = {
   shell: 'MOD-FABRICA',
   /** Solera de un módulo, por metro cuadrado. */
   slab: 'SOL-BASE',
+  /** Tejado de un módulo, por metro cuadrado de cubierta. */
+  roof: 'TEJ-BASE',
   /** Terreno de la parcela, por metro cuadrado (el acabado lleva su propio código). */
   ground: 'TER-BASE',
   /** Pared exterior, por metro lineal. */

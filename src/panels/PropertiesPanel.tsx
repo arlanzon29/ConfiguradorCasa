@@ -23,6 +23,7 @@ import {
   validWallThickness,
 } from '../model/house'
 import { CORNER_GAP, MIN_OPENING, OPPOSITE, Opening, swingDoor } from '../model/openings'
+import { RoofType, roofOf } from '../model/roofs'
 import { Wall, deriveWalls, openingSpan, wallOf } from '../model/walls'
 import { Mode, furnitureBox, useHouse } from '../store'
 import { DEFAULT_JOINERY_FINISH } from '../model/finishes'
@@ -91,7 +92,13 @@ function ShellProperties({ shell }: { shell: Shell }) {
         fallback={defaultShellName(shells, shell.id)}
         onApply={(name) => rename('shell', shell.id, name)}
       />
-      <ArticleCode codes={[{ code: ARTICLES.shell }, { label: 'Solera', code: ARTICLES.slab }]} />
+      <ArticleCode
+        codes={[
+          { code: ARTICLES.shell },
+          { label: 'Solera', code: ARTICLES.slab },
+          { label: 'Tejado', code: ARTICLES.roof },
+        ]}
+      />
       <p>Módulo · {formatMeters(shell.width * shell.depth)} m²</p>
       <Fields title="Distancia al borde de la parcela">
         <Field label="Izquierda (m)" value={shell.x} onApply={(x) => move(x, shell.y)} />
@@ -127,12 +134,80 @@ function ShellProperties({ shell }: { shell: Shell }) {
           />
         ))}
       </Fields>
+      <RoofFields shell={shell} />
       <div className="actions spaced">
         <button onClick={() => setNotice(rotateShell(shell.id))}>Girar 90° (R)</button>
         <button onClick={() => removeShell(shell.id)}>Eliminar con sus estancias (Supr)</button>
       </div>
       {notice && <p className="notice">{notice}</p>}
     </>
+  )
+}
+
+/** Tejado de un módulo: tipo, lo que sube, alero y hacia dónde va la pendiente. */
+function RoofFields({ shell }: { shell: Shell }) {
+  const setShellRoof = useHouse((s) => s.setShellRoof)
+  const roof = roofOf(shell)
+  const choice = <T,>(options: [T, string][], value: T, apply: (v: T) => void) => (
+    <div className="part-choices">
+      {options.map(([v, name]) => (
+        <button key={String(v)} className={v === value ? 'swatch active' : 'swatch'} onClick={() => apply(v)}>
+          {name}
+        </button>
+      ))}
+    </div>
+  )
+  return (
+    <section className="part-colors">
+      <h3>Tejado</h3>
+      {choice<RoofType>(
+        [
+          ['one', 'A un agua'],
+          ['two', 'A dos aguas'],
+        ],
+        roof.type,
+        (type) => setShellRoof(shell.id, { type }),
+      )}
+      <Fields title="Medidas del tejado">
+        <Field
+          label="Sube (m)"
+          value={roof.rise}
+          onApply={(m) => setShellRoof(shell.id, { rise: m })}
+        />
+        <Field
+          label="Alero (m)"
+          value={roof.overhang}
+          onApply={(m) => setShellRoof(shell.id, { overhang: m })}
+        />
+      </Fields>
+      {roof.type === 'one' ? (
+        <>
+          <p className="muted">Cae hacia</p>
+          {choice<Side>(
+            [
+              ['n', 'Norte'],
+              ['s', 'Sur'],
+              ['w', 'Oeste'],
+              ['e', 'Este'],
+            ],
+            roof.side,
+            (side) => setShellRoof(shell.id, { side }),
+          )}
+        </>
+      ) : (
+        <>
+          <p className="muted">Cumbrera</p>
+          {choice<'long' | 'short'>(
+            [
+              ['long', 'A lo largo'],
+              ['short', 'A lo ancho'],
+            ],
+            roof.ridge,
+            (ridge) => setShellRoof(shell.id, { ridge }),
+          )}
+        </>
+      )}
+    </section>
   )
 }
 

@@ -17,6 +17,7 @@ import {
   validSize,
 } from './model/house'
 import { MECHANISMS, MECHANISM_HEIGHT, mechanismSize, mechanismType } from './model/mechanisms'
+import { Roof, roofOf } from './model/roofs'
 import { wallFace } from './model/vinyls'
 import { BASE_FLOOR, MATERIALS, WALL_COLORS, floorOf, interiorFinish } from './model/finishes'
 import { FURNITURE, FurnitureItem, Rotation, furnitureType, liftOf, partChoices } from './model/furniture'
@@ -92,6 +93,7 @@ function casa() {
       ancho: s.width,
       fondo: s.depth,
       solera: describeSlab(s),
+      tejado: describeRoof(s),
       estancias: modules.filter((m) => m.shellId === s.id).map((m) => describeRoom(m, s)),
     })),
     estanciasSueltas: modules.filter((m) => !m.shellId).map((m) => describeRoom(m)),
@@ -180,6 +182,60 @@ function ponerTerreno(p: { acabado: string }) {
   if (!grass && !finish) return { error: `No hay ningún acabado "${p.acabado}".` } as Fallo
   state().setGround(finish)
   return { terreno: finish ?? 'césped' }
+}
+
+/** El tejado de un módulo, como se cuenta. */
+function describeRoof(s: Shell) {
+  const r = roofOf(s)
+  const name = Object.entries(LADOS).find(([, side]) => side === r.side)?.[0]
+  return {
+    tipo: r.type === 'one' ? 'un agua' : 'dos aguas',
+    sube: r.rise,
+    alero: r.overhang,
+    ...(r.type === 'one' ? { caeHacia: name } : { cumbrera: r.ridge === 'long' ? 'a lo largo' : 'a lo ancho' }),
+  }
+}
+
+/**
+ * Tejado de un módulo (por defecto, el primero): `tipo` 'un agua' o 'dos
+ * aguas', `sube` y `alero` en metros, `caeHacia` (un agua: norte, sur, este,
+ * oeste) y `cumbrera` (dos aguas: 'a lo largo' o 'a lo ancho'). Lo que no se
+ * diga no cambia.
+ */
+function cambiarTejado(p: {
+  modulo?: string
+  tipo?: string
+  sube?: number
+  alero?: number
+  caeHacia?: string
+  cumbrera?: string
+}) {
+  const shell = findShell(p.modulo)
+  if (!shell) return { error: `No hay ningún módulo "${p.modulo ?? ''}".` } as Fallo
+  const roof: Roof = {}
+  if (p.tipo !== undefined) {
+    const t = p.tipo.trim().toLowerCase().replace(/^a /, '')
+    if (t === 'un agua') roof.type = 'one'
+    else if (t === 'dos aguas') roof.type = 'two'
+    else return { error: `Tipo de tejado desconocido: "${p.tipo}". Vale "un agua" o "dos aguas".` } as Fallo
+  }
+  if (p.caeHacia !== undefined) {
+    const side = LADOS[p.caeHacia.trim().toLowerCase()]
+    if (!side) return { error: `Lado desconocido: "${p.caeHacia}".` } as Fallo
+    roof.side = side
+  }
+  if (p.cumbrera !== undefined) {
+    const c = p.cumbrera.trim().toLowerCase()
+    if (c === 'a lo largo') roof.ridge = 'long'
+    else if (c === 'a lo ancho') roof.ridge = 'short'
+    else return { error: `Cumbrera desconocida: "${p.cumbrera}". Vale "a lo largo" o "a lo ancho".` } as Fallo
+  }
+  if (p.sube !== undefined) roof.rise = p.sube
+  if (p.alero !== undefined) roof.overhang = p.alero
+  const error = state().setShellRoof(shell.id, roof)
+  if (error) return { error } as Fallo
+  const now = state().shells.find((s) => s.id === shell.id)!
+  return { modulo: shellName(state().shells, now), tejado: describeRoof(now) }
 }
 
 /** Cambia las medidas de un módulo (por defecto, el primero). */
@@ -1003,6 +1059,7 @@ const eurocasa = {
   nombrarCasa,
   medirModulo,
   cambiarSolera,
+  cambiarTejado,
   ponerTerreno,
   crearEstancia,
   eliminarEstancia,

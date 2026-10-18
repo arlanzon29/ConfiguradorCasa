@@ -6,6 +6,7 @@ import type { Board } from './boards'
 import type { RoomLight } from './lights'
 import type { Mechanism } from './mechanisms'
 import type { Mirror } from './mirrors'
+import type { Roof } from './roofs'
 import type { Vinyl } from './vinyls'
 
 // Paso de la rejilla: 20 cm. Un módulo de 13 × 4,20 m son 65 × 21 cuadros exactos.
@@ -144,6 +145,8 @@ export interface Shell {
   slabHeight?: number
   /** Lo que sobresale la solera del módulo por cada lado; los que falten, DEFAULT_SLAB_MARGIN. */
   slabMargins?: Partial<Record<Side, number>>
+  /** Tejado del módulo (roofs.ts); lo que falte, lo de por defecto. */
+  roof?: Roof
 }
 
 // --- Solera -------------------------------------------------------------------
