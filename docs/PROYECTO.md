@@ -758,6 +758,12 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-18** · **Primera casa por Supabase, de punta a punta**: `subir_casa.mjs`
+  subió "Test 2" como `configuradorcasa/demo.json` (11 KB), se lee igual sin
+  clave, con CORS `*` y `Cache-Control: no-cache`; la web publicada (`521c2b6`)
+  la abrió con `?url=…` ("Casa actualizada"). QR generado. Sin probar: en
+  las Quest, y recargar tras una segunda subida.
+
 - **2026-10-18** · **Supabase: el proyecto de SuiteFamilia** (decisión del
   usuario: en el plan gratuito caben dos proyectos activos y reutiliza el de
   `D:\IA\SuiteFamilia`, que además no se pausará por inactividad), con un
