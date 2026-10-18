@@ -280,10 +280,14 @@ Dos piezas que no se conocen (decisión del usuario, 2026-10-17):
   4. Da al usuario la dirección `web` y enséñale el QR (SendUserFile).
 
 - La conexión está en `supabase.local.json`, en la raíz y **fuera de git**:
-  `{ "url": "https://xxxx.supabase.co", "clave": "<secreta>", "bucket": "casas" }`.
+  `{ "url": "https://xxxx.supabase.co", "clave": "<secreta>", "bucket": "configuradorcasa" }`.
   La clave secreta (`service_role` o `sb_secret_…`) **nunca** va a la web, a
   la conversación ni al repositorio. El bucket es público: leer es libre,
   subir solo con la clave. Si no existe el archivo, pídeselo al usuario.
+- **El proyecto de Supabase es el de SuiteFamilia** (`D:\IA\SuiteFamilia`;
+  decisión del usuario, 2026-10-18), con su propio bucket `configuradorcasa`.
+  La clave secreta es la de **todo** ese proyecto: no toques nada fuera de
+  ese bucket.
 - **El QR en las Quest**: el sistema no lo lee; hace falta una app de la
   tienda (p. ej. "QR Scanner VR"). Si no la tiene, que guarde la dirección en
   favoritos de las gafas una vez y luego solo recargue.

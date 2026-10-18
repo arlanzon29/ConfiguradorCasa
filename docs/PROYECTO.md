@@ -758,6 +758,13 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-18** · **Supabase: el proyecto de SuiteFamilia** (decisión del
+  usuario: en el plan gratuito caben dos proyectos activos y reutiliza el de
+  `D:IASuiteFamilia`, que además no se pausará por inactividad), con un
+  bucket público propio, `configuradorcasa`. Anotado en la skill `crear-casas`,
+  con el aviso de que la clave secreta es la de todo ese proyecto.
+  `supabase.local.json` preparado con el bucket; faltan la dirección y la clave.
+
 - **2026-10-17** · **La casa tiene nombre** (el usuario: "las casas quiero que
   tengan un campo de nombre"). `houseName` en `store.ts` (se guarda en el
   navegador y entra en deshacer), `rename('house')`, `name` arriba del archivo
