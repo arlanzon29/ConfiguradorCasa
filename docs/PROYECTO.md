@@ -852,8 +852,9 @@ Se anota aquí cada cosa que se hace, la más reciente arriba.
   salido con cajas). Anotada en la skill `crear-casas`: "Detallados" en la
   vista 3D antes de mandar el GLB. Repetidas las dos fotos así (GLB de
   5,7 MB, 28 s cada una), en Descargas como `…_foto1_detallada.jpg` y
-  `…_foto2_detallada.jpg`. Pendiente de que el usuario diga si sustituyen a
-  las de la web y del ejemplo.
+  `…_foto2_detallada.jpg`. Con permiso del usuario, sustituyen a las de la
+  página (5186) y "Ejemplo 2" se vuelve a guardar con ellas (434 KB);
+  comprobado que se lee con sus 5 estancias y 2 fotos.
 
 - **2026-10-18** · **"Ejemplo 2" sustituido por la casa del servidor aparte
   (5186), con sus dos fotos** (lo pidió el usuario, "con las dos fotos de
