@@ -847,6 +847,13 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-18** · **Las dos fotos de "Ejemplo 2" en Blender** (el usuario,
+  con la casa abierta en el servidor aparte, 5186). GLB directo
+  (`enviarA`, 4,3 MB, ya con el tejado), `blender_casa.py` con las dos
+  cámaras y render a 100 muestras en GPU: Salón 27,3 s y Dormitorio 1
+  29,2 s, en Descargas como `configuradorcasa-ejemplo-2_foto1.jpg` y
+  `_foto2.jpg`. Los muebles iban en "Sencillos" (cajas). Sin subir a la web.
+
 - **2026-10-18** · **El tejado, blanco por dentro** (el usuario: "el techo
   del tejado blanco… por la parte de adentro"). La cara de abajo, la que
   mira al suelo, pasa a blanco (`ROOF_UNDER_COLOR` y `under` en `RoofPrism`,
