@@ -760,7 +760,7 @@ Se anota aquí cada cosa que se hace, la más reciente arriba.
 
 - **2026-10-18** · **Supabase: el proyecto de SuiteFamilia** (decisión del
   usuario: en el plan gratuito caben dos proyectos activos y reutiliza el de
-  `D:IASuiteFamilia`, que además no se pausará por inactividad), con un
+  `D:\IA\SuiteFamilia`, que además no se pausará por inactividad), con un
   bucket público propio, `configuradorcasa`. Anotado en la skill `crear-casas`,
   con el aviso de que la clave secreta es la de todo ese proyecto.
   `supabase.local.json` preparado con el bucket; faltan la dirección y la clave.
