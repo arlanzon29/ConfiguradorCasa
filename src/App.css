@@ -1181,3 +1181,7 @@ button:disabled {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.dialog .confirm {
+  margin-bottom: 8px;
+}

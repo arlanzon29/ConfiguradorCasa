@@ -4,6 +4,7 @@ import {
   absoluteUrl,
   checkUrl,
   forgetLink,
+  needsConfirm,
   openUrl,
   rememberLink,
   useLinks,
@@ -12,8 +13,9 @@ import {
 /**
  * "Cargar URL": una ventana con dos pestañas. "Ejemplos", las casas que viajan
  * con la web; "Mis casas", las direcciones que se han abierto o añadido en este
- * navegador, con una casilla para añadir otra. Abrir una recarga la página con
- * ?url=… y la casa se carga como cualquier casa de una dirección.
+ * navegador, con una casilla para añadir otra. Abrir una pregunta aquí si
+ * sustituiría la casa de este navegador, y luego recarga la página con ?url=…:
+ * la casa se carga como cualquier casa de una dirección, sin volver a preguntar.
  */
 export default function LoadUrlDialog({ onClose }: { onClose: () => void }) {
   const links = useLinks((s) => s.links)
@@ -21,6 +23,17 @@ export default function LoadUrlDialog({ onClose }: { onClose: () => void }) {
   const [text, setText] = useState('')
   const [busy, setBusy] = useState(false)
   const [notice, setNotice] = useState('')
+  // La casa que se va a abrir y espera a que se confirme (sustituiría la de aquí).
+  const [ask, setAsk] = useState<{ url: string; name: string } | null>(null)
+
+  const open = (url: string, name: string) => {
+    if (needsConfirm(url)) setAsk({ url, name })
+    else openUrl(url)
+  }
+  const switchTab = (next: typeof tab) => {
+    setTab(next)
+    setAsk(null)
+  }
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -67,7 +80,7 @@ export default function LoadUrlDialog({ onClose }: { onClose: () => void }) {
             role="tab"
             aria-selected={tab === 'examples'}
             className={tab === 'examples' ? 'active' : ''}
-            onClick={() => setTab('examples')}
+            onClick={() => switchTab('examples')}
           >
             Ejemplos
           </button>
@@ -75,12 +88,23 @@ export default function LoadUrlDialog({ onClose }: { onClose: () => void }) {
             role="tab"
             aria-selected={tab === 'mine'}
             className={tab === 'mine' ? 'active' : ''}
-            onClick={() => setTab('mine')}
+            onClick={() => switchTab('mine')}
           >
             Mis casas · {links.length}
           </button>
         </div>
 
+        {ask && (
+          <div className="confirm">
+            <p>
+              Abrir «{ask.name}» sustituirá la casa de este navegador y sus fotos. ¿Continuar?
+            </p>
+            <button className="danger" onClick={() => openUrl(ask.url)}>
+              Sí, sustituir
+            </button>
+            <button onClick={() => setAsk(null)}>Cancelar</button>
+          </div>
+        )}
         {tab === 'examples' ? (
           <ul className="link-list">
             {EXAMPLE_HOUSES.map((house) => (
@@ -90,7 +114,7 @@ export default function LoadUrlDialog({ onClose }: { onClose: () => void }) {
                   <span className="muted">{house.detail}</span>
                   <code>{absoluteUrl(house.url)}</code>
                 </div>
-                <button onClick={() => openUrl(house.url)}>Abrir</button>
+                <button onClick={() => open(house.url, house.name)}>Abrir</button>
               </li>
             ))}
           </ul>
@@ -125,7 +149,7 @@ export default function LoadUrlDialog({ onClose }: { onClose: () => void }) {
                       <span className="muted">{date(link.at)}</span>
                       <code>{link.url}</code>
                     </div>
-                    <button onClick={() => openUrl(link.url)}>Abrir</button>
+                    <button onClick={() => open(link.url, link.name ?? 'Casa sin nombre')}>Abrir</button>
                     <button title="Quitar de la lista (no borra la casa)" onClick={() => forgetLink(link.url)}>
                       Quitar
                     </button>

@@ -77,8 +77,32 @@ export const absoluteUrl = (url: string) => {
   }
 }
 
-/** Abre la página con la casa de esa dirección (?url=…); la carga `RemoteHouseBar`. */
+// Una dirección ya confirmada en "Cargar URL": al recargar la página con ella no
+// se vuelve a preguntar. En sessionStorage, para que valga solo esa vez.
+const CONFIRMED_KEY = 'configuradorcasa-url-confirmada'
+
+/** De qué dirección vino la casa que hay en este navegador, si vino de una. */
+function loadedFrom() {
+  try {
+    return localStorage.getItem(LOADED_KEY)
+  } catch {
+    return null
+  }
+}
+
+/** Si abrir esa dirección sustituiría una casa que se perdería (y hay que preguntar antes). */
+export const needsConfirm = (url: string) => hasPlan() && loadedFrom() !== url
+
+/**
+ * Abre la página con la casa de esa dirección (?url=…); la carga `RemoteHouseBar`.
+ * Quien la llama ya ha preguntado si hacía falta (`needsConfirm`).
+ */
 export function openUrl(url: string) {
+  try {
+    sessionStorage.setItem(CONFIRMED_KEY, url)
+  } catch {
+    // Sin almacenamiento, la página volverá a preguntar al cargar.
+  }
   // Sin codificar si no hace falta: así la dirección se lee y se puede guardar en favoritos.
   const param = /[?&#\s]/.test(url) ? encodeURIComponent(url) : url
   location.assign(`${location.pathname}?url=${param}`)
@@ -173,14 +197,17 @@ export async function reloadRemote(): Promise<RemoteResult> {
     }
     set('Casa actualizada.')
   }
-  // Solo se pregunta la primera vez y si la casa de aquí no vino de esta misma dirección.
-  let fromHere = false
-  try {
-    fromHere = localStorage.getItem(LOADED_KEY) === REMOTE_URL
-  } catch {
-    // Sin almacenamiento, como si no viniera de aquí.
-  }
-  if (lastText === null && !fromHere && hasPlan()) {
+  // Solo se pregunta la primera vez, si la casa de aquí no vino de esta misma
+  // dirección y si no se confirmó ya en "Cargar URL".
+  let confirmed = false
+  if (lastText === null)
+    try {
+      confirmed = sessionStorage.getItem(CONFIRMED_KEY) === REMOTE_URL
+      sessionStorage.removeItem(CONFIRMED_KEY)
+    } catch {
+      // Sin almacenamiento, se pregunta.
+    }
+  if (lastText === null && !confirmed && loadedFrom() !== REMOTE_URL && hasPlan()) {
     useRemote.setState({ busy: false, message: '', pending: apply })
     return 'ask'
   }

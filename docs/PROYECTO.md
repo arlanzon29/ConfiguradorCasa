@@ -448,8 +448,12 @@ línea). **Mis casas**: las direcciones abiertas o añadidas en este navegador,
 la última arriba, con su nombre y fecha, "Abrir" y "Quitar" (solo de la
 lista), y una casilla para añadir una dirección (se lee antes: si no hay un
 plano o no deja leerla, lo dice). Se guarda en `localStorage`, clave
-`configuradorcasa-direcciones`; los ejemplos no se apuntan. "Abrir" recarga la
-página con `?url=…` y la casa entra como cualquier casa de una dirección.
+`configuradorcasa-direcciones`; los ejemplos no se apuntan. "Abrir" pregunta ahí
+mismo si sustituiría la casa del navegador (`needsConfirm`) y luego recarga la
+página con `?url=…`; la casa entra como cualquier casa de una dirección, sin
+volver a preguntar (lo confirmado se pasa en `sessionStorage`,
+`configuradorcasa-url-confirmada`). Abierta la página directamente con `?url=…`
+(un QR, un favorito), la pregunta sigue saliendo en la barra.
 
 Teclas: `R` gira lo seleccionado, `Supr` lo borra, `Esc` cancela la herramienta,
 `Ctrl+Z` deshace y `Ctrl+Y` (o `Ctrl+Mayús+Z`) rehace.
@@ -777,6 +781,13 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-18** · **La pregunta de sustituir, en la ventana "Cargar URL"** (el
+  usuario: "el texto de sustituir debe aparecer en la pantalla de carga"). Al
+  pulsar "Abrir", si la casa del navegador se perdería, la pregunta sale
+  dentro de la ventana; confirmada, la página se recarga y ya no pregunta en
+  la barra. Probado en el servidor aparte (5185): abrir "Ejemplo 2" con
+  "Ejemplo 1" cargado, confirmar y carga directa.
 
 - **2026-10-18** · **"Cargar URL" en lugar de "Test 1" y "Test 2"** (lo pidió
   el usuario: una carpeta EjemplosCasa con las dos casas de ejemplo, y una
