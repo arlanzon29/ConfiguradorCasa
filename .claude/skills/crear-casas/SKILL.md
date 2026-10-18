@@ -168,7 +168,13 @@ cambio, más su línea en la tabla de `modelos-blender/LEEME.md`.
 por el usuario en GitHub Pages el 2026-10-17, "funciona"):
 
 1. Lee `casa().fotos` (cámaras) y pide el GLB: `descargarGlb()` con la vista
-   3D a la vista; el usuario acepta la descarga y dice el nombre.
+   3D a la vista; el usuario acepta la descarga y dice el nombre. **Antes,
+   pon "Detallados"** en la barra de la vista 3D (regla del usuario,
+   2026-10-18: las fotos de Blender, siempre con los muebles detallados) y
+   espera unos segundos a que carguen los modelos: el GLB lleva lo que se ve,
+   y la vista arranca siempre en "Sencillos". Con los modelos dentro pesa
+   más (5,7 MB frente a 4,3 en "Ejemplo 2"); si pesa lo mismo que en cajas,
+   no han cargado.
 2. `blender_casa.py` con `GLB` y `FOTOS` rellenos (pasos de arriba).
 3. Por cada foto: `scene.camera` a "Foto N …", resolución de su
    `resolucion`, 100 muestras en GPU (unos 20-30 s cada una), guardar en
