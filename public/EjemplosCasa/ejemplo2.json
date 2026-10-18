@@ -1,6 +1,7 @@
 {
   "app": "eurocasa-configurador",
   "version": 2,
+  "name": "Ejemplo 2",
   "shells": [
     {
       "id": "24c22809-7560-4edd-b733-727bab6ed892",

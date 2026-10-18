@@ -5,15 +5,9 @@ import { useHouse } from '../store'
 import { redo, undo, useHistory } from '../history'
 import { hasPlan } from '../remoteHouse'
 import { fileSlug, houseName } from '../model/names'
+import LoadUrlDialog from './LoadUrlDialog'
 
-// Sin barra inicial: la web puede colgar de una subcarpeta (GitHub Pages).
-// Para añadir otro: su archivo en public/ejemplos y una línea aquí.
-const EXAMPLES = [
-  { name: 'Test 1', url: 'ejemplos/ejemplo1.json' },
-  { name: 'Test 2', url: 'ejemplos/ejemplo2.json' },
-]
-
-/** Empezar un plano nuevo, guardarlo en un archivo y cargarlo desde uno, o cargar el ejemplo. */
+/** Empezar un plano nuevo, guardarlo en un archivo y cargarlo desde uno o desde una dirección. */
 export default function PlanFileButtons() {
   const undos = useHistory((s) => s.undos)
   const redos = useHistory((s) => s.redos)
@@ -25,6 +19,7 @@ export default function PlanFileButtons() {
   // Acción que sustituiría el plano actual y espera confirmación. Se pregunta en
   // la propia página: los cuadros de diálogo del navegador pueden estar bloqueados.
   const [pending, setPending] = useState<{ message: string; run: () => void } | null>(null)
+  const [urlDialog, setUrlDialog] = useState(false)
 
   const startNew = () => {
     newPlan()
@@ -74,18 +69,6 @@ export default function PlanFileButtons() {
 
   const load = async (file: File) => loadText(await file.text(), 'este archivo')
 
-  /** Una de las casas de ejemplo que viajan con la web (public/ejemplos). */
-  const loadExample = async (example: (typeof EXAMPLES)[number]) => {
-    setNotice('')
-    try {
-      const response = await fetch(example.url)
-      if (!response.ok) throw new Error(String(response.status))
-      await loadText(await response.text(), `el ejemplo ${example.name}`)
-    } catch {
-      setNotice('No se ha podido cargar el ejemplo.')
-    }
-  }
-
   return (
     <div className="plan-file">
       <button disabled={undos === 0} onClick={() => undo()} title="Ctrl+Z">
@@ -104,12 +87,10 @@ export default function PlanFileButtons() {
       </button>
       <button onClick={() => void save()}>Guardar plano</button>
       <button onClick={() => fileInput.current?.click()}>Cargar plano</button>
-      <p className="muted full">Cargar ejemplo:</p>
-      {EXAMPLES.map((example) => (
-        <button key={example.url} onClick={() => void loadExample(example)}>
-          {example.name}
-        </button>
-      ))}
+      <button className="full" title="Los ejemplos y las casas guardadas en una dirección" onClick={() => setUrlDialog(true)}>
+        Cargar URL
+      </button>
+      {urlDialog && <LoadUrlDialog onClose={() => setUrlDialog(false)} />}
       <input
         ref={fileInput}
         type="file"

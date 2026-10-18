@@ -277,7 +277,10 @@ Dos piezas que no se conocen (decisión del usuario, 2026-10-17):
   3. Devuelve `archivo`, `web` (la dirección para abrir), `qr` (PNG con `web`
      dentro), `seLeeIgual` y `cors`. Si `seLeeIgual` es `false` o `cors` no
      trae `*` o el origen de la web, la web no podrá leerlo: dilo.
-  4. Da al usuario la dirección `web` y enséñale el QR (SendUserFile).
+  4. Da al usuario la dirección `web` y enséñale el QR (SendUserFile). La
+     dirección del `archivo` también se puede pegar en la web, en **"Cargar
+     URL" → "Mis casas"**, donde queda apuntada (y se apunta sola al abrir la
+     casa con `web`). Las dos casas de ejemplo están en `public/EjemplosCasa/`.
 
 - La conexión está en `supabase.local.json`, en la raíz y **fuera de git**:
   `{ "url": "https://xxxx.supabase.co", "clave": "<secreta>", "bucket": "configuradorcasa" }`.

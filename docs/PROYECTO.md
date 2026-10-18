@@ -440,7 +440,16 @@ que deje leerlo desde otra web (CORS). Recargar machaca lo tocado en ese
 navegador, fotos incluidas.
 
 **Arriba del panel izquierdo**: Nuevo plano (crea un módulo vacío de 13 × 4,2 en (0, 0) y abre
-el modo Módulos), Guardar plano y Cargar plano (archivo `.json`).
+el modo Módulos), Guardar plano, Cargar plano (archivo `.json`) y **Cargar URL**
+(2026-10-18, `LoadUrlDialog.tsx`): una ventana en la página con dos pestañas.
+**Ejemplos**: las dos casas que viajan con la web, en `public/EjemplosCasa/`
+(`EXAMPLE_HOUSES` en `remoteHouse.ts`; para añadir otra, su archivo y una
+línea). **Mis casas**: las direcciones abiertas o añadidas en este navegador,
+la última arriba, con su nombre y fecha, "Abrir" y "Quitar" (solo de la
+lista), y una casilla para añadir una dirección (se lee antes: si no hay un
+plano o no deja leerla, lo dice). Se guarda en `localStorage`, clave
+`configuradorcasa-direcciones`; los ejemplos no se apuntan. "Abrir" recarga la
+página con `?url=…` y la casa entra como cualquier casa de una dirección.
 
 Teclas: `R` gira lo seleccionado, `Supr` lo borra, `Esc` cancela la herramienta,
 `Ctrl+Z` deshace y `Ctrl+Y` (o `Ctrl+Mayús+Z`) rehace.
@@ -768,6 +777,20 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-18** · **"Cargar URL" en lugar de "Test 1" y "Test 2"** (lo pidió
+  el usuario: una carpeta EjemplosCasa con las dos casas de ejemplo, y una
+  ventana con dos pestañas, los ejemplos y las casas guardadas en el
+  navegador, con una casilla para añadir una dirección). `public/ejemplos/`
+  pasa a `public/EjemplosCasa/` y cada ejemplo lleva nombre ("Ejemplo 1",
+  "Ejemplo 2"); `LoadUrlDialog.tsx`, y en `remoteHouse.ts` `EXAMPLE_HOUSES`,
+  `useLinks`, `rememberLink`, `forgetLink`, `openUrl` y `checkUrl`. Toda casa
+  que se carga desde una dirección se apunta sola en "Mis casas". Entendí que
+  la carpeta va en el repositorio (con la web), no en Supabase. Probado en el
+  servidor aparte (5185): la ventana y sus pestañas, añadir una dirección que
+  no se lee, otra sin plano y la de Supabase, abrirla, abrir un ejemplo (con
+  la pregunta de sustituir), "Quitar" y Esc. Los enlaces antiguos a
+  `ejemplos/…` dejan de funcionar.
 
 - **2026-10-18** · **Fuera la marca de la empresa** (el usuario: "no quiero
   ninguna mención"; eligió "lo que se ve y la documentación" y el nombre
