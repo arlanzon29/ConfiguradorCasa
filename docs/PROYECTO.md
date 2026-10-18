@@ -847,12 +847,22 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-18** · **"Ejemplo 2" sustituido por la casa del servidor aparte
+  (5186), con sus dos fotos** (lo pidió el usuario, "con las dos fotos de
+  Blender"): `public/EjemplosCasa/ejemplo2.json` pasa de 11 KB a 402 KB, con
+  el tejado (dos aguas, sube 0,8 m) y las fotos 1 y 2 cambiadas antes por
+  los renders de Blender (`cambiarImagenFoto`). Es el primer ejemplo con
+  fotos, en el repositorio público. Comprobado: el archivo se lee de nuevo en
+  la página (5 estancias, 2 fotos, el tejado). Copia del anterior en el
+  scratchpad de la sesión.
+
 - **2026-10-18** · **Las dos fotos de "Ejemplo 2" en Blender** (el usuario,
   con la casa abierta en el servidor aparte, 5186). GLB directo
   (`enviarA`, 4,3 MB, ya con el tejado), `blender_casa.py` con las dos
   cámaras y render a 100 muestras en GPU: Salón 27,3 s y Dormitorio 1
   29,2 s, en Descargas como `configuradorcasa-ejemplo-2_foto1.jpg` y
-  `_foto2.jpg`. Los muebles iban en "Sencillos" (cajas). Sin subir a la web.
+  `_foto2.jpg`. Los muebles iban en "Sencillos" (cajas). Después, con
+  permiso del usuario, sustituyeron a las dos fotos en la página (5186).
 
 - **2026-10-18** · **El tejado, blanco por dentro** (el usuario: "el techo
   del tejado blanco… por la parte de adentro"). La cara de abajo, la que
