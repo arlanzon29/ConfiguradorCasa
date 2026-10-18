@@ -1,9 +1,9 @@
 ---
 name: crear-casas
-description: Montar o cambiar una casa en el Configurador EuroCasa llamando a sus funciones (window.eurocasa) en vez de usar la interfaz. Úsala cuando pidan crear una casa, un módulo, estancias, puertas o ventanas, o cambiar su reparto, hablando como lo haría un comercial.
+description: Montar o cambiar una casa en ConfiguradorCasa llamando a sus funciones (window.eurocasa) en vez de usar la interfaz. Úsala cuando pidan crear una casa, un módulo, estancias, puertas o ventanas, o cambiar su reparto, hablando como lo haría un comercial.
 ---
 
-# Crear casas en el Configurador EuroCasa
+# Crear casas en ConfiguradorCasa
 
 El comercial describe la casa con sus palabras y tú la montas llamando a las
 funciones de la aplicación. Esta skill va creciendo a la vez que las funciones:
@@ -71,7 +71,7 @@ su id; los huecos, por su id.
 | `llevarCamara` | `{ estancia, mirando?, desde? }` | Lleva la cámara de la vista 3D a esa estancia, de pie (ojos a 1,6 m). Con `desde` (`noroeste`, `noreste`, `suroeste`, `sureste`) se pone en esa **esquina** y mira en diagonal al centro: es la vista que mejor enseña una estancia. Con `mirando` (`norte`, `sur`, `este`, `oeste`), centrada en la pared contraria y mirando recto. **Sin nada, va a la vista de la última foto guardada de esa estancia** (con su objetivo; devuelve `foto` con su número) y, si no hay ninguna, mira recto a lo largo del lado más largo. Una foto es de la estancia a la que mira la cámara, aunque esté sacada desde el umbral de la puerta; `casa().fotos` dice de cuál es cada una. La cámara vuela, tarda algo más de un segundo: espera antes de capturar. Úsala para enseñar o comprobar a la vista lo que has cambiado en una estancia |
 | `hacerFoto` | `{ muestras? }` | Empieza una **foto en calidad** de lo que ve la cámara (llévala antes con `llevarCamara`). `muestras`: 50, 100 o 200; sin decirlo, las que estén elegidas. Hace falta la vista 3D a la vista ("Vista 3D", "Plano + 3D" o la ventana `?vista=3d`). La primera foto tarda alrededor de un minuto en arrancar. **No la guarda**: al terminar, la página pregunta "¿Guardar la foto?" y lo decide quien la mira |
 | `verFoto` | `{ foto?, estancia? }` | Abre el **visor** con una foto guardada: la de ese número (como en `casa().fotos`) o la última de esa estancia. El visor tiene Anterior, Siguiente, Descargar y Cerrar. Si piden "la foto" de una estancia, es esto. El archivo no se puede sacar de la página desde aquí: para tenerlo, el botón "Descargar" del visor |
-| `descargarGlb` | `{ enviarA? }` | Con `enviarA`, en vez de descargar manda el GLB por POST a esa dirección (el receptor de Blender, ver "Pasar la casa a Blender"); devuelve una promesa. Sin nada: descarga la casa como `eurocasa-casa-<fecha>.glb` (lo mismo que el botón "Descargar GLB" de la vista 3D), para abrirla en Blender o Unity. Hace falta la vista 3D a la vista. El archivo cae en la carpeta de descargas del navegador; los focos van como discos emisivos, sin luz |
+| `descargarGlb` | `{ enviarA? }` | Con `enviarA`, en vez de descargar manda el GLB por POST a esa dirección (el receptor de Blender, ver "Pasar la casa a Blender"); devuelve una promesa. Sin nada: descarga la casa como `configuradorcasa-<nombre de la casa>-<fecha>.glb` (lo mismo que el botón "Descargar GLB" de la vista 3D), para abrirla en Blender o Unity. Hace falta la vista 3D a la vista. El archivo cae en la carpeta de descargas del navegador; los focos van como discos emisivos, sin luz |
 | `cambiarImagenFoto` | `{ foto, imagen }` | Sustituye la **imagen** de la foto guardada número `foto` por otra, normalmente un render de Blender hecho desde su misma cámara. `imagen` es una dirección que la página pueda leer: un `data:` o una ruta del propio servidor (en local, copia el archivo a `public/` un momento, pásale `'/<nombre>.png'` y bórralo después). Se guarda en JPEG al 92 %; conserva número, cámara y objetivo. **No se deshace**: la imagen anterior se pierde, así que confírmalo antes con quien la pide |
 
 **Pasar la casa a Blender** ("pasa la casa a Blender"; solo en el equipo del
@@ -98,7 +98,7 @@ usuario, con Blender abierto y "Start MCP Server" pulsado):
    sustituye `FOTOS = []` por
    esas fotos (JSON tal cual) y, si hace falta, `GLB` por la ruta; mándalo
    entero con `execute_blender_code`. Quita la casa anterior (colección "Casa
-   EuroCasa", "Paisaje" y lo marcado con `eurocasa`), importa el GLB, pone
+   ConfiguradorCasa", "Paisaje" y lo marcado con `eurocasa`), importa el GLB, pone
    Cycles en GPU (CUDA), cielo y sol, techo, una luz por foco, la
    carpintería mejorada (cristal de verdad que deja pasar el sol, cantos
    suavizados, manillas de metal; reconoce las piezas por su nombre
@@ -216,7 +216,7 @@ asociarlo a la base de costes de `comercial/`, que **la web no conoce**. Salen
 en `catalogoMuebles`, `catalogoAcabados`, `catalogoMecanismos` y, por
 instancia, en `casa().muebles`, `casa().huecos` y `casa().mecanismos`. Lo que
 no es catálogo (módulo, paredes, rodapié, techo, focos, tablero, espejo) tiene su código en `src/model/articles.ts`. **Todos son
-inventados por Claude**, a falta de los de EuroCasa: no los des por reales.
+inventados por Claude**, a falta de los de la empresa: no los des por reales.
 
 ## Casas guardadas: la carpeta `comercial/`
 
@@ -314,7 +314,7 @@ Dos piezas que no se conocen (decisión del usuario, 2026-10-17):
 ## Criterio de diseño
 
 **Provisional**: es criterio general puesto por Claude, a falta del de
-EuroCasa. Cuando el usuario dé una regla suya, sustituye a la de aquí.
+la empresa. Cuando el usuario dé una regla suya, sustituye a la de aquí.
 
 - Cada estancia, con **fachada** para una ventana, y con **puerta** a una
   estancia común (salón o distribuidor).

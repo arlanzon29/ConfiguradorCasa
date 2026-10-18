@@ -27,7 +27,7 @@ export interface MechanismType {
   y: number
 }
 
-// Medidas de la placa y de su módulo, en metros. Inventadas, a falta de las de EuroCasa.
+// Medidas de la placa y de su módulo, en metros. Inventadas, a falta de las de la empresa.
 export const MECHANISM_MODULE = 0.08
 export const MECHANISM_HEIGHT = 0.08
 export const MECHANISM_THICKNESS = 0.012

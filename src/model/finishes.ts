@@ -17,7 +17,7 @@ export interface FloorFinish {
 }
 
 export const FLOORS: FloorFinish[] = [
-  // Códigos provisionales, a falta de los de EuroCasa.
+  // Códigos provisionales, a falta de los de la empresa.
   { id: 'base', code: 'ACA-SIN-ACABADO', name: 'Sin acabado', color: '#c9b79a' },
   {
     id: 'pino',

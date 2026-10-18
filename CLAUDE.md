@@ -1,4 +1,4 @@
-# Configurador EuroCasa
+# ConfiguradorCasa
 
 La documentación del proyecto (qué es, conceptos, estructura, decisiones, pendientes
 y forma de trabajar con el usuario) está en `docs/PROYECTO.md`. Léela antes de tocar

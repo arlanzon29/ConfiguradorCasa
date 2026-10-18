@@ -1698,7 +1698,7 @@ function GlbExport({ onDone }: { onDone: (message: string) => void }) {
         const link = document.createElement('a')
         link.href = URL.createObjectURL(new Blob([glb as ArrayBuffer], { type: 'model/gltf-binary' }))
         const named = fileSlug(houseName(useHouse.getState().houseName)) || 'casa'
-        link.download = `eurocasa-${named}-${new Date().toISOString().slice(0, 10)}.glb`
+        link.download = `configuradorcasa-${named}-${new Date().toISOString().slice(0, 10)}.glb`
         link.click()
         setTimeout(() => URL.revokeObjectURL(link.href), 10_000)
         done?.({ ok: true, bytes: (glb as ArrayBuffer).byteLength })

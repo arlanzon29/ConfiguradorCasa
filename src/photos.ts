@@ -198,7 +198,7 @@ export function downloadPhoto(photo: Photo) {
   const link = document.createElement('a')
   link.href = URL.createObjectURL(photo.image)
   const stamp = new Date(shotAt(photo)).toISOString().slice(0, 16).replace(/[:T]/g, '-')
-  link.download = `eurocasa-foto-${stamp}.jpg`
+  link.download = `configuradorcasa-foto-${stamp}.jpg`
   link.click()
   URL.revokeObjectURL(link.href)
 }

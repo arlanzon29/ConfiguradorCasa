@@ -1,9 +1,9 @@
 # Pasa la casa del configurador a Blender. Claude lo manda entero con
 # execute_blender_code (conector MCP for Blender), después de rellenar FOTOS
 # con casa().fotos de la web. Sin GLB, coge el que dejó blender_receptor.py
-# y, si no hay, el eurocasa-casa-*.glb más reciente de Descargas.
+# y, si no hay, el configuradorcasa-*.glb más reciente de Descargas.
 #
-# Qué hace: quita la casa anterior (colección "Casa EuroCasa" y lo que puso
+# Qué hace: quita la casa anterior (colección "Casa ConfiguradorCasa" y lo que puso
 # este script), importa el GLB en esa colección, pone Cycles en GPU (CUDA),
 # cielo físico y sol, techo a 2,9 m sobre los suelos, una luz de área en cada
 # disco emisivo de los focos y una cámara por foto ("Foto N <estancia>").
@@ -18,13 +18,13 @@ recibido = os.path.join(tempfile.gettempdir(), "eurocasa-casa.glb")  # de blende
 if GLB is None and os.path.exists(recibido):
     GLB = recibido
 if GLB is None:
-    found = glob.glob(os.path.expanduser(r"~\Downloads\eurocasa-casa-*.glb"))
+    found = glob.glob(os.path.expanduser(r"~\Downloads\configuradorcasa-*.glb"))
     if not found:
-        raise SystemExit("No hay ningún eurocasa-casa-*.glb en Descargas")
+        raise SystemExit("No hay ningún configuradorcasa-*.glb en Descargas")
     GLB = max(found, key=os.path.getmtime)
 
 sc = bpy.context.scene
-NAME = "Casa EuroCasa"
+NAME = "Casa ConfiguradorCasa"
 
 # Fuera la casa anterior y lo que puso este script (se reconoce por "eurocasa").
 for viejo in (NAME, "Paisaje"):

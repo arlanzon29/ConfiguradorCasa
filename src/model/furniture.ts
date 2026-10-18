@@ -54,7 +54,7 @@ export interface FurniturePart {
   options: { id: string; name: string; color: string }[]
 }
 
-// Colores de tela de la prueba (el usuario, 2026-10-17); a falta de los de EuroCasa.
+// Colores de tela de la prueba (el usuario, 2026-10-17); a falta de los de la empresa.
 const AZUL = { id: 'azul', name: 'Azul', color: '#8fa3b0' }
 const BLANCO = { id: 'blanco', name: 'Blanco', color: '#ece9e3' }
 const ROSA = { id: 'rosa', name: 'Rosa', color: '#e2b4bd' }
@@ -71,7 +71,7 @@ const STOOL_PARTS: FurniturePart[] = [
 ]
 
 export const FURNITURE: FurnitureType[] = [
-  // Los códigos son provisionales, a falta de los de EuroCasa.
+  // Los códigos son provisionales, a falta de los de la empresa.
   { id: 'mesa-comedor', code: 'MOB-MESA-COMEDOR', family: 'comedor', name: 'Mesa de comedor', shape: 'table', width: 1.6, depth: 0.9, height: 0.75, model: 'modelos/mesa-comedor.glb' },
   { id: 'mesa-centro', code: 'MOB-MESA-CENTRO', family: 'salon', name: 'Mesa de centro', shape: 'table', width: 1.1, depth: 0.6, height: 0.4, model: 'modelos/mesa-centro.glb' },
   { id: 'television', code: 'MOB-TELEVISION', family: 'salon', name: 'Televisión', shape: 'tv', width: 1.2, depth: 0.25, height: 0.75, model: 'modelos/television.glb' },

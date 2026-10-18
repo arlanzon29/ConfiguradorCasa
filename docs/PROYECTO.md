@@ -1,4 +1,4 @@
-# Configurador EuroCasa
+# ConfiguradorCasa
 
 Web para configurar casas prefabricadas: el cliente define la casa en un plano 2D,
 la ve en 3D y elige acabados y mobiliario. Se construye **poco a poco**, función a
@@ -447,6 +447,17 @@ Teclas: `R` gira lo seleccionado, `Supr` lo borra, `Esc` cancela la herramienta,
 
 ## Decisiones de diseño que hay que respetar
 
+- **Ninguna mención a la marca de la empresa** (lo pidió el usuario el
+  2026-10-18): el nombre es **ConfiguradorCasa**, en lo que se ve (título,
+  archivos que se descargan, Blender) y en la documentación, las skills y los
+  comentarios. Se quedan, por no romper casas ni funciones, los nombres
+  internos del código que la llevan en minúscula: `window.eurocasa`, las
+  claves del navegador (`eurocasa-house`, `eurocasa-paneles`,
+  `eurocasa-url-cargada`), la base de fotos `eurocasa`, los eventos y el
+  identificador `eurocasa-configurador` de los archivos de plano. Tampoco se
+  ha tocado el historial de git, la carpeta del proyecto en el disco ni los
+  nombres de archivo de entradas antiguas de este registro.
+
 - **Tres maneras de usar la aplicación** (lo dijo el usuario el 2026-10-12):
   un usuario final, un comercial, y un comercial **desde Claude**. Para la
   tercera, **Claude maneja el navegador**: abre la web y llama a las funciones
@@ -563,7 +574,7 @@ Teclas: `R` gira lo seleccionado, `Supr` lo borra, `Esc` cancela la herramienta,
   en `FurnitureSymbol` de `Editor2D.tsx`.
 - **Familia**: una entrada en `FAMILIES`; la pestaña aparece sola.
 
-## Valores inventados, pendientes de datos reales de EuroCasa
+## Valores inventados, pendientes de datos reales de la empresa
 
 Medidas de puertas y ventanas y de su carpintería (cerco de 3 cm, tapajuntas de
 7 cm, hoja de 4 cm, perfiles de ventana de 5 cm; constantes de `joinery.ts`), alféizar (0,9 m), altura de pared, grosores, alto
@@ -639,7 +650,7 @@ que la textura "Madera de pino" cubre 2 × 2 m (supuesto, sin confirmar).
   centro de su recuadro. Su imagen pasa por la textura de 1024 px del trazador:
   en una lámina muy ancha el dibujo pierde nitidez.
 - Vinilos: los seis del catálogo son dibujos de prueba hechos aquí, a falta de
-  los de EuroCasa. Un hueco no los recorta y pueden pisarse entre sí: es a
+  los de la empresa. Un hueco no los recorta y pueden pisarse entre sí: es a
   propósito. Los límites de posición y medida son los del vinilo sin girar, así
   que girado puede asomar por el borde de la pared. Al encoger la
   estancia no se reencajan: el que deja de caber sigue ahí, salido de su pared.
@@ -758,6 +769,16 @@ medida variable, exterior…).
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
 
+- **2026-10-18** · **Fuera la marca de la empresa** (el usuario: "no quiero
+  ninguna mención"; eligió "lo que se ve y la documentación" y el nombre
+  "ConfiguradorCasa"). Título de la web y del panel, archivos que se descargan
+  (`configuradorcasa-<casa>-<fecha>.json` y `.glb`, `configuradorcasa-foto-…`),
+  la colección de Blender ("Casa ConfiguradorCasa") y lo que busca
+  `blender_casa.py` en Descargas, `package.json`, comentarios, skills,
+  `CLAUDE.md` y este documento. Los nombres internos del código siguen igual
+  (ver Decisiones). Comprobado con `tsc` y la compilación; sin verlo a la vista.
+  Una casa de Blender de antes deja la colección vieja: hay que borrarla a mano.
+
 - **2026-10-18** · **Primera casa por Supabase, de punta a punta**: `subir_casa.mjs`
   subió "Test 2" como `configuradorcasa/demo.json` (11 KB), se lee igual sin
   clave, con CORS `*` y `Cache-Control: no-cache`; la web publicada (`521c2b6`)
@@ -777,7 +798,7 @@ Se anota aquí cada cosa que se hace, la más reciente arriba.
   de plano (sin cambiar de versión; los de antes no lo traen y se llaman
   "Casa"). Casilla "Nombre" al elegir "Casa" en el árbol (`HouseProperties`),
   y la rama de arriba del árbol lleva el nombre. Los archivos que se descargan
-  lo llevan: `eurocasa-casa-garcia-2026-10-17.json` y `.glb` (`fileSlug` en
+  lo llevan: `configuradorcasa-casa-garcia-2026-10-17.json` y `.glb` (`fileSlug` en
   `names.ts`). En `window.eurocasa`, `nombrarCasa` y `nombre` en `casa()`; en
   la skill `crear-casas`. "Nuevo plano" lo quita. Probado en el servidor aparte
   (5185): nombrar por función y con la casilla, el árbol, el archivo, deshacer,
@@ -1106,7 +1127,7 @@ Se anota aquí cada cosa que se hace, la más reciente arriba.
   `crear-casas` (lo pidió el usuario: llevar el GLB directo a Blender), con el
   guion `.claude/skills/crear-casas/blender_casa.py`, que Claude rellena con
   `casa().fotos` y manda por el conector: quita la casa anterior, importa el
-  GLB más reciente de Descargas en la colección "Casa EuroCasa" y pone
+  GLB más reciente de Descargas en la colección "Casa ConfiguradorCasa" y pone
   Cycles en CUDA, cielo y sol, techo, luces de los focos y una cámara por
   foto. Sin cambios en la web. Probado con la casa del usuario: 5 focos, techo
   de 13 × 4,2 m y las dos cámaras, vista la del dormitorio. La descarga del
@@ -1724,7 +1745,7 @@ Se anota aquí cada cosa que se hace, la más reciente arriba.
   rodapié, vinilos, espejos y tableros, guardar una foto y elegir su filtro
   u objetivo, y guardar o cargar el plano. **Pendiente**: probarlo con la
   extensión de Chrome, una versión de la skill para comerciales, el criterio
-  de diseño de EuroCasa en lugar del mío, y muebles de baño y cocina en el
+  de diseño de la empresa en lugar del mío, y muebles de baño y cocina en el
   catálogo.
 
 - **2026-10-12** · **Casa de prueba montada en la web publicada** (lo pidió
@@ -1874,7 +1895,7 @@ Se anota aquí cada cosa que se hace, la más reciente arriba.
   trabaja, las funciones, cómo tratar con el comercial (preguntar si la
   petición tiene varias lecturas, no añadir estancias sin pedirlo, decir qué
   se ha decidido) y un criterio de diseño **provisional, puesto por Claude**,
-  a falta del de EuroCasa. `cambiarHueco` cambia ancho, alto y altura de un
+  a falta del de la empresa. `cambiarHueco` cambia ancho, alto y altura de un
   hueco y hacia qué estancia abre una puerta (`abreHacia`, por nombre, o
   "fuera"); `ponerHueco` admite lo mismo, y `casa()` devuelve también los
   `huecos`. Probado en el servidor aparte (5183): las puertas de habitación y

@@ -50,9 +50,9 @@ export default function PlanFileButtons() {
     )
     const link = document.createElement('a')
     link.href = url
-    // Con el nombre de la casa, si lo tiene: "eurocasa-casa-garcia-2026-10-17.json".
+    // Con el nombre de la casa, si lo tiene: "configuradorcasa-casa-garcia-2026-10-17.json".
     const named = fileSlug(houseName(useHouse.getState().houseName)) || 'casa'
-    link.download = `eurocasa-${named === 'casa' ? 'plano' : named}-${new Date().toISOString().slice(0, 10)}.json`
+    link.download = `configuradorcasa-${named === 'casa' ? 'plano' : named}-${new Date().toISOString().slice(0, 10)}.json`
     link.click()
     URL.revokeObjectURL(url)
     setNotice('')

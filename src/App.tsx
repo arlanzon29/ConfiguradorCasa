@@ -142,7 +142,7 @@ export default function App() {
       ) : (
         <aside className="sidebar">
           <div className="panel-head">
-            <h1>Configurador EuroCasa</h1>
+            <h1>ConfiguradorCasa</h1>
             <button
               className="panel-toggle"
               title="Ocultar el panel"

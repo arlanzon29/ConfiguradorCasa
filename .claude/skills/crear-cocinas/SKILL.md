@@ -1,9 +1,9 @@
 ---
 name: crear-cocinas
-description: Montar o cambiar la cocina de una casa en el Configurador EuroCasa (electrodomésticos, armarios, encimera, fregadero, vitrocerámica, tapas de madera) con las funciones de window.eurocasa, paso a paso con el usuario. Úsala cuando pidan preparar, ampliar o cambiar una cocina, o poner un electrodoméstico, una encimera o un fregadero. Complementa a crear-casas.
+description: Montar o cambiar la cocina de una casa en ConfiguradorCasa (electrodomésticos, armarios, encimera, fregadero, vitrocerámica, tapas de madera) con las funciones de window.eurocasa, paso a paso con el usuario. Úsala cuando pidan preparar, ampliar o cambiar una cocina, o poner un electrodoméstico, una encimera o un fregadero. Complementa a crear-casas.
 ---
 
-# Crear cocinas en el Configurador EuroCasa
+# Crear cocinas en ConfiguradorCasa
 
 Esta skill es de **cocinas**. Para lo demás (dónde se trabaja, módulos,
 estancias, puertas, ventanas, cámara, fotos, cómo hablar con el comercial) lee
@@ -193,5 +193,5 @@ catálogo: si cambian, léelos de `catalogoMuebles()` en vez de escribirlos.
 - Voladizo y barra a más altura del desayunador, taburetes, y la unión con la
   encimera (escalón de 2 cm), el horno en la hilera.
 - Guardar la cocina de prueba como casa en `comercial/`.
-- Los códigos de artículo y el criterio de diseño de EuroCasa, que sustituyan a
+- Los códigos de artículo y el criterio de diseño de la empresa, que sustituyan a
   los provisionales.

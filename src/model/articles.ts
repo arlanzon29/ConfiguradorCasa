@@ -6,7 +6,7 @@
 // Sirven para asociar la casa a una base de costes que vive **fuera de la web**
 // (carpeta `comercial/`). La web no sabe de precios, solo de códigos.
 //
-// Los códigos son provisionales, a falta de los de EuroCasa: se cambian aquí.
+// Los códigos son provisionales, a falta de los de la empresa: se cambian aquí.
 
 export const ARTICLES = {
   /** Módulo de fábrica (la pieza que sale de fábrica). */
