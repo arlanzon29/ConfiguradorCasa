@@ -441,7 +441,10 @@ sale "Gatillo: ir aquí" y el gatillo te lleva, mirando hacia donde mirabas
 (`TeleportMarker`, `teleportRequest` en `VRRig`). Apuntar, resaltar y el
 cartel son comunes a puertas y puntos (`useAim`, `AimLabel`). Al salir, la cámara y el marcador del plano quedan donde
 dejaste la cabeza. En VR se apaga la cámara de ratón y teclado
-(`DesktopControls`). La foto en calidad no existe en VR. En localhost, si el
+(`DesktopControls`). La foto en calidad no existe en VR. **Cámaras de las fotos** (2026-10-18,
+`PhotoCameraMarker`): en VR y AR, una cámara donde se sacó cada foto guardada;
+apuntándola, el gatillo enseña la foto delante de los ojos y el gatillo otra
+vez, o B o Y, la cierra (con una foto abierta, B o Y no salen de la VR). En localhost, si el
 navegador no tiene WebXR, la librería emula unas Quest 3 (solo desarrollo).
 
 **Realidad aumentada** (2026-10-12, `ARTable` en `View3D.tsx`): botón **"Maqueta
@@ -846,6 +849,22 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-18** · **Cámaras de las fotos en VR y AR** (el usuario: "una
+  cámara en VR o AR para saber dónde hay fotos y que se puedan ver"). Eligió:
+  al pulsar, la foto delante de los ojos, y en VR y AR. `PhotoCameraMarker`
+  (una cámara oscura con su objetivo, donde se sacó cada foto, a la altura
+  de los ojos y con su giro e inclinación; en la maqueta AR se agranda hasta
+  4 cm para poder apuntarla), `photoPanel` y el visor en `VRRig`, todo en
+  `View3D.tsx`. Apuntando: naranja y "Gatillo: ver la foto N"; el gatillo la
+  enseña a 1 m, de 1,1 m de ancho, con "Foto N · Gatillo, B o Y: cerrar"
+  debajo; con una foto abierta, B o Y la cierran en vez de salir, y el
+  gatillo que la cierra no acciona lo que haya detrás. Los carteles de
+  entrada lo dicen. Probado en el servidor aparte (5186), sacándolas un
+  momento en la vista normal: sitio, altura y orientación de las dos
+  cámaras. **Sin probar en VR ni AR**: el navegador de la app trae ya WebXR
+  propio y el emulador de Quest no se instala, así que ni el rayo, ni la
+  foto delante, ni cerrarla, ni el tamaño en la maqueta.
 
 - **2026-10-18** · **Las fotos de Blender, siempre con los muebles
   detallados** (regla del usuario, al ver que las de "Ejemplo 2" habían

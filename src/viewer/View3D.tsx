@@ -69,7 +69,7 @@ import {
 import { VINYLS, VinylSheet, vinylPlacement, vinylSheets, vinylType } from '../model/vinyls'
 import { OPPOSITE, Opening } from '../model/openings'
 import { Joints, Wall, deriveWalls, openingsOf, wallAcross } from '../model/walls'
-import { Shot, usePhotos } from '../photos'
+import { Photo, Shot, usePhotos } from '../photos'
 import { REMOTE_URL, reloadRemote } from '../remoteHouse'
 import { GLB_EVENT, GlbRequest, LENSES, PHOTO_EVENT, PHOTO_SAMPLES, cameraFlying, samePose, stopCameraFlight, useHouse } from '../store'
 import Furniture3D from './Furniture3D'
@@ -591,6 +591,8 @@ function useAim(interactive: boolean, onAction: () => void) {
           }),
         onClick: (e: ThreeEvent<MouseEvent>) => {
           e.stopPropagation()
+          // El gatillo que acaba de cerrar una foto no acciona lo que haya detrás.
+          if (photoClickSwallowed()) return
           onAction()
         },
       }
@@ -660,6 +662,97 @@ function TeleportMarker({ point }: { point: TeleportPoint }) {
       {hovered && <AimLabel at={hit} text="Gatillo: ir aquí" />}
     </>
   )
+}
+
+// Fotos en la VR y la AR (lo pidió el usuario): una cámara pequeña donde se
+// sacó cada foto, mirando hacia donde miraba; apuntándola, el gatillo enseña la
+// foto delante de los ojos, y el gatillo otra vez, o B o Y, la cierra.
+
+/** La foto que se pide ver (su id); la atiende `VRRig`. */
+let photoRequest: string | null = null
+// El gatillo que cierra una foto no debe accionar, al soltarlo, lo que haya
+// detrás (otra cámara, una puerta): se ignoran los clics hasta poco después.
+let photoClickHold = false
+let photoClickUntil = 0
+const photoClickSwallowed = () => photoClickHold || performance.now() < photoClickUntil
+
+const PHOTO_CAMERA_COLOR = '#2b2f36'
+// Lo que mide la cámara en la maqueta AR, como poco, para poder apuntarla.
+const PHOTO_CAMERA_MIN_AR = 0.04
+// Ancho de la foto delante de los ojos y a qué distancia, en metros.
+const PHOTO_PANEL_WIDTH = 1.1
+const PHOTO_PANEL_DISTANCE = 1
+
+/** La cámara de una foto guardada, en su sitio y con su giro. */
+function PhotoCameraMarker({ photo, number }: { photo: Photo; number: number }) {
+  const group = useRef<Group>(null)
+  const { hovered, hit, handlers } = useAim(true, () => {
+    photoRequest = photo.id
+  })
+  const scale = useRef(new Vector3())
+  // En la maqueta AR, a 1:20, mediría 8 mm: se agranda para que se vea y se pueda apuntar.
+  useFrame(() => {
+    const g = group.current
+    if (!g?.parent) return
+    const world = g.parent.getWorldScale(scale.current).x || 1
+    g.scale.setScalar(Math.max(1, PHOTO_CAMERA_MIN_AR / (0.16 * world)))
+  })
+  const [x, y, z] = photo.pose.position
+  const color = hovered ? VR_ACTIVE_COLOR : PHOTO_CAMERA_COLOR
+  return (
+    <>
+      <group
+        ref={group}
+        position={[x + PLOT.width / 2, y, z + PLOT.depth / 2]}
+        rotation={[photo.pose.pitch, photo.pose.yaw, 0, 'YXZ']}
+        {...handlers}
+      >
+        <mesh>
+          <boxGeometry args={[0.16, 0.1, 0.07]} />
+          <meshStandardMaterial color={color} roughness={0.5} />
+        </mesh>
+        {/* El objetivo, hacia delante (hacia donde mira la foto). */}
+        <mesh position-z={-0.06} rotation-x={Math.PI / 2}>
+          <cylinderGeometry args={[0.035, 0.035, 0.05, 24]} />
+          <meshStandardMaterial color="#111316" roughness={0.3} />
+        </mesh>
+        <mesh position={[-0.045, 0.06, 0]}>
+          <boxGeometry args={[0.04, 0.02, 0.04]} />
+          <meshStandardMaterial color={color} roughness={0.5} />
+        </mesh>
+      </group>
+      {hovered && <AimLabel at={hit} text={`Gatillo: ver la foto ${number}`} />}
+    </>
+  )
+}
+
+/** La foto delante de los ojos, con su número y cómo cerrarla debajo. */
+async function photoPanel(photo: Photo, number: number) {
+  const bitmap = await createImageBitmap(photo.image)
+  const width = Math.min(bitmap.width, 1600)
+  const height = Math.round((bitmap.height * width) / bitmap.width)
+  const bar = Math.round(width * 0.05)
+  const canvas = document.createElement('canvas')
+  canvas.width = width
+  canvas.height = height + bar
+  const ctx = canvas.getContext('2d')!
+  ctx.drawImage(bitmap, 0, 0, width, height)
+  bitmap.close()
+  ctx.fillStyle = 'rgba(20, 24, 28, 0.9)'
+  ctx.fillRect(0, height, width, bar)
+  ctx.fillStyle = '#ffffff'
+  ctx.font = `bold ${Math.round(bar * 0.5)}px sans-serif`
+  ctx.textAlign = 'center'
+  ctx.fillText(`Foto ${number} · Gatillo, B o Y: cerrar`, width / 2, height + bar * 0.66)
+  const texture = new CanvasTexture(canvas)
+  texture.colorSpace = SRGBColorSpace
+  const mesh = new Mesh(
+    new PlaneGeometry(PHOTO_PANEL_WIDTH, (PHOTO_PANEL_WIDTH * canvas.height) / canvas.width),
+    new MeshBasicMaterial({ map: texture, depthTest: false }),
+  )
+  mesh.position.set(0, 0, -PHOTO_PANEL_DISTANCE)
+  mesh.renderOrder = 1000
+  return mesh
 }
 
 /** Un cartel pequeño, delante de los ojos y siempre encima, que dice cómo salir de la VR. */
@@ -965,6 +1058,7 @@ function VRRig({ ar }: { ar: boolean }) {
       ? exitHint('Pulsa B o Y para salir', [
           'Botón lateral: coger la maqueta',
           'Gatillo apuntando a una puerta: abrirla',
+          'Gatillo apuntando a una cámara: ver su foto',
           'Los dos botones laterales: escalar y girar',
           'Stick izquierdo: moverla',
           'Stick derecho: girarla',
@@ -976,6 +1070,7 @@ function VRRig({ ar }: { ar: boolean }) {
           'Stick: caminar y girar',
           'Apunta a una puerta y pulsa el gatillo',
           'Círculos del suelo: apunta y gatillo para ir',
+          'Cámaras: apunta y gatillo para ver la foto',
           ...(REMOTE_URL ? ['A o X: recargar la casa'] : []),
           __APP_VERSION__,
         ])
@@ -1013,11 +1108,58 @@ function VRRig({ ar }: { ar: boolean }) {
     notice.current = { mesh, timer: window.setTimeout(hideNotice, VR_NOTICE_MS) }
   }
   useEffect(() => hideNotice, [session])
+
+  // La foto que se está viendo, delante de los ojos (ver `PhotoCameraMarker`).
+  const shown = useRef<Mesh | null>(null)
+  const triggerHeld = useRef(false)
+  const closePhoto = () => {
+    const mesh = shown.current
+    if (!mesh) return
+    mesh.removeFromParent()
+    mesh.geometry.dispose()
+    ;(mesh.material as MeshBasicMaterial).map?.dispose()
+    ;(mesh.material as MeshBasicMaterial).dispose()
+    shown.current = null
+  }
+  useEffect(() => {
+    photoRequest = null
+    return closePhoto
+  }, [session])
+
   useFrame((_, delta) => {
     if (!session) return
-    // B / Y (el botón de arriba de cada mando) sale de la VR.
-    const pressed = Array.from(session.inputSources).some((s) => s.gamepad?.buttons[5]?.pressed)
-    if (pressed && !exitHeld.current) void session.end()
+    const anyPressed = (button: number) =>
+      Array.from(session.inputSources).some((s) => s.gamepad?.buttons[button]?.pressed)
+    // Una foto pedida apuntando a su cámara: delante de los ojos, sustituyendo a la que hubiera.
+    if (photoRequest) {
+      const id = photoRequest
+      photoRequest = null
+      const photos = usePhotos.getState().photos
+      const photo = photos.find((p) => p.id === id)
+      if (photo)
+        void photoPanel(photo, photos.indexOf(photo) + 1).then((mesh) => {
+          closePhoto()
+          gl.xr.getCamera().add(mesh)
+          shown.current = mesh
+        })
+    }
+    // Con una foto a la vista, el gatillo la cierra; lo que haya detrás no se acciona.
+    const trigger = anyPressed(0)
+    if (trigger && !triggerHeld.current && shown.current) {
+      closePhoto()
+      photoClickHold = true
+    }
+    if (!trigger && triggerHeld.current && photoClickHold) {
+      photoClickHold = false
+      photoClickUntil = performance.now() + 300
+    }
+    triggerHeld.current = trigger
+    // B / Y (el botón de arriba de cada mando) cierra la foto, si hay una, o sale de la VR.
+    const pressed = anyPressed(5)
+    if (pressed && !exitHeld.current) {
+      if (shown.current) closePhoto()
+      else void session.end()
+    }
     exitHeld.current = pressed
     // Con una casa de una dirección (?url=…), recargarla sin salir: A o X en la VR;
     // en la AR, que ya usa A o X para el tamaño real, pulsar un stick.
@@ -2292,6 +2434,8 @@ export default function View3D() {
             interactive={xrDoors}
           />
         ))}
+        {/* Cámaras de las fotos guardadas, en VR y AR: apuntándolas se ve la foto. */}
+        {xrDoors && photos.map((photo, i) => <PhotoCameraMarker key={photo.id} photo={photo} number={i + 1} />)}
         {/* Puntos de salto de la VR. */}
         {jumps.map((point) => (
           <TeleportMarker key={point.key} point={point} />
