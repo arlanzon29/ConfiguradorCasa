@@ -73,8 +73,8 @@ Las paredes siguen deducidas.
 Otros elementos:
 
 - **Solera** (2026-10-18): cada módulo se apoya en la suya, una losa de
-  hormigón que **sobresale** lo mismo por los cuatro lados (`slabMargin`, por
-  defecto 0,5 m, lo dijo el usuario) y tiene un **grosor** (`slabHeight`, por
+  hormigón que **sobresale** lo que se diga **por cada lado** (`slabMargins`,
+  por lado; por defecto 0, lo dijo el usuario; gira con el módulo) y tiene un **grosor** (`slabHeight`, por
   defecto 0,2 m, inventado) que es la altura del suelo de la casa sobre el
   terreno: **sustituye a la losa fija de 20 cm** que había bajo cada estancia
   (`SLAB` en `View3D.tsx`, decisión del usuario). Se guarda en el módulo
@@ -234,7 +234,7 @@ fotos/                           fotos de referencia que pasa el usuario (exteri
 | `GRID` | 0,2 m | Rejilla visible y paso de arrastre. 13 × 4,2 = 65 × 21 cuadros |
 | `SHELL_MAX_LONG/SHORT`, `MAX_SHELLS` | 13 / 4,2 / 2 | Límite de fabricación |
 | `WALL_HEIGHT` | 2,7 m | Inventado; pendiente de confirmar |
-| `DEFAULT_SLAB_MARGIN`, `DEFAULT_SLAB_HEIGHT` | 0,5 / 0,2 m | Solera: lo que sobresale (del usuario) y grosor (inventado). Grosor de 0,05 a 1 m; vuelo de 0 a 3 m |
+| `DEFAULT_SLAB_MARGIN`, `DEFAULT_SLAB_HEIGHT` | 0 / 0,2 m | Solera: lo que sobresale por cada lado (del usuario) y grosor (inventado). Grosor de 0,05 a 1 m; vuelo de 0 a 3 m |
 | `DEFAULT_WALL_THICKNESS` | 0,15 m | Exterior. Compartida: 0,10 m (`walls.ts`) |
 | `MIN_SIZE` | 1 m | Lado mínimo de estancia o módulo |
 | `DEFAULT_SKIRTING_HEIGHT/COLOR`, `MAX_SKIRTING_HEIGHT` | 0,07 m / blanco / 0,30 m | Rodapié. Sobresale 1,2 cm (`SKIRTING_DEPTH` en `View3D.tsx`) |
@@ -320,7 +320,7 @@ Casa
 | Elegido | Arriba (datos) | Debajo (añadir y acabados) |
 |---|---|---|
 | Casa | nombre; terreno de la parcela (acabado, "Volver al césped") | Añadir módulo horizontal o vertical. Se ve toda la parcela |
-| Módulo | distancia al borde izquierdo y superior de la parcela; ancho y fondo; solera (cuánto sobresale y grosor, en cm); girar, eliminar | Añadir estancia (catálogo y medida personalizada) y el resumen |
+| Módulo | distancia al borde izquierdo y superior de la parcela; ancho y fondo; solera (grosor y lo que sobresale por cada lado, en cm); girar, eliminar | Añadir estancia (catálogo y medida personalizada) y el resumen |
 | Estancia | distancia al borde de su módulo; ancho y fondo; girar, eliminar | Suelo, techo (si lo lleva en la foto y su acabado), acabado de todas sus paredes, "Añadir luz" (foco de techo) y el catálogo de **mobiliario** con el icono de imán |
 | Foco | distancia a la izquierda y arriba, "Centrar en la estancia", potencia (%), tono, color de emisión, eliminar | — |
 | Pared | grosor (cm); rodapié (alto y color); quitar/poner | Añadir hueco (puerta, corredera, ventana); en una compartida, de qué estancia es **la cara** que se viste; color de esa cara, y añadir vinilo, espejo o tablero |
@@ -812,6 +812,14 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-18** · **Solera: lo que sobresale, por cada lado y 0 por
+  defecto** (el usuario: "la parte de reborde es por cada lado, por defecto
+  cero"). `slabMargins` por lado en lugar de `slabMargin` (el campo de una
+  sola medida, de esta mañana, se deja de leer), cuatro casillas en el panel
+  del módulo, gira con el módulo, y `cambiarSolera` admite un número o
+  `{ norte, sur, este, oeste }`. Probado en el servidor aparte (5185): las
+  funciones y sus errores, cuatro giros, el panel y el plano.
 
 - **2026-10-18** · **Solera de cada módulo y terreno de la parcela** (el
   usuario: "la casa se debe apoyar con una solera de un determinado ancho",

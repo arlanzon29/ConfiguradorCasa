@@ -33,8 +33,8 @@ cambio.
   izquierda de su módulo.
 - Las estancias deben **llenar el módulo**: lo que queda sin estancia no tiene
   suelo ni paredes en 3D (se ve la solera).
-- **Solera**: cada módulo se apoya en la suya, que sobresale lo mismo por los
-  cuatro lados (0,5 m por defecto) y tiene un grosor (0,2 m por defecto), que
+- **Solera**: cada módulo se apoya en la suya, que sobresale lo que se diga
+  por cada lado (nada por defecto) y tiene un grosor (0,2 m por defecto), que
   es la altura del suelo de la casa sobre el terreno. Alrededor, el **terreno**
   de toda la parcela (césped si no se elige otro).
 - Grosor de pared: 0,15 m las exteriores, 0,10 m las compartidas (0,05 m a
@@ -54,7 +54,7 @@ su id; los huecos, por su id.
 | `nuevoPlano()` | — | Borra todo (también el nombre) y deja un módulo vacío de 13 × 4,2 m |
 | `nombrarCasa` | `nombre` | Pone nombre a la casa (sale en el árbol, en el archivo de plano y en los nombres de lo que se descarga). Vacío, vuelve a "Casa". Al montar una casa para un cliente, ponle nombre ("Casa García") |
 | `medirModulo` | `{ modulo?, ancho, fondo }` | Sin `modulo`, el primero. Falla si alguna estancia dejaría de caber |
-| `cambiarSolera` | `{ modulo?, sobresale?, grosor? }` | En metros. Sin `modulo`, el primero. `sobresale`: de 0 a 3 (lo que sale la solera del módulo por cada lado); `grosor`: de 0,05 a 1, y **sube o baja toda la casa** de ese módulo. Lo que no se diga no cambia. Si hay dos módulos, ponles el mismo grosor salvo que pidan otra cosa: con grosores distintos la casa queda a dos alturas |
+| `cambiarSolera` | `{ modulo?, sobresale?, grosor? }` | En metros. Sin `modulo`, el primero. `sobresale`: un número (los cuatro lados) o `{ norte?, sur?, este?, oeste? }`, de 0 a 3 m cada uno; `casa()` lo devuelve por lados; `grosor`: de 0,05 a 1, y **sube o baja toda la casa** de ese módulo. Lo que no se diga no cambia. Si hay dos módulos, ponles el mismo grosor salvo que pidan otra cosa: con grosores distintos la casa queda a dos alturas |
 | `ponerTerreno` | `{ acabado }` | El suelo de **toda la parcela** alrededor de la casa: un material o un color (como `ponerSuelo`), o `césped` para volver al de siempre. Solo se ve en 3D |
 | `crearEstancia` | `{ nombre?, ancho, fondo, x?, y?, modulo? }` | Con `x` e `y`, en ese sitio; sin ellos, en el primer hueco libre |
 | `eliminarEstancia` | `{ estancia }` | Se lleva sus huecos y muebles |

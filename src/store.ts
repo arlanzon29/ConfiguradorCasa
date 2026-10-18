@@ -163,7 +163,7 @@ interface HouseState {
    * Solera de un módulo: grosor y lo que sobresale, en metros. Lo que falte no
    * cambia. Devuelve un mensaje de error, o '' si se ha aplicado.
    */
-  setShellSlab: (id: string, slab: { height?: number; margin?: number }) => string
+  setShellSlab: (id: string, slab: { height?: number; margins?: Partial<Record<Side, number>> }) => string
   selectedShellId: string | null
   selectShell: (id: string | null) => void
   /** Añade un módulo vacío del tamaño máximo. False si ya están todos o no cabe. */
@@ -763,6 +763,15 @@ export const useHouse = create<HouseState>()(
           const rotated = {
             ...current,
             ...clampToPlot({ ...current, width: current.depth, depth: current.width }),
+            // Lo que sobresale la solera gira con el módulo: n→e→s→w→n.
+            ...(current.slabMargins && {
+              slabMargins: {
+                e: current.slabMargins.n,
+                s: current.slabMargins.e,
+                w: current.slabMargins.s,
+                n: current.slabMargins.w,
+              },
+            }),
           }
           if (!shellFits(rotated, shells.filter((s) => s.id !== id))) {
             return 'Girado pisaría el otro módulo; sepáralos antes.'
@@ -815,14 +824,14 @@ export const useHouse = create<HouseState>()(
           return ''
         },
 
-        setShellSlab: (id, { height, margin }) => {
+        setShellSlab: (id, { height, margins }) => {
           const { shells } = get()
           const current = shells.find((s) => s.id === id)
           if (!current) return ''
           if (height !== undefined && !(height >= MIN_SLAB_HEIGHT && height <= MAX_SLAB_HEIGHT)) {
             return `El grosor de la solera va de ${formatMeters(MIN_SLAB_HEIGHT)} a ${formatMeters(MAX_SLAB_HEIGHT)} m.`
           }
-          if (margin !== undefined && !(margin >= 0 && margin <= MAX_SLAB_MARGIN)) {
+          if (Object.values(margins ?? {}).some((m) => !(m! >= 0 && m! <= MAX_SLAB_MARGIN))) {
             return `La solera sobresale de 0 a ${formatMeters(MAX_SLAB_MARGIN)} m.`
           }
           set({
@@ -831,7 +840,12 @@ export const useHouse = create<HouseState>()(
                 ? {
                     ...s,
                     ...(height !== undefined && { slabHeight: roundSize(height) }),
-                    ...(margin !== undefined && { slabMargin: roundSize(margin) }),
+                    ...(margins && {
+                      slabMargins: {
+                        ...s.slabMargins,
+                        ...Object.fromEntries(Object.entries(margins).map(([k, m]) => [k, roundSize(m!)])),
+                      },
+                    }),
                   }
                 : s,
             ),

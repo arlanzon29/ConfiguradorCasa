@@ -103,15 +103,6 @@ function ShellProperties({ shell }: { shell: Shell }) {
       </Fields>
       <Fields title="Solera">
         <Field
-          label="Sobresale (cm)"
-          value={Math.round(slab.margin * 100)}
-          onApply={(cm) => {
-            const meters = Math.round(cm) / 100
-            if (!(meters >= 0 && meters <= MAX_SLAB_MARGIN)) return `Entre 0 y ${MAX_SLAB_MARGIN * 100} cm.`
-            return setShellSlab(shell.id, { margin: meters })
-          }}
-        />
-        <Field
           label="Grosor (cm)"
           value={Math.round(slab.height * 100)}
           onApply={(cm) => {
@@ -121,6 +112,20 @@ function ShellProperties({ shell }: { shell: Shell }) {
             return setShellSlab(shell.id, { height: meters })
           }}
         />
+      </Fields>
+      <Fields title="Solera: lo que sobresale (cm)">
+        {(['n', 's', 'w', 'e'] as const).map((side) => (
+          <Field
+            key={side}
+            label={{ n: 'Norte', s: 'Sur', w: 'Oeste', e: 'Este' }[side]}
+            value={Math.round(slab.margins[side] * 100)}
+            onApply={(cm) => {
+              const meters = Math.round(cm) / 100
+              if (!(meters >= 0 && meters <= MAX_SLAB_MARGIN)) return `Entre 0 y ${MAX_SLAB_MARGIN * 100} cm.`
+              return setShellSlab(shell.id, { margins: { [side]: meters } })
+            }}
+          />
+        ))}
       </Fields>
       <div className="actions spaced">
         <button onClick={() => setNotice(rotateShell(shell.id))}>Girar 90° (R)</button>

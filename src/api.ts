@@ -91,7 +91,7 @@ function casa() {
       y: s.y,
       ancho: s.width,
       fondo: s.depth,
-      solera: { sobresale: slabOf(s).margin, grosor: slabOf(s).height },
+      solera: describeSlab(s),
       estancias: modules.filter((m) => m.shellId === s.id).map((m) => describeRoom(m, s)),
     })),
     estanciasSueltas: modules.filter((m) => !m.shellId).map((m) => describeRoom(m)),
@@ -133,18 +133,41 @@ function nombrarCasa(nombre: string) {
   return casa()
 }
 
+/** La solera de un módulo: lo que sobresale por cada lado y su grosor, en metros. */
+function describeSlab(s?: Shell) {
+  const { margins, height } = slabOf(s)
+  return {
+    sobresale: Object.fromEntries(Object.entries(LADOS).map(([name, side]) => [name, margins[side]])),
+    grosor: height,
+  }
+}
+
 /**
  * Solera de un módulo (por defecto, el primero), en metros: lo que sobresale
- * del módulo por los cuatro lados y su grosor, que es la altura del suelo de
- * la casa sobre el terreno. Lo que no se diga no cambia.
+ * del módulo y su grosor, que es la altura del suelo de la casa sobre el
+ * terreno. `sobresale` es un número (los cuatro lados) o `{ norte?, sur?,
+ * este?, oeste? }`. Lo que no se diga no cambia.
  */
-function cambiarSolera(p: { modulo?: string; sobresale?: number; grosor?: number }) {
+function cambiarSolera(p: {
+  modulo?: string
+  sobresale?: number | Partial<Record<'norte' | 'sur' | 'este' | 'oeste', number>>
+  grosor?: number
+}) {
   const shell = findShell(p.modulo)
   if (!shell) return { error: `No hay ningún módulo "${p.modulo ?? ''}".` } as Fallo
-  const error = state().setShellSlab(shell.id, { margin: p.sobresale, height: p.grosor })
+  let margins: Partial<Record<Side, number>> | undefined
+  if (typeof p.sobresale === 'number') margins = { n: p.sobresale, s: p.sobresale, e: p.sobresale, w: p.sobresale }
+  else if (p.sobresale) {
+    margins = {}
+    for (const [name, v] of Object.entries(p.sobresale)) {
+      const side = LADOS[name]
+      if (!side || typeof v !== 'number') return { error: `Lado desconocido o medida no válida: "${name}".` } as Fallo
+      margins[side] = v
+    }
+  }
+  const error = state().setShellSlab(shell.id, { margins, height: p.grosor })
   if (error) return { error } as Fallo
-  const now = state().shells.find((s) => s.id === shell.id)
-  return { modulo: shellName(state().shells, shell), sobresale: slabOf(now).margin, grosor: slabOf(now).height }
+  return { modulo: shellName(state().shells, shell), ...describeSlab(state().shells.find((s) => s.id === shell.id)) }
 }
 
 /**
