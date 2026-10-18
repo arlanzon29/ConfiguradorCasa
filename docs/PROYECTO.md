@@ -320,7 +320,7 @@ Casa
 | Elegido | Arriba (datos) | Debajo (añadir y acabados) |
 |---|---|---|
 | Casa | nombre; terreno de la parcela (acabado, "Volver al césped") | Añadir módulo horizontal o vertical. Se ve toda la parcela |
-| Módulo | distancia al borde izquierdo y superior de la parcela; ancho y fondo; solera (grosor y lo que sobresale por cada lado, en cm); girar, eliminar | Añadir estancia (catálogo y medida personalizada) y el resumen |
+| Módulo | distancia al borde izquierdo y superior de la parcela; ancho y fondo; solera (grosor y lo que sobresale por cada lado, en metros); girar, eliminar | Añadir estancia (catálogo y medida personalizada) y el resumen |
 | Estancia | distancia al borde de su módulo; ancho y fondo; girar, eliminar | Suelo, techo (si lo lleva en la foto y su acabado), acabado de todas sus paredes, "Añadir luz" (foco de techo) y el catálogo de **mobiliario** con el icono de imán |
 | Foco | distancia a la izquierda y arriba, "Centrar en la estancia", potencia (%), tono, color de emisión, eliminar | — |
 | Pared | grosor (cm); rodapié (alto y color); quitar/poner | Añadir hueco (puerta, corredera, ventana); en una compartida, de qué estancia es **la cara** que se viste; color de esa cara, y añadir vinilo, espejo o tablero |
@@ -812,6 +812,9 @@ medida variable, exterior…).
 ## Registro de cambios
 
 Se anota aquí cada cosa que se hace, la más reciente arriba.
+
+- **2026-10-18** · **Solera en metros en el panel** (lo pidió el usuario),
+  como las medidas del módulo. Visto en el servidor aparte (5185).
 
 - **2026-10-18** · **Solera: lo que sobresale, por cada lado y 0 por
   defecto** (el usuario: "la parte de reborde es por cada lado, por defecto

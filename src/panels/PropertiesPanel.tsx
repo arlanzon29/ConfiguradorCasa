@@ -103,25 +103,25 @@ function ShellProperties({ shell }: { shell: Shell }) {
       </Fields>
       <Fields title="Solera">
         <Field
-          label="Grosor (cm)"
-          value={Math.round(slab.height * 100)}
-          onApply={(cm) => {
-            const meters = Math.round(cm) / 100
+          label="Grosor (m)"
+          value={slab.height}
+          onApply={(m) => {
+            const meters = roundSize(m)
             if (!(meters >= MIN_SLAB_HEIGHT && meters <= MAX_SLAB_HEIGHT))
-              return `Entre ${MIN_SLAB_HEIGHT * 100} y ${MAX_SLAB_HEIGHT * 100} cm.`
+              return `Entre ${formatMeters(MIN_SLAB_HEIGHT)} y ${formatMeters(MAX_SLAB_HEIGHT)} m.`
             return setShellSlab(shell.id, { height: meters })
           }}
         />
       </Fields>
-      <Fields title="Solera: lo que sobresale (cm)">
+      <Fields title="Solera: lo que sobresale (m)">
         {(['n', 's', 'w', 'e'] as const).map((side) => (
           <Field
             key={side}
             label={{ n: 'Norte', s: 'Sur', w: 'Oeste', e: 'Este' }[side]}
-            value={Math.round(slab.margins[side] * 100)}
-            onApply={(cm) => {
-              const meters = Math.round(cm) / 100
-              if (!(meters >= 0 && meters <= MAX_SLAB_MARGIN)) return `Entre 0 y ${MAX_SLAB_MARGIN * 100} cm.`
+            value={slab.margins[side]}
+            onApply={(m) => {
+              const meters = roundSize(m)
+              if (!(meters >= 0 && meters <= MAX_SLAB_MARGIN)) return `Entre 0 y ${formatMeters(MAX_SLAB_MARGIN)} m.`
               return setShellSlab(shell.id, { margins: { [side]: meters } })
             }}
           />
